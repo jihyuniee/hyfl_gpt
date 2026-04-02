@@ -370,48 +370,112 @@
     .sidebar { display: none; }
     .login-box { width: 92%; padding: 28px 20px; }
   }
+
+  /* ── Sidebar tabs ── */
+  .sb-tab {
+    flex:1; padding:7px 4px; font-size:12px;
+    font-family:'Noto Sans KR',sans-serif;
+    border:1px solid var(--border); border-radius:8px;
+    background:transparent; color:var(--muted); cursor:pointer;
+    transition:all 0.15s;
+  }
+  .sb-tab.active { background:var(--accent); color:white; border-color:var(--accent); }
+
+  /* ── Info panel ── */
+  .info-section { margin-bottom:14px; }
+  .info-title { font-size:12px; font-weight:500; color:var(--text); margin-bottom:6px; padding:0 2px; }
+  .info-card {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:10px; padding:12px;
+  }
+  .info-row { display:flex; align-items:flex-start; gap:6px; font-size:12px; color:var(--muted); margin-bottom:5px; line-height:1.5; }
+  .info-dot { width:4px; height:4px; border-radius:50%; background:var(--accent2); flex-shrink:0; margin-top:5px; }
+  .info-link-btn {
+    display:inline-block; margin-top:8px; font-size:12px;
+    color:var(--accent2); text-decoration:none;
+    padding:5px 10px; border:1px solid rgba(108,99,255,0.3);
+    border-radius:6px; transition:all 0.15s; width:100%; text-align:center;
+  }
+  .info-link-btn:hover { background:rgba(108,99,255,0.1); }
 </style>
 </head>
 <body>
 
 <!-- ── Login Screen ── -->
 <div id="login-screen">
-  <div class="login-box">
+  <div class="login-box" style="width:420px;">
     <div class="login-logo">HYFL edu<span>AI</span></div>
     <div class="login-sub">교육용 AI 대화 플랫폼</div>
     <div class="login-contest">
       📊 2026 공공교육데이터 AI활용대회<br>
       대회 기간 중 교사 승인 팀만 접속 가능합니다
     </div>
-    <div class="field-group">
-      <div class="field-label">학년</div>
-      <select id="grade-select" onchange="updateClassSelect()">
-        <option value="2">2학년</option>
-      </select>
+
+    <!-- 탭 -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border2);border-radius:10px;overflow:hidden;">
+      <button id="tab-login" onclick="switchTab('login')" style="flex:1;padding:10px;font-size:13px;font-family:'Noto Sans KR',sans-serif;border:none;cursor:pointer;background:var(--accent);color:white;font-weight:500;">입장하기</button>
+      <button id="tab-register" onclick="switchTab('register')" style="flex:1;padding:10px;font-size:13px;font-family:'Noto Sans KR',sans-serif;border:none;cursor:pointer;background:var(--surface2);color:var(--muted);">팀 등록 신청</button>
     </div>
-    <div class="field-group">
-      <div class="field-label">반</div>
-      <select id="class-select" onchange="updateTeamSelect()">
-        <option value="">— 반 선택 —</option>
-        <option value="1">1반</option>
-        <option value="2">2반</option>
-        <option value="3">3반</option>
-        <option value="4">4반</option>
-        <option value="5">5반</option>
-      </select>
+
+    <!-- 입장 폼 -->
+    <div id="form-login">
+      <div class="field-group">
+        <div class="field-label">반</div>
+        <select id="class-select" onchange="updateTeamSelect()">
+          <option value="">— 반 선택 —</option>
+          <option value="1">1반</option><option value="2">2반</option>
+          <option value="3">3반</option><option value="4">4반</option>
+          <option value="5">5반</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <div class="field-label">팀</div>
+        <select id="team-select">
+          <option value="">— 팀 선택 —</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <div class="field-label">팀 비밀번호</div>
+        <input type="password" id="team-pw" placeholder="비밀번호 입력" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="login-btn" onclick="doLogin()">입장하기</button>
+      <div class="login-error" id="login-error"></div>
     </div>
-    <div class="field-group">
-      <div class="field-label">팀</div>
-      <select id="team-select">
-        <option value="">— 팀 선택 —</option>
-      </select>
+
+    <!-- 팀 등록 신청 폼 -->
+    <div id="form-register" style="display:none;">
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <div style="flex:1;">
+          <div class="field-label">반</div>
+          <select id="reg-class">
+            <option value="">반 선택</option>
+            <option value="1">1반</option><option value="2">2반</option>
+            <option value="3">3반</option><option value="4">4반</option>
+            <option value="5">5반</option>
+          </select>
+        </div>
+        <div style="flex:2;">
+          <div class="field-label">팀 이름</div>
+          <input type="text" id="reg-team" placeholder="예: 데이터탐험대, 1조">
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">팀원 이름 <span style="color:var(--muted);font-size:11px;">(쉼표로 구분, 예: 홍길동, 김철수, 이영희)</span></div>
+        <input type="text" id="reg-members" placeholder="팀원 이름을 입력하세요">
+      </div>
+      <div class="field-group">
+        <div class="field-label">팀 비밀번호 설정</div>
+        <input type="password" id="reg-pw" placeholder="팀이 사용할 비밀번호">
+      </div>
+      <div class="field-group">
+        <div class="field-label">비밀번호 확인</div>
+        <input type="password" id="reg-pw2" placeholder="비밀번호 재입력">
+      </div>
+      <button class="login-btn" onclick="doRegister()">승인 요청 보내기</button>
+      <div class="login-error" id="register-error"></div>
+      <div id="register-success" style="display:none;margin-top:12px;padding:12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;font-size:13px;color:#10b981;text-align:center;line-height:1.6;"></div>
     </div>
-    <div class="field-group">
-      <div class="field-label">팀 비밀번호</div>
-      <input type="password" id="team-pw" placeholder="비밀번호 입력" autocomplete="off">
-    </div>
-    <button class="login-btn" onclick="doLogin()">입장하기</button>
-    <div class="login-error" id="login-error"></div>
+
     <div style="margin-top:20px; text-align:center;">
       <button onclick="showAdminLogin()" style="font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;">교사 관리자 로그인</button>
     </div>
@@ -431,13 +495,13 @@
   <div class="body-wrap">
     <div class="sidebar">
       <div class="sidebar-label">AI 모델</div>
-      <button class="model-btn" onclick="setModel('gpt',this)" id="btn-gpt">
+      <button class="model-btn active" onclick="setModel('gpt',this)" id="btn-gpt">
         <div class="mdot mdot-gpt"></div> GPT-4o
       </button>
       <button class="model-btn" onclick="setModel('gemini',this)" id="btn-gemini">
         <div class="mdot mdot-gemini"></div> Gemini 1.5
       </button>
-      <button class="model-btn active" onclick="setModel('claude',this)" id="btn-claude">
+      <button class="model-btn" onclick="setModel('claude',this)" id="btn-claude">
         <div class="mdot mdot-claude"></div> Claude Sonnet
       </button>
       <button class="new-chat-btn" onclick="newChat()">
@@ -472,7 +536,7 @@
           </button>
         </div>
         <div class="input-footer">
-          현재 모델: <span class="model-tag" id="model-label">Claude Sonnet</span> &nbsp;·&nbsp; 수업 목적으로만 사용하세요
+          현재 모델: <span class="model-tag" id="model-label">GPT-4o</span> &nbsp;·&nbsp; 수업 목적으로만 사용하세요
         </div>
       </div>
     </div>
@@ -504,22 +568,26 @@
       <div class="admin-section">
         <h3>API 키 설정</h3>
         <div class="api-config">
-          <div class="api-row">
-            <div class="api-label"><div class="mdot mdot-claude" style="width:10px;height:10px;"></div> Claude</div>
-            <input type="password" id="api-claude" placeholder="sk-ant-..." autocomplete="off">
+          <div style="font-size:13px;color:var(--text);line-height:1.9;">
+            API 키는 보안상 <b>Vercel 환경변수</b>에 저장합니다.<br>
+            아래 순서대로 설정하세요.
           </div>
-          <div class="api-row">
-            <div class="api-label"><div class="mdot mdot-gpt" style="width:10px;height:10px;"></div> OpenAI</div>
-            <input type="password" id="api-openai" placeholder="sk-..." autocomplete="off">
+          <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+            <div class="api-row" style="align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:10px 14px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--claude);flex-shrink:0;"></div>
+              <div style="font-size:13px;flex:1;">Claude → 변수명: <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">CLAUDE_KEY</code></div>
+            </div>
+            <div class="api-row" style="align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:10px 14px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--gpt);flex-shrink:0;"></div>
+              <div style="font-size:13px;flex:1;">GPT → 변수명: <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">OPENAI_KEY</code></div>
+            </div>
+            <div class="api-row" style="align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:10px 14px;">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--gemini);flex-shrink:0;"></div>
+              <div style="font-size:13px;flex:1;">Gemini → 변수명: <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:12px;">GEMINI_KEY</code></div>
+            </div>
           </div>
-          <div class="api-row">
-            <div class="api-label"><div class="mdot mdot-gemini" style="width:10px;height:10px;"></div> Gemini</div>
-            <input type="password" id="api-gemini" placeholder="AIza..." autocomplete="off">
-          </div>
-          <button class="save-api-btn" onclick="saveApiKeys()">API 키 저장</button>
-          <div class="save-note">
-            ⚠️ API 키는 브라우저 로컬스토리지에 저장됩니다. 실제 운영 시에는 서버 환경변수(.env)에 보관하세요.<br>
-            Vercel 배포 시 Environment Variables에 CLAUDE_KEY, OPENAI_KEY, GEMINI_KEY로 설정하면 됩니다.
+          <div style="margin-top:14px;font-size:12px;color:var(--muted);line-height:1.7;background:var(--surface2);border-radius:8px;padding:12px;">
+            📌 설정 방법: Vercel 대시보드 → 프로젝트 선택 → <b>Settings</b> → <b>Environment Variables</b> → 변수명과 키 값 입력 후 저장 → <b>Redeploy</b>
           </div>
         </div>
       </div>
@@ -566,7 +634,7 @@ const API_KEYS_KEY = 'eduai_api_keys';
 const DEFAULT_ADMIN_PW = 'teacher1234';
 
 let currentTeam = null;
-let currentModel = 'claude';
+let currentModel = 'gpt';
 let messages = [];
 let histories = [];
 let currentHistoryIdx = -1;
@@ -588,48 +656,87 @@ function getApiKeys() {
   return JSON.parse(localStorage.getItem(API_KEYS_KEY) || '{}');
 }
 
-// ── Cascade Selects ──
-function updateClassSelect() {
-  updateTeamSelect();
+// ── Tab ──
+function switchTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('form-login').style.display = isLogin ? 'block' : 'none';
+  document.getElementById('form-register').style.display = isLogin ? 'none' : 'block';
+  document.getElementById('tab-login').style.background = isLogin ? 'var(--accent)' : 'var(--surface2)';
+  document.getElementById('tab-login').style.color = isLogin ? 'white' : 'var(--muted)';
+  document.getElementById('tab-register').style.background = isLogin ? 'var(--surface2)' : 'var(--accent)';
+  document.getElementById('tab-register').style.color = isLogin ? 'var(--muted)' : 'white';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('register-error').style.display = 'none';
+  document.getElementById('register-success').style.display = 'none';
 }
+
+// ── Cascade Selects ──
+function updateClassSelect() { updateTeamSelect(); }
 
 function updateTeamSelect() {
   const cls = document.getElementById('class-select').value;
   const teamSel = document.getElementById('team-select');
   teamSel.innerHTML = '<option value="">— 팀 선택 —</option>';
   if (!cls) return;
-  const teams = getTeams().filter(t => t.grade === '2' && t.cls === cls && t.status === 'active');
-  teams.forEach(t => {
+  getTeams().filter(t => t.grade === '2' && t.cls === cls && t.status === 'active').forEach(t => {
     const opt = document.createElement('option');
     opt.value = t.name; opt.textContent = t.name;
     teamSel.appendChild(opt);
   });
 }
 
-function populateTeamSelect() {
-  updateTeamSelect();
-}
+function populateTeamSelect() { updateTeamSelect(); }
 
 // ── Login ──
 function doLogin() {
-  const grade = '2';
-  const cls = document.getElementById('class-select').value;
+  const cls  = document.getElementById('class-select').value;
   const team = document.getElementById('team-select').value;
-  const pw = document.getElementById('team-pw').value;
-  const err = document.getElementById('login-error');
+  const pw   = document.getElementById('team-pw').value;
+  const err  = document.getElementById('login-error');
   if (!cls)  { showError(err, '반을 선택해주세요'); return; }
   if (!team) { showError(err, '팀을 선택해주세요'); return; }
   if (!pw)   { showError(err, '비밀번호를 입력해주세요'); return; }
-  const found = getTeams().find(t => t.grade === grade && t.cls === cls && t.name === team);
-  if (!found) { showError(err, '팀을 찾을 수 없습니다'); return; }
-  if (found.status !== 'active') { showError(err, '아직 교사 승인이 되지 않은 팀입니다'); return; }
-  if (found.password !== pw) { showError(err, '비밀번호가 틀렸습니다'); return; }
+  const found = getTeams().find(t => t.grade === '2' && t.cls === cls && t.name === team);
+  if (!found)                   { showError(err, '팀을 찾을 수 없습니다'); return; }
+  if (found.status !== 'active'){ showError(err, '아직 교사 승인이 되지 않은 팀입니다'); return; }
+  if (found.password !== pw)    { showError(err, '비밀번호가 틀렸습니다'); return; }
   currentTeam = `2학년 ${cls}반 ${team}`;
   err.style.display = 'none';
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('team-chip').textContent = currentTeam;
   document.getElementById('app').classList.add('visible');
   loadHistory();
+}
+
+// ── Register ──
+function doRegister() {
+  const cls     = document.getElementById('reg-class').value;
+  const name    = document.getElementById('reg-team').value.trim();
+  const members = document.getElementById('reg-members').value.trim();
+  const pw      = document.getElementById('reg-pw').value;
+  const pw2     = document.getElementById('reg-pw2').value;
+  const err     = document.getElementById('register-error');
+  const suc     = document.getElementById('register-success');
+  err.style.display = 'none'; suc.style.display = 'none';
+  if (!cls)     { showError(err, '반을 선택해주세요'); return; }
+  if (!name)    { showError(err, '팀 이름을 입력해주세요'); return; }
+  if (!members) { showError(err, '팀원 이름을 입력해주세요'); return; }
+  if (!pw)      { showError(err, '비밀번호를 설정해주세요'); return; }
+  if (pw !== pw2){ showError(err, '비밀번호가 일치하지 않습니다'); return; }
+  const teams = getTeams();
+  if (teams.find(t => t.grade === '2' && t.cls === cls && t.name === name)) {
+    showError(err, '이미 같은 반에 같은 이름의 팀이 있습니다'); return;
+  }
+  teams.push({ grade: '2', cls, name, members, password: pw, status: 'pending' });
+  saveTeams(teams);
+  // 폼 초기화
+  document.getElementById('reg-class').value = '';
+  document.getElementById('reg-team').value = '';
+  document.getElementById('reg-members').value = '';
+  document.getElementById('reg-pw').value = '';
+  document.getElementById('reg-pw2').value = '';
+  suc.textContent = `✅ ${cls}반 "${name}" 팀 등록 신청이 완료됐어요!\n선생님 승인 후 입장할 수 있습니다.`;
+  suc.style.display = 'block';
 }
 
 function doLogout() {
@@ -642,6 +749,7 @@ function doLogout() {
   document.getElementById('messages').innerHTML = '';
   document.getElementById('messages').appendChild(createWelcome());
   document.getElementById('history-list').innerHTML = '';
+  switchTab('login');
 }
 
 function showError(el, msg) {
@@ -737,32 +845,42 @@ function removeTeam(grade, cls, name) {
 function renderTeamGrid() {
   const grid = document.getElementById('team-grid');
   const teams = getTeams();
-  if (!teams.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">등록된 팀이 없습니다. 위에서 팀을 추가하세요.</div>'; return; }
-  // Group by grade → class
+  if (!teams.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">등록된 팀이 없습니다. 학생들이 팀 등록 신청을 하면 여기에 나타납니다.</div>'; return; }
+  // pending 먼저, 그 다음 active, 그 다음 inactive / 반별 정렬
+  const sorted = [...teams].sort((a,b) => {
+    const order = { pending:0, active:1, inactive:2 };
+    if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+    return (a.cls+a.name).localeCompare(b.cls+b.name);
+  });
   const grouped = {};
-  teams.forEach(t => {
-    const key = `${t.grade}학년 ${t.cls}반`;
+  sorted.forEach(t => {
+    const key = `2학년 ${t.cls}반`;
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(t);
   });
-  grid.innerHTML = Object.entries(grouped).sort().map(([label, ts]) => `
-    <div style="grid-column:1/-1;font-size:12px;color:var(--muted);margin-top:8px;margin-bottom:4px;padding:0 2px;">${label}</div>
+  // pending 팀 수 뱃지
+  const pendingCount = teams.filter(t => t.status === 'pending').length;
+  grid.innerHTML = (pendingCount ? `<div style="grid-column:1/-1;font-size:12px;padding:8px 12px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:8px;color:#fbbf24;margin-bottom:4px;">⏳ 승인 대기 중인 팀이 ${pendingCount}개 있습니다</div>` : '') +
+  Object.entries(grouped).sort().map(([label, ts]) => `
+    <div style="grid-column:1/-1;font-size:11px;color:var(--muted);margin-top:12px;margin-bottom:4px;padding:0 2px;text-transform:uppercase;letter-spacing:0.5px;">${label}</div>
     ${ts.map(t => {
       const dotClass = t.status === 'active' ? 'status-active' : t.status === 'pending' ? 'status-pending' : 'status-inactive';
-      const statusLabel = t.status === 'active' ? '승인됨' : t.status === 'pending' ? '대기중' : '비활성';
+      const statusLabel = t.status === 'active' ? '승인됨' : t.status === 'pending' ? '승인 대기' : '비활성';
       const g = t.grade, c = t.cls, n = t.name;
-      return `<div class="team-card">
+      const membersHtml = t.members ? `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">👥 ${t.members}</div>` : '';
+      return `<div class="team-card" style="${t.status==='pending'?'border-color:rgba(245,158,11,0.4);':''}">
         <div class="team-card-header">
           <div class="team-name">${t.name}</div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-size:11px;color:var(--muted);">${statusLabel}</span>
+            <span style="font-size:11px;color:${t.status==='pending'?'#fbbf24':'var(--muted)'};">${statusLabel}</span>
             <div class="status-dot ${dotClass}"></div>
           </div>
         </div>
-        <div class="team-pw">비밀번호: ${'•'.repeat(t.password.length)}</div>
+        ${membersHtml}
+        <div class="team-pw" style="margin-bottom:10px;">비밀번호: ${'•'.repeat(t.password.length)}</div>
         <div class="team-actions">
           ${t.status !== 'active'
-            ? `<button class="action-btn approve" onclick="approveTeam('${g}','${c}','${n}')">승인</button>`
+            ? `<button class="action-btn approve" onclick="approveTeam('${g}','${c}','${n}')">✓ 승인</button>`
             : `<button class="action-btn revoke" onclick="revokeTeam('${g}','${c}','${n}')">비활성화</button>`}
           <button class="action-btn revoke" onclick="removeTeam('${g}','${c}','${n}')">삭제</button>
         </div>
@@ -876,65 +994,16 @@ async function sendMessage() {
   document.getElementById('messages').scrollTop = 99999;
 }
 
-// ── AI API Calls ──
+// ── AI API Calls (Vercel 서버리스 프록시 경유) ──
 async function callAI(model, msgs) {
-  const keys = getApiKeys();
-
-  if (model === 'claude') {
-    const key = keys.claude;
-    if (!key) throw new Error('Claude API 키가 설정되지 않았습니다. 교사에게 문의하세요.');
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
-        system: '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다. 학생 수준에 맞게 친절하고 명확하게 답변하세요.',
-        messages: msgs.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
-      })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    return data.content[0].text;
-  }
-
-  if (model === 'gpt') {
-    const key = keys.openai;
-    if (!key) throw new Error('OpenAI API 키가 설정되지 않았습니다. 교사에게 문의하세요.');
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다. 학생 수준에 맞게 친절하고 명확하게 답변하세요.' },
-          ...msgs.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
-        ],
-        max_tokens: 1024
-      })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    return data.choices[0].message.content;
-  }
-
-  if (model === 'gemini') {
-    const key = keys.gemini;
-    if (!key) throw new Error('Gemini API 키가 설정되지 않았습니다. 교사에게 문의하세요.');
-    const geminiMsgs = msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다. 학생 수준에 맞게 친절하고 명확하게 답변하세요.' }] },
-        contents: geminiMsgs,
-        generationConfig: { maxOutputTokens: 1024 }
-      })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    return data.candidates[0].content.parts[0].text;
-  }
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, messages: msgs })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.reply;
 }
 
 // ── Init ──
