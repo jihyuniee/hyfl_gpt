@@ -4,37 +4,40 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const KV_URL = process.env.KV_REST_API_URL;
-  const KV_TOKEN = process.env.KV_REST_API_TOKEN;
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
 
-  async function kvGet(key) {
-    const r = await fetch(`${KV_URL}/get/${key}`, {
-      headers: { Authorization: `Bearer ${KV_TOKEN}` }
+  async function getTeams() {
+    const r = await fetch(`${url}/get/teams`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
     const d = await r.json();
     if (!d.result) return [];
     try {
-      const parsed = typeof d.result === 'string' ? JSON.parse(d.result) : d.result;
-      return Array.isArray(parsed) ? parsed : [];
-    } catch(e) { return []; }
+      const val = JSON.parse(d.result);
+      return Array.isArray(val) ? val : [];
+    } catch { return []; }
   }
 
-  async function kvSet(key, value) {
-    const r = await fetch(`${KV_URL}/set/${key}/${encodeURIComponent(JSON.stringify(value))}`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${KV_TOKEN}` }
+  async function setTeams(teams) {
+    await fetch(`${url}/set/teams`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(JSON.stringify(teams))
     });
-    return r.json();
   }
 
   try {
     if (req.method === 'GET') {
-      const teams = await kvGet('teams');
+      const teams = await getTeams();
       return res.json({ teams });
     }
     if (req.method === 'POST') {
       const { action, team } = req.body;
-      let teams = await kvGet('teams');
+      let teams = await getTeams();
       if (action === 'add') {
         teams.push(team);
       } else if (action === 'approve') {
@@ -44,8 +47,9 @@ export default async function handler(req, res) {
       } else if (action === 'remove') {
         teams = teams.filter(t => !(t.grade===team.grade && t.cls===team.cls && t.name===team.name));
       }
-      await kvSet('teams', teams);
-      return res.json({ teams });
+      await setTeams(teams);
+      const saved = await getTeams();
+      return res.json({ teams: saved });
     }
   } catch(e) {
     return res.status(500).json({ error: e.message });
