@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HYFL eduAI — 2026 공공교육데이터 AI활용대회</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #17171f;
+    --surface2: #1e1e2a;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f5;
+    --muted: #8888a0;
+    --accent: #6C63FF;
+    --accent2: #9F97FF;
+    --gpt: #10b981;
+    --gemini: #4285F4;
+    --claude: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Login Screen ── */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-box {
+    width: 380px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 40px 36px;
+  }
+  .login-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px; font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .login-logo span { color: var(--accent2); }
+  .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+  .login-contest {
+    background: rgba(108,99,255,0.12);
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--accent2);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+  .field-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .field-group { margin-bottom: 14px; }
+  select, input[type=text], input[type=password] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+  .login-btn {
+    width: 100%; margin-top: 8px;
+    background: var(--accent);
+    color: white;
+    border: none; border-radius: 10px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px; font-weight: 500;
+    padding: 13px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .login-btn:hover { opacity: 0.88; }
+  .login-error {
+    margin-top: 12px; font-size: 13px;
+    color: var(--danger); text-align: center;
+    display: none;
+  }
+
+  /* ── App ── */
+  #app { display: none; flex: 1; flex-direction: column; height: 100dvh; }
+  #app.visible { display: flex; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; height: 52px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .top-logo { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; }
+  .top-logo span { color: var(--accent2); }
+  .top-right { display: flex; align-items: center; gap: 12px; }
+  .team-chip {
+    font-size: 12px; padding: 4px 12px;
+    background: rgba(108,99,255,0.15);
+    color: var(--accent2);
+    border-radius: 20px;
+    border: 1px solid rgba(108,99,255,0.3);
+  }
+  .contest-chip {
+    font-size: 12px; padding: 4px 12px;
+    background: rgba(245,158,11,0.12);
+    color: #fbbf24;
+    border-radius: 20px;
+    border: 1px solid rgba(245,158,11,0.25);
+  }
+  .logout-btn {
+    font-size: 12px; color: var(--muted);
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px 10px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .logout-btn:hover { color: var(--text); border-color: var(--border2); }
+
+  .body-wrap { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 200px; flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 16px 12px;
+  }
+  .sidebar-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+  .model-btn {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; background: transparent; border: 1px solid transparent;
+    border-radius: 10px; padding: 9px 10px; cursor: pointer;
+    color: var(--muted); font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px; text-align: left; margin-bottom: 4px;
+    transition: all 0.15s;
+  }
+  .model-btn:hover { background: var(--surface2); color: var(--text); }
+  .model-btn.active { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+  .mdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .mdot-gpt { background: var(--gpt); }
+  .mdot-gemini { background: var(--gemini); }
+  .mdot-claude { background: var(--claude); }
+  .new-chat-btn {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; background: transparent; border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px 10px; cursor: pointer;
+    color: var(--muted); font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px; margin-top: 16px; margin-bottom: 12px;
+    transition: all 0.15s;
+  }
+  .new-chat-btn:hover { border-color: var(--border2); color: var(--text); }
+  .history-item {
+    font-size: 12px; color: var(--muted); padding: 6px 10px;
+    border-radius: 8px; cursor: pointer; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+    transition: all 0.15s;
+  }
+  .history-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-space { flex: 1; }
+  .sidebar-notice {
+    font-size: 11px; color: var(--muted);
+    padding: 10px; background: var(--surface2);
+    border-radius: 8px; line-height: 1.5;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Chat ── */
+  .chat-area {
+    flex: 1; display: flex; flex-direction: column;
+    overflow: hidden; background: var(--bg);
+  }
+  .messages {
+    flex: 1; overflow-y: auto; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 20px;
+    scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+  }
+  .welcome {
+    text-align: center; padding: 60px 20px;
+    color: var(--muted);
+  }
+  .welcome h2 {
+    font-size: 24px; font-weight: 500;
+    color: var(--text); margin-bottom: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .welcome p { font-size: 14px; line-height: 1.7; }
+  .welcome-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 24px; }
+  .chip {
+    font-size: 12px; padding: 7px 14px;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px; cursor: pointer; color: var(--text);
+    transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent2); }
+
+  .msg-row { display: flex; gap: 12px; align-items: flex-start; max-width: 780px; }
+  .msg-row.user { margin-left: auto; flex-direction: row-reverse; }
+  .msg-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 500;
+  }
+  .ai-av { background: rgba(108,99,255,0.2); color: var(--accent2); }
+  .user-av { background: rgba(255,255,255,0.1); color: var(--text); }
+  .bubble {
+    padding: 12px 16px; border-radius: 14px;
+    font-size: 14px; line-height: 1.75; max-width: 600px;
+  }
+  .ai-bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px 14px 14px 14px;
+    color: var(--text);
+  }
+  .user-bubble {
+    background: var(--accent);
+    color: white;
+    border-radius: 14px 4px 14px 14px;
+  }
+  .thinking { color: var(--muted); font-size: 13px; }
+  .thinking::after {
+    content: '...';
+    animation: dots 1.2s steps(4, end) infinite;
+  }
+  @keyframes dots {
+    0%,20% { content: '.'; }
+    40% { content: '..'; }
+    60%,100% { content: '...'; }
+  }
+
+  /* ── Input ── */
+  .input-wrap {
+    padding: 16px 24px 20px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .input-inner {
+    display: flex; gap: 10px; align-items: flex-end;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 10px 14px;
+    transition: border-color 0.2s;
+  }
+  .input-inner:focus-within { border-color: var(--accent); }
+  #user-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text); font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px; resize: none; line-height: 1.6;
+    max-height: 120px; min-height: 24px;
+  }
+  #user-input::placeholder { color: var(--muted); }
+  .send-btn {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: var(--accent); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: opacity 0.2s;
+  }
+  .send-btn:hover { opacity: 0.85; }
+  .send-btn svg { width: 16px; height: 16px; fill: white; }
+  .input-footer {
+    font-size: 11px; color: var(--muted);
+    text-align: center; margin-top: 8px;
+  }
+  .model-tag { color: var(--accent2); }
+
+  /* ── Admin Panel ── */
+  #admin-screen {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--bg); display: none;
+    flex-direction: column;
+  }
+  #admin-screen.visible { display: flex; }
+  .admin-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .admin-title { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; }
+  .close-admin {
+    background: transparent; border: 1px solid var(--border2);
+    color: var(--text); border-radius: 8px; padding: 6px 14px;
+    cursor: pointer; font-size: 13px; font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.15s;
+  }
+  .close-admin:hover { background: var(--surface2); }
+  .admin-body { flex: 1; overflow-y: auto; padding: 28px; }
+  .admin-section { margin-bottom: 32px; }
+  .admin-section h3 { font-size: 14px; font-weight: 500; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .team-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .team-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .team-name { font-size: 15px; font-weight: 500; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .status-active { background: var(--gpt); box-shadow: 0 0 6px var(--gpt); }
+  .status-pending { background: var(--claude); }
+  .status-inactive { background: var(--muted); }
+  .team-pw { font-size: 12px; color: var(--muted); margin-bottom: 12px; font-family: monospace; }
+  .team-actions { display: flex; gap: 8px; }
+  .action-btn {
+    flex: 1; font-size: 12px; padding: 7px;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text); cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif; transition: all 0.15s;
+  }
+  .action-btn.approve { border-color: rgba(16,185,129,0.4); color: var(--gpt); }
+  .action-btn.approve:hover { background: rgba(16,185,129,0.1); }
+  .action-btn.revoke { border-color: rgba(239,68,68,0.4); color: var(--danger); }
+  .action-btn.revoke:hover { background: rgba(239,68,68,0.1); }
+  .add-team-form {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .add-team-form input { flex: 1; min-width: 140px; }
+  .add-btn {
+    background: var(--accent); color: white; border: none;
+    border-radius: 10px; padding: 11px 18px; cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 500;
+    transition: opacity 0.2s;
+  }
+  .add-btn:hover { opacity: 0.85; }
+
+  .api-config {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .api-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .api-label { font-size: 13px; width: 100px; flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+  .api-row input { flex: 1; font-family: monospace; font-size: 12px; }
+  .save-api-btn {
+    background: var(--accent); color: white; border: none;
+    border-radius: 10px; padding: 11px 20px; cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px; font-weight: 500;
+    margin-top: 4px; transition: opacity 0.2s;
+  }
+  .save-api-btn:hover { opacity: 0.85; }
+  .save-note { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+
+  .admin-login-box {
+    width: 340px; background: var(--surface);
+    border: 1px solid var(--border2); border-radius: 16px; padding: 32px;
+    text-align: center;
+  }
+  .admin-login-box h3 { margin-bottom: 20px; font-family: 'Space Grotesk', sans-serif; }
+
+  @media (max-width: 640px) {
+    .sidebar { display: none; }
+    .login-box { width: 92%; padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Login Screen ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">HYFL edu<span>AI</span></div>
+    <div class="login-sub">교육용 AI 대화 플랫폼</div>
+    <div class="login-contest">
+      📊 2026 공공교육데이터 AI활용대회<br>
+      대회 기간 중 교사 승인 팀만 접속 가능합니다
+    </div>
+    <div class="field-group">
+      <div class="field-label">학년</div>
+      <select id="grade-select" onchange="updateClassSelect()">
+        <option value="2">2학년</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-label">반</div>
+      <select id="class-select" onchange="updateTeamSelect()">
+        <option value="">— 반 선택 —</option>
+        <option value="1">1반</option>
+        <option value="2">2반</option>
+        <option value="3">3반</option>
+        <option value="4">4반</option>
+        <option value="5">5반</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-label">팀</div>
+      <select id="team-select">
+        <option value="">— 팀 선택 —</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-label">팀 비밀번호</div>
+      <input type="password" id="team-pw" placeholder="비밀번호 입력" autocomplete="off">
+    </div>
+    <button class="login-btn" onclick="doLogin()">입장하기</button>
+    <div class="login-error" id="login-error"></div>
+    <div style="margin-top:20px; text-align:center;">
+      <button onclick="showAdminLogin()" style="font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;">교사 관리자 로그인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main App ── -->
+<div id="app">
+  <div class="topbar">
+    <div class="top-logo">HYFL edu<span>AI</span></div>
+    <div class="top-right">
+      <div class="team-chip" id="team-chip">팀명</div>
+      <div class="contest-chip">2026 공공교육데이터 AI활용대회</div>
+      <button class="logout-btn" onclick="doLogout()">나가기</button>
+    </div>
+  </div>
+  <div class="body-wrap">
+    <div class="sidebar">
+      <div class="sidebar-label">AI 모델</div>
+      <button class="model-btn" onclick="setModel('gpt',this)" id="btn-gpt">
+        <div class="mdot mdot-gpt"></div> GPT-4o
+      </button>
+      <button class="model-btn" onclick="setModel('gemini',this)" id="btn-gemini">
+        <div class="mdot mdot-gemini"></div> Gemini 1.5
+      </button>
+      <button class="model-btn active" onclick="setModel('claude',this)" id="btn-claude">
+        <div class="mdot mdot-claude"></div> Claude Sonnet
+      </button>
+      <button class="new-chat-btn" onclick="newChat()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        새 대화
+      </button>
+      <div class="sidebar-label">대화 기록</div>
+      <div id="history-list"></div>
+      <div class="sidebar-space"></div>
+      <div class="sidebar-notice">
+        💡 개인정보나 민감한 정보는 입력하지 마세요
+      </div>
+    </div>
+    <div class="chat-area">
+      <div class="messages" id="messages">
+        <div class="welcome" id="welcome">
+          <h2>무엇을 도와드릴까요?</h2>
+          <p>공공교육데이터 AI 활용대회를 위한 AI 도우미입니다.<br>데이터 분석, 아이디어 정리, 발표 자료 구성 등 도와드립니다.</p>
+          <div class="welcome-chips">
+            <div class="chip" onclick="quickSend('공공데이터 분석 아이디어를 알려줘')">📊 데이터 분석 아이디어</div>
+            <div class="chip" onclick="quickSend('발표 자료 구성 방법을 알려줘')">📋 발표 구성</div>
+            <div class="chip" onclick="quickSend('데이터 시각화 방법을 추천해줘')">📈 시각화 방법</div>
+            <div class="chip" onclick="quickSend('AI 활용 대회에서 좋은 점수를 받으려면 어떻게 해야 해?')">🏆 대회 전략</div>
+          </div>
+        </div>
+      </div>
+      <div class="input-wrap">
+        <div class="input-inner">
+          <textarea id="user-input" placeholder="메시지를 입력하세요... (Shift+Enter 줄바꿈)" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
+          </button>
+        </div>
+        <div class="input-footer">
+          현재 모델: <span class="model-tag" id="model-label">Claude Sonnet</span> &nbsp;·&nbsp; 수업 목적으로만 사용하세요
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Admin Screen ── -->
+<div id="admin-screen">
+  <div id="admin-login-wrap" style="display:flex;align-items:center;justify-content:center;flex:1;">
+    <div class="admin-login-box">
+      <h3>교사 관리자</h3>
+      <div class="field-group">
+        <div class="field-label">관리자 비밀번호</div>
+        <input type="password" id="admin-pw-input" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doAdminLogin()">
+      </div>
+      <button class="login-btn" onclick="doAdminLogin()">관리자 로그인</button>
+      <div class="login-error" id="admin-login-error"></div>
+      <div style="margin-top:16px;">
+        <button onclick="hideAdminLogin()" style="font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;">← 돌아가기</button>
+      </div>
+    </div>
+  </div>
+  <div id="admin-panel" style="display:none;flex-direction:column;flex:1;">
+    <div class="admin-top">
+      <div class="admin-title">HYFL eduAI — 교사 관리 패널</div>
+      <button class="close-admin" onclick="hideAdmin()">← 나가기</button>
+    </div>
+    <div class="admin-body">
+      <div class="admin-section">
+        <h3>API 키 설정</h3>
+        <div class="api-config">
+          <div class="api-row">
+            <div class="api-label"><div class="mdot mdot-claude" style="width:10px;height:10px;"></div> Claude</div>
+            <input type="password" id="api-claude" placeholder="sk-ant-..." autocomplete="off">
+          </div>
+          <div class="api-row">
+            <div class="api-label"><div class="mdot mdot-gpt" style="width:10px;height:10px;"></div> OpenAI</div>
+            <input type="password" id="api-openai" placeholder="sk-..." autocomplete="off">
+          </div>
+          <div class="api-row">
+            <div class="api-label"><div class="mdot mdot-gemini" style="width:10px;height:10px;"></div> Gemini</div>
+            <input type="password" id="api-gemini" placeholder="AIza..." autocomplete="off">
+          </div>
+          <button class="save-api-btn" onclick="saveApiKeys()">API 키 저장</button>
+          <div class="save-note">
+            ⚠️ API 키는 브라우저 로컬스토리지에 저장됩니다. 실제 운영 시에는 서버 환경변수(.env)에 보관하세요.<br>
+            Vercel 배포 시 Environment Variables에 CLAUDE_KEY, OPENAI_KEY, GEMINI_KEY로 설정하면 됩니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h3>팀 등록 및 승인</h3>
+        <div class="add-team-form">
+          <div style="font-size:13px;color:var(--muted);display:flex;align-items:center;padding:0 4px;flex-shrink:0;">2학년</div>
+          <select id="new-team-class" style="flex:0 0 80px;">
+            <option value="">반 선택</option>
+            <option value="1">1반</option>
+            <option value="2">2반</option>
+            <option value="3">3반</option>
+            <option value="4">4반</option>
+            <option value="5">5반</option>
+          </select>
+          <input type="text" id="new-team-name" placeholder="팀 이름 (예: 1조, 데이터탐험대)" style="flex:1;min-width:130px;">
+          <input type="password" id="new-team-pw" placeholder="팀 비밀번호" style="flex:0 0 130px;">
+          <button class="add-btn" onclick="addTeam()">팀 추가</button>
+        </div>
+        <div style="height:14px;"></div>
+        <div class="team-grid" id="team-grid"></div>
+      </div>
+
+      <div class="admin-section">
+        <h3>관리자 비밀번호 변경</h3>
+        <div class="api-config">
+          <div class="api-row">
+            <div class="api-label">새 비밀번호</div>
+            <input type="password" id="new-admin-pw" placeholder="새 비밀번호 입력">
+          </div>
+          <button class="save-api-btn" onclick="changeAdminPw()">변경</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+const ADMIN_PW_KEY = 'eduai_admin_pw';
+const TEAMS_KEY = 'eduai_teams';
+const API_KEYS_KEY = 'eduai_api_keys';
+const DEFAULT_ADMIN_PW = 'teacher1234';
+
+let currentTeam = null;
+let currentModel = 'claude';
+let messages = [];
+let histories = [];
+let currentHistoryIdx = -1;
+
+const modelInfo = {
+  claude:  { label: 'Claude Sonnet', color: 'var(--claude)' },
+  gpt:     { label: 'GPT-4o',        color: 'var(--gpt)' },
+  gemini:  { label: 'Gemini 1.5',    color: 'var(--gemini)' }
+};
+
+// ── Teams ──
+function getTeams() {
+  return JSON.parse(localStorage.getItem(TEAMS_KEY) || '[]');
+}
+function saveTeams(teams) {
+  localStorage.setItem(TEAMS_KEY, JSON.stringify(teams));
+}
+function getApiKeys() {
+  return JSON.parse(localStorage.getItem(API_KEYS_KEY) || '{}');
+}
+
+// ── Cascade Selects ──
+function updateClassSelect() {
+  updateTeamSelect();
+}
+
+function updateTeamSelect() {
+  const cls = document.getElementById('class-select').value;
+  const teamSel = document.getElementById('team-select');
+  teamSel.innerHTML = '<option value="">— 팀 선택 —</option>';
+  if (!cls) return;
+  const teams = getTeams().filter(t => t.grade === '2' && t.cls === cls && t.status === 'active');
+  teams.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.name; opt.textContent = t.name;
+    teamSel.appendChild(opt);
+  });
+}
+
+function populateTeamSelect() {
+  updateTeamSelect();
+}
+
+// ── Login ──
+function doLogin() {
+  const grade = '2';
+  const cls = document.getElementById('class-select').value;
+  const team = document.getElementById('team-select').value;
+  const pw = document.getElementById('team-pw').value;
+  const err = document.getElementById('login-error');
+  if (!cls)  { showError(err, '반을 선택해주세요'); return; }
+  if (!team) { showError(err, '팀을 선택해주세요'); return; }
+  if (!pw)   { showError(err, '비밀번호를 입력해주세요'); return; }
+  const found = getTeams().find(t => t.grade === grade && t.cls === cls && t.name === team);
+  if (!found) { showError(err, '팀을 찾을 수 없습니다'); return; }
+  if (found.status !== 'active') { showError(err, '아직 교사 승인이 되지 않은 팀입니다'); return; }
+  if (found.password !== pw) { showError(err, '비밀번호가 틀렸습니다'); return; }
+  currentTeam = `2학년 ${cls}반 ${team}`;
+  err.style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('team-chip').textContent = currentTeam;
+  document.getElementById('app').classList.add('visible');
+  loadHistory();
+}
+
+function doLogout() {
+  currentTeam = null; messages = []; histories = [];
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('team-pw').value = '';
+  document.getElementById('class-select').value = '';
+  document.getElementById('team-select').innerHTML = '<option value="">— 팀 선택 —</option>';
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('messages').appendChild(createWelcome());
+  document.getElementById('history-list').innerHTML = '';
+}
+
+function showError(el, msg) {
+  el.textContent = msg; el.style.display = 'block';
+}
+
+// ── Admin ──
+function showAdminLogin() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('admin-screen').style.display = 'flex';
+  document.getElementById('admin-login-wrap').style.display = 'flex';
+  document.getElementById('admin-panel').style.display = 'none';
+}
+function hideAdminLogin() {
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+function doAdminLogin() {
+  const pw = document.getElementById('admin-pw-input').value;
+  const stored = localStorage.getItem(ADMIN_PW_KEY) || DEFAULT_ADMIN_PW;
+  const err = document.getElementById('admin-login-error');
+  if (pw !== stored) { showError(err, '비밀번호가 틀렸습니다'); return; }
+  err.style.display = 'none';
+  document.getElementById('admin-login-wrap').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'flex';
+  loadApiKeyInputs();
+  renderTeamGrid();
+}
+function hideAdmin() {
+  document.getElementById('admin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('admin-pw-input').value = '';
+  populateTeamSelect();
+}
+function changeAdminPw() {
+  const pw = document.getElementById('new-admin-pw').value.trim();
+  if (!pw) return alert('비밀번호를 입력하세요');
+  localStorage.setItem(ADMIN_PW_KEY, pw);
+  alert('관리자 비밀번호가 변경되었습니다');
+  document.getElementById('new-admin-pw').value = '';
+}
+
+// ── API Keys ──
+function loadApiKeyInputs() {
+  const k = getApiKeys();
+  if (k.claude) document.getElementById('api-claude').value = k.claude;
+  if (k.openai) document.getElementById('api-openai').value = k.openai;
+  if (k.gemini) document.getElementById('api-gemini').value = k.gemini;
+}
+function saveApiKeys() {
+  const keys = {
+    claude: document.getElementById('api-claude').value.trim(),
+    openai: document.getElementById('api-openai').value.trim(),
+    gemini: document.getElementById('api-gemini').value.trim()
+  };
+  localStorage.setItem(API_KEYS_KEY, JSON.stringify(keys));
+  alert('API 키가 저장되었습니다');
+}
+
+// ── Team Management ──
+function addTeam() {
+  const grade = '2';
+  const cls   = document.getElementById('new-team-class').value;
+  const name  = document.getElementById('new-team-name').value.trim();
+  const pw    = document.getElementById('new-team-pw').value.trim();
+  if (!cls)         return alert('반을 선택하세요');
+  if (!name || !pw) return alert('팀 이름과 비밀번호를 입력하세요');
+  const teams = getTeams();
+  if (teams.find(t => t.grade === grade && t.cls === cls && t.name === name)) return alert('이미 존재하는 팀입니다');
+  teams.push({ grade, cls, name, password: pw, status: 'pending' });
+  saveTeams(teams);
+  document.getElementById('new-team-class').value = '';
+  document.getElementById('new-team-name').value = '';
+  document.getElementById('new-team-pw').value = '';
+  renderTeamGrid();
+}
+function approveTeam(grade, cls, name) {
+  const teams = getTeams();
+  const t = teams.find(t => t.grade === grade && t.cls === cls && t.name === name);
+  if (t) { t.status = 'active'; saveTeams(teams); renderTeamGrid(); }
+}
+function revokeTeam(grade, cls, name) {
+  const teams = getTeams();
+  const t = teams.find(t => t.grade === grade && t.cls === cls && t.name === name);
+  if (t) { t.status = 'inactive'; saveTeams(teams); renderTeamGrid(); }
+}
+function removeTeam(grade, cls, name) {
+  if (!confirm(`${grade}학년 ${cls}반 ${name} 팀을 삭제하시겠습니까?`)) return;
+  saveTeams(getTeams().filter(t => !(t.grade === grade && t.cls === cls && t.name === name)));
+  renderTeamGrid();
+}
+
+function renderTeamGrid() {
+  const grid = document.getElementById('team-grid');
+  const teams = getTeams();
+  if (!teams.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">등록된 팀이 없습니다. 위에서 팀을 추가하세요.</div>'; return; }
+  // Group by grade → class
+  const grouped = {};
+  teams.forEach(t => {
+    const key = `${t.grade}학년 ${t.cls}반`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(t);
+  });
+  grid.innerHTML = Object.entries(grouped).sort().map(([label, ts]) => `
+    <div style="grid-column:1/-1;font-size:12px;color:var(--muted);margin-top:8px;margin-bottom:4px;padding:0 2px;">${label}</div>
+    ${ts.map(t => {
+      const dotClass = t.status === 'active' ? 'status-active' : t.status === 'pending' ? 'status-pending' : 'status-inactive';
+      const statusLabel = t.status === 'active' ? '승인됨' : t.status === 'pending' ? '대기중' : '비활성';
+      const g = t.grade, c = t.cls, n = t.name;
+      return `<div class="team-card">
+        <div class="team-card-header">
+          <div class="team-name">${t.name}</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;color:var(--muted);">${statusLabel}</span>
+            <div class="status-dot ${dotClass}"></div>
+          </div>
+        </div>
+        <div class="team-pw">비밀번호: ${'•'.repeat(t.password.length)}</div>
+        <div class="team-actions">
+          ${t.status !== 'active'
+            ? `<button class="action-btn approve" onclick="approveTeam('${g}','${c}','${n}')">승인</button>`
+            : `<button class="action-btn revoke" onclick="revokeTeam('${g}','${c}','${n}')">비활성화</button>`}
+          <button class="action-btn revoke" onclick="removeTeam('${g}','${c}','${n}')">삭제</button>
+        </div>
+      </div>`;
+    }).join('')}
+  `).join('');
+}
+
+// ── Model ──
+function setModel(m, btn) {
+  currentModel = m;
+  document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('model-label').textContent = modelInfo[m].label;
+}
+
+// ── Chat ──
+function createWelcome() {
+  const d = document.createElement('div');
+  d.className = 'welcome'; d.id = 'welcome';
+  d.innerHTML = `<h2>무엇을 도와드릴까요?</h2>
+    <p>공공교육데이터 AI 활용대회를 위한 AI 도우미입니다.<br>데이터 분석, 아이디어 정리, 발표 자료 구성 등 도와드립니다.</p>
+    <div class="welcome-chips">
+      <div class="chip" onclick="quickSend('공공데이터 분석 아이디어를 알려줘')">📊 데이터 분석 아이디어</div>
+      <div class="chip" onclick="quickSend('발표 자료 구성 방법을 알려줘')">📋 발표 구성</div>
+      <div class="chip" onclick="quickSend('데이터 시각화 방법을 추천해줘')">📈 시각화 방법</div>
+      <div class="chip" onclick="quickSend('AI 활용 대회에서 좋은 점수를 받으려면 어떻게 해야 해?')">🏆 대회 전략</div>
+    </div>`;
+  return d;
+}
+
+function newChat() {
+  if (messages.length > 0) {
+    histories.unshift({ model: currentModel, messages: [...messages], preview: messages[0]?.content?.slice(0,30) || '대화' });
+    if (histories.length > 10) histories.pop();
+    renderHistory();
+  }
+  messages = [];
+  const msgDiv = document.getElementById('messages');
+  msgDiv.innerHTML = '';
+  msgDiv.appendChild(createWelcome());
+}
+
+function loadHistory() {
+  histories = JSON.parse(sessionStorage.getItem('chat_history_' + currentTeam) || '[]');
+  renderHistory();
+}
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = histories.map((h, i) =>
+    `<div class="history-item" onclick="loadChat(${i})">${h.preview || '대화 ' + (i+1)}</div>`
+  ).join('');
+  sessionStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
+}
+function loadChat(idx) {
+  const h = histories[idx];
+  if (!h) return;
+  messages = [...h.messages];
+  const msgDiv = document.getElementById('messages');
+  msgDiv.innerHTML = '';
+  messages.forEach(m => addBubble(m.role === 'user' ? 'user' : 'ai', m.content));
+}
+
+function quickSend(text) {
+  document.getElementById('user-input').value = text;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function addBubble(type, text) {
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+  const msgDiv = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row' + (type === 'user' ? ' user' : '');
+  const initials = type === 'user' ? (currentTeam?.slice(0,1) || '팀') : 'AI';
+  row.innerHTML = `
+    <div class="msg-avatar ${type === 'user' ? 'user-av' : 'ai-av'}">${initials}</div>
+    <div class="bubble ${type === 'user' ? 'user-bubble' : 'ai-bubble'}">${text.replace(/\n/g,'<br>')}</div>`;
+  msgDiv.appendChild(row);
+  msgDiv.scrollTop = msgDiv.scrollHeight;
+  return row.querySelector('.bubble');
+}
+
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto';
+
+  addBubble('user', text);
+  messages.push({ role: 'user', content: text });
+
+  const thinkingBubble = addBubble('ai', '<span class="thinking">생각하는 중</span>');
+
+  try {
+    const reply = await callAI(currentModel, messages);
+    thinkingBubble.innerHTML = reply.replace(/\n/g,'<br>');
+    messages.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    thinkingBubble.innerHTML = `<span style="color:var(--danger)">오류: ${e.message}</span>`;
+  }
+  document.getElementById('messages').scrollTop = 99999;
+}
+
+// ── AI API Calls ──
+async function callAI(model, msgs) {
+  const keys = getApiKeys();
+
+  if (model === 'claude') {
+    const key = keys.claude;
+    if (!key) throw new Error('Claude API 키가 설정되지 않았습니다. 교사에게 문의하세요.');
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        system: '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다. 학생 수준에 맞게 친절하고 명확하게 답변하세요.',
+        messages: msgs.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content[0].text;
+  }
+
+  if (model === 'gpt') {
+    const key = keys.openai;
+    if (!key) throw new Error('OpenAI API 키가 설정되지 않았습니다. 교사에게 문의하세요.');
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다. 학생 수준에 맞게 친절하고 명확하게 답변하세요.' },
+          ...msgs.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
+        ],
+        max_tokens: 1024
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.choices[0].message.content;
+  }
+
+  if (model === 'gemini') {
+    const key = keys.gemini;
+    if (!key) throw new Error('Gemini API 키가 설정되지 않았습니다. 교사에게 문의하세요.');
+    const geminiMsgs = msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다. 학생 수준에 맞게 친절하고 명확하게 답변하세요.' }] },
+        contents: geminiMsgs,
+        generationConfig: { maxOutputTokens: 1024 }
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates[0].content.parts[0].text;
+  }
+}
+
+// ── Init ──
+populateTeamSelect();
+</script>
+</body>
+</html>
