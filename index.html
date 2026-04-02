@@ -371,7 +371,30 @@
     .login-box { width: 92%; padding: 28px 20px; }
   }
 
-  /* ── Sidebar tabs ── */
+  /* ── Lesson buttons ── */
+  .lesson-btn {
+    display: block; width: 100%;
+    text-align: left; padding: 8px 10px;
+    border-radius: 8px; border: 1px solid transparent;
+    background: transparent; color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px; cursor: pointer; margin-bottom: 3px;
+    transition: all 0.15s;
+  }
+  .lesson-btn:hover { background: var(--surface2); color: var(--text); }
+  .lesson-btn.active {
+    background: rgba(108,99,255,0.15);
+    border-color: rgba(108,99,255,0.35);
+    color: var(--accent2); font-weight: 500;
+  }
+  .lesson-link-btn {
+    display: block; font-size: 11px;
+    padding: 6px 10px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); text-decoration: none;
+    transition: all 0.15s;
+  }
+  .lesson-link-btn:hover { color: var(--accent2); border-color: rgba(108,99,255,0.3); }
   .sb-tab {
     flex:1; padding:7px 4px; font-size:12px;
     font-family:'Noto Sans KR',sans-serif;
@@ -504,6 +527,19 @@
       <button class="model-btn" onclick="setModel('claude',this)" id="btn-claude">
         <div class="mdot mdot-claude"></div> Claude Sonnet
       </button>
+
+      <div style="height:1px;background:var(--border);margin:12px 0;"></div>
+
+      <div class="sidebar-label">📚 수업 차시</div>
+      <button class="lesson-btn active" id="lesson-0" onclick="setLesson(0,this)">🏠 자유 대화</button>
+      <button class="lesson-btn" id="lesson-1" onclick="setLesson(1,this)">3차시 · 주제선정</button>
+
+      <!-- 차시별 링크 -->
+      <div id="lesson-links" style="display:none;margin-top:8px;">
+        <a id="lesson-book-link" href="https://jihyuniee.github.io/hyfl-aidata/" target="_blank" class="lesson-link-btn">📖 웹 교과서 열기</a>
+        <a id="lesson-activity-link" href="#" target="_blank" class="lesson-link-btn" style="margin-top:4px;">📝 활동지 열기</a>
+      </div>
+
       <button class="new-chat-btn" onclick="newChat()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         새 대화
@@ -645,15 +681,31 @@ const modelInfo = {
   gemini:  { label: 'Gemini 1.5',    color: 'var(--gemini)' }
 };
 
-// ── Teams ──
-function getTeams() {
-  return JSON.parse(localStorage.getItem(TEAMS_KEY) || '[]');
+// ── Teams (서버 API) ──
+let _teamsCache = null;
+
+async function getTeams() {
+  if (_teamsCache) return _teamsCache;
+  try {
+    const r = await fetch('/api/teams');
+    const d = await r.json();
+    _teamsCache = d.teams || [];
+    return _teamsCache;
+  } catch(e) {
+    return JSON.parse(localStorage.getItem('eduai_teams_backup') || '[]');
+  }
 }
-function saveTeams(teams) {
-  localStorage.setItem(TEAMS_KEY, JSON.stringify(teams));
-}
-function getApiKeys() {
-  return JSON.parse(localStorage.getItem(API_KEYS_KEY) || '{}');
+
+async function teamsAPI(action, team) {
+  const r = await fetch('/api/teams', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, team })
+  });
+  const d = await r.json();
+  _teamsCache = d.teams || [];
+  localStorage.setItem('eduai_teams_backup', JSON.stringify(_teamsCache));
+  return _teamsCache;
 }
 
 // ── Tab ──
@@ -673,12 +725,13 @@ function switchTab(tab) {
 // ── Cascade Selects ──
 function updateClassSelect() { updateTeamSelect(); }
 
-function updateTeamSelect() {
+async function updateTeamSelect() {
   const cls = document.getElementById('class-select').value;
   const teamSel = document.getElementById('team-select');
   teamSel.innerHTML = '<option value="">— 팀 선택 —</option>';
   if (!cls) return;
-  getTeams().filter(t => t.grade === '2' && t.cls === cls && t.status === 'active').forEach(t => {
+  const teams = await getTeams();
+  teams.filter(t => t.grade === '2' && t.cls === cls && t.status === 'active').forEach(t => {
     const opt = document.createElement('option');
     opt.value = t.name; opt.textContent = t.name;
     teamSel.appendChild(opt);
@@ -688,7 +741,7 @@ function updateTeamSelect() {
 function populateTeamSelect() { updateTeamSelect(); }
 
 // ── Login ──
-function doLogin() {
+async function doLogin() {
   const cls  = document.getElementById('class-select').value;
   const team = document.getElementById('team-select').value;
   const pw   = document.getElementById('team-pw').value;
@@ -696,10 +749,11 @@ function doLogin() {
   if (!cls)  { showError(err, '반을 선택해주세요'); return; }
   if (!team) { showError(err, '팀을 선택해주세요'); return; }
   if (!pw)   { showError(err, '비밀번호를 입력해주세요'); return; }
-  const found = getTeams().find(t => t.grade === '2' && t.cls === cls && t.name === team);
-  if (!found)                   { showError(err, '팀을 찾을 수 없습니다'); return; }
-  if (found.status !== 'active'){ showError(err, '아직 교사 승인이 되지 않은 팀입니다'); return; }
-  if (found.password !== pw)    { showError(err, '비밀번호가 틀렸습니다'); return; }
+  const teams = await getTeams();
+  const found = teams.find(t => t.grade === '2' && t.cls === cls && t.name === team);
+  if (!found)                    { showError(err, '팀을 찾을 수 없습니다'); return; }
+  if (found.status !== 'active') { showError(err, '아직 교사 승인이 되지 않은 팀입니다'); return; }
+  if (found.password !== pw)     { showError(err, '비밀번호가 틀렸습니다'); return; }
   currentTeam = `2학년 ${cls}반 ${team}`;
   err.style.display = 'none';
   document.getElementById('login-screen').style.display = 'none';
@@ -709,7 +763,7 @@ function doLogin() {
 }
 
 // ── Register ──
-function doRegister() {
+async function doRegister() {
   const cls     = document.getElementById('reg-class').value;
   const name    = document.getElementById('reg-team').value.trim();
   const members = document.getElementById('reg-members').value.trim();
@@ -718,18 +772,16 @@ function doRegister() {
   const err     = document.getElementById('register-error');
   const suc     = document.getElementById('register-success');
   err.style.display = 'none'; suc.style.display = 'none';
-  if (!cls)     { showError(err, '반을 선택해주세요'); return; }
-  if (!name)    { showError(err, '팀 이름을 입력해주세요'); return; }
-  if (!members) { showError(err, '팀원 이름을 입력해주세요'); return; }
-  if (!pw)      { showError(err, '비밀번호를 설정해주세요'); return; }
+  if (!cls)      { showError(err, '반을 선택해주세요'); return; }
+  if (!name)     { showError(err, '팀 이름을 입력해주세요'); return; }
+  if (!members)  { showError(err, '팀원 이름을 입력해주세요'); return; }
+  if (!pw)       { showError(err, '비밀번호를 설정해주세요'); return; }
   if (pw !== pw2){ showError(err, '비밀번호가 일치하지 않습니다'); return; }
-  const teams = getTeams();
+  const teams = await getTeams();
   if (teams.find(t => t.grade === '2' && t.cls === cls && t.name === name)) {
     showError(err, '이미 같은 반에 같은 이름의 팀이 있습니다'); return;
   }
-  teams.push({ grade: '2', cls, name, members, password: pw, status: 'pending' });
-  saveTeams(teams);
-  // 폼 초기화
+  await teamsAPI('add', { grade: '2', cls, name, members, password: pw, status: 'pending' });
   document.getElementById('reg-class').value = '';
   document.getElementById('reg-team').value = '';
   document.getElementById('reg-members').value = '';
@@ -810,43 +862,41 @@ function saveApiKeys() {
 }
 
 // ── Team Management ──
-function addTeam() {
+async function addTeam() {
   const grade = '2';
   const cls   = document.getElementById('new-team-class').value;
   const name  = document.getElementById('new-team-name').value.trim();
   const pw    = document.getElementById('new-team-pw').value.trim();
   if (!cls)         return alert('반을 선택하세요');
   if (!name || !pw) return alert('팀 이름과 비밀번호를 입력하세요');
-  const teams = getTeams();
+  const teams = await getTeams();
   if (teams.find(t => t.grade === grade && t.cls === cls && t.name === name)) return alert('이미 존재하는 팀입니다');
-  teams.push({ grade, cls, name, password: pw, status: 'pending' });
-  saveTeams(teams);
+  await teamsAPI('add', { grade, cls, name, password: pw, status: 'pending' });
   document.getElementById('new-team-class').value = '';
   document.getElementById('new-team-name').value = '';
   document.getElementById('new-team-pw').value = '';
   renderTeamGrid();
 }
-function approveTeam(grade, cls, name) {
-  const teams = getTeams();
-  const t = teams.find(t => t.grade === grade && t.cls === cls && t.name === name);
-  if (t) { t.status = 'active'; saveTeams(teams); renderTeamGrid(); }
+async function approveTeam(grade, cls, name) {
+  await teamsAPI('approve', { grade, cls, name });
+  renderTeamGrid();
 }
-function revokeTeam(grade, cls, name) {
-  const teams = getTeams();
-  const t = teams.find(t => t.grade === grade && t.cls === cls && t.name === name);
-  if (t) { t.status = 'inactive'; saveTeams(teams); renderTeamGrid(); }
+async function revokeTeam(grade, cls, name) {
+  await teamsAPI('revoke', { grade, cls, name });
+  renderTeamGrid();
 }
-function removeTeam(grade, cls, name) {
+async function removeTeam(grade, cls, name) {
   if (!confirm(`${grade}학년 ${cls}반 ${name} 팀을 삭제하시겠습니까?`)) return;
-  saveTeams(getTeams().filter(t => !(t.grade === grade && t.cls === cls && t.name === name)));
+  await teamsAPI('remove', { grade, cls, name });
   renderTeamGrid();
 }
 
-function renderTeamGrid() {
+async function renderTeamGrid() {
   const grid = document.getElementById('team-grid');
-  const teams = getTeams();
+  grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">불러오는 중...</div>';
+  _teamsCache = null;
+  const teams = await getTeams();
   if (!teams.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">등록된 팀이 없습니다. 학생들이 팀 등록 신청을 하면 여기에 나타납니다.</div>'; return; }
-  // pending 먼저, 그 다음 active, 그 다음 inactive / 반별 정렬
   const sorted = [...teams].sort((a,b) => {
     const order = { pending:0, active:1, inactive:2 };
     if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
@@ -858,7 +908,6 @@ function renderTeamGrid() {
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(t);
   });
-  // pending 팀 수 뱃지
   const pendingCount = teams.filter(t => t.status === 'pending').length;
   grid.innerHTML = (pendingCount ? `<div style="grid-column:1/-1;font-size:12px;padding:8px 12px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:8px;color:#fbbf24;margin-bottom:4px;">⏳ 승인 대기 중인 팀이 ${pendingCount}개 있습니다</div>` : '') +
   Object.entries(grouped).sort().map(([label, ts]) => `
@@ -889,7 +938,83 @@ function renderTeamGrid() {
   `).join('');
 }
 
-// ── Model ──
+// ── Lesson Data ──
+const lessons = [
+  {
+    title: '자유 대화',
+    bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
+    activityUrl: null,
+    system: '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다. 학생 수준에 맞게 친절하고 명확하게 답변하세요.',
+    welcome: '안녕하세요! 무엇이든 자유롭게 질문해보세요 😊'
+  },
+  {
+    title: '3차시 · 주제 선정 — 아이디어를 서비스로',
+    bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
+    activityUrl: 'https://docs.google.com/document/d/11L2IoxFknvSp1GyUZZhxNRZK_1vlOsxT5R4Pm-mdosg/edit?usp=sharing',
+    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다.
+지금은 3차시 수업 "주제 선정 — 아이디어를 서비스로 만들기" 단계입니다.
+활동지 STEP 순서:
+STEP1 대회 핵심 기준 이해 (교육공공데이터·AI·교육문제해결·독창성·실현가능성)
+STEP2 주제 방향 선택 (AI 교육안전복지 / 교육자원최적화 / 미래교육 / 학습자중심)
+STEP3 데이터 기반 문제 탐색 (숫자·사례 포함)
+STEP4 공공데이터 활용 방법 결정
+STEP5 AI 활용 방법 선택 (예측/추천/분류/챗봇/생성형AI)
+STEP6 생성형 AI로 아이디어 확장
+STEP7 서비스 아이디어 정리
+STEP8 AI 적용 시나리오 작성 (데이터수집→AI분석→결과제공)
+STEP9 대회 평가기준 점검 (독창성→AI활용도→실현가능성→논리성→표현성)
+STEP10 최종 주제 선정
+STEP11 AI 피드백 (독창성·실현가능성·AI활용도 1~5점)
+STEP12 최종 문제 정의문 확정
+학교는 한양외고(외국어고등학교, 기숙사·통학 혼합)입니다.
+학생들이 각 STEP을 진행할 때 막히는 부분을 친절하게 도와주세요.
+좋은 문제 정의문 구조: [공공데이터]를 활용하여 + [대상]의 + [구체적 문제]를 + [AI방법]으로 해결할 수 있을까?`,
+    welcome: `안녕하세요! 3차시 **"주제 선정"** 수업이에요 💡
+
+오늘 목표:
+① 팀 주제 1개 선정
+② 공공데이터 활용 방향 결정
+③ 최종 문제 정의문 확정
+
+활동지 STEP 1부터 순서대로 진행하면서 막히는 부분을 질문해보세요!
+예) "STEP3 문제 탐색 도와줘", "좋은 주제 아이디어 뭐가 있을까?"`
+  }
+];
+
+let currentLesson = 0;
+
+function setLesson(idx, btn) {
+  currentLesson = idx;
+  document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const lesson = lessons[idx];
+  const linksDiv = document.getElementById('lesson-links');
+  const bookLink = document.getElementById('lesson-book-link');
+  const activityLink = document.getElementById('lesson-activity-link');
+  if (idx === 0) {
+    linksDiv.style.display = 'none';
+  } else {
+    linksDiv.style.display = 'block';
+    bookLink.href = lesson.bookUrl;
+    if (lesson.activityUrl) {
+      activityLink.href = lesson.activityUrl;
+      activityLink.style.display = 'block';
+    } else {
+      activityLink.style.display = 'none';
+    }
+  }
+  // 새 대화로 시작
+  newChat();
+  // 웰컴 메시지를 차시 맞춤으로
+  const msgDiv = document.getElementById('messages');
+  msgDiv.innerHTML = '';
+  const welcome = document.createElement('div');
+  welcome.id = 'welcome';
+  welcome.className = 'welcome';
+  welcome.innerHTML = `<h2>${idx === 0 ? '무엇을 도와드릴까요?' : lesson.title}</h2>
+    <p style="white-space:pre-line;text-align:left;max-width:500px;margin:0 auto;">${lesson.welcome}</p>`;
+  msgDiv.appendChild(welcome);
+}
 function setModel(m, btn) {
   currentModel = m;
   document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
@@ -996,10 +1121,11 @@ async function sendMessage() {
 
 // ── AI API Calls (Vercel 서버리스 프록시 경유) ──
 async function callAI(model, msgs) {
+  const systemPrompt = lessons[currentLesson].system;
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages: msgs })
+    body: JSON.stringify({ model, messages: msgs, system: systemPrompt })
   });
   const data = await res.json();
   if (data.error) throw new Error(data.error);
