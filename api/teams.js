@@ -8,22 +8,35 @@ export default async function handler(req, res) {
   const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
   async function kvGet(key) {
-    const r = await fetch(`${KV_URL}/get/${key}`, { headers: { Authorization: `Bearer ${KV_TOKEN}` } });
+    const r = await fetch(`${KV_URL}/get/${key}`, {
+      headers: { Authorization: `Bearer ${KV_TOKEN}` }
+    });
     const d = await r.json();
-    return d.result ? JSON.parse(d.result) : null;
+    if (!d.result) return [];
+    try {
+      const parsed = JSON.parse(d.result);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch(e) {
+      return [];
+    }
   }
+
   async function kvSet(key, value) {
-    await fetch(`${KV_URL}/set/${key}`, { method: 'POST', headers: { Authorization: `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ value: JSON.stringify(value) }) });
+    await fetch(`${KV_URL}/set/${key}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: JSON.stringify(value) })
+    });
   }
 
   try {
     if (req.method === 'GET') {
-      const teams = await kvGet('teams') || [];
+      const teams = await kvGet('teams');
       return res.json({ teams });
     }
     if (req.method === 'POST') {
       const { action, team } = req.body;
-      let teams = await kvGet('teams') || [];
+      let teams = await kvGet('teams');
       if (action === 'add') {
         teams.push(team);
       } else if (action === 'approve') {
