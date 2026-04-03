@@ -14,7 +14,8 @@ export default async function handler(req, res) {
     const d = await r.json();
     if (!d.result) return [];
     try {
-      const val = JSON.parse(d.result);
+      let val = d.result;
+      while (typeof val === 'string') val = JSON.parse(val);
       return Array.isArray(val) ? val : [];
     } catch { return []; }
   }
