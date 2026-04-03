@@ -1209,13 +1209,13 @@ function renderMarkdown(text) {
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
     .replace(/\*(.*?)\*/g,'<em>$1</em>')
     .replace(/`(.*?)`/g,'<code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;">$1</code>')
-    .replace(/#{3}\s(.+)/g,'<div style="font-size:14px;font-weight:600;margin:10px 0 4px;">$1</div>')
-    .replace(/#{2}\s(.+)/g,'<div style="font-size:15px;font-weight:600;margin:12px 0 5px;">$1</div>')
-    .replace(/#{1}\s(.+)/g,'<div style="font-size:16px;font-weight:600;margin:14px 0 6px;">$1</div>')
-    .replace(/^---+$/gm,'<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:8px 0;">')
-    .replace(/^[-•]\s(.+)/gm,'<div style="padding:2px 0 2px 16px;">• $1</div>')
-    .replace(/^\d+\.\s(.+)/gm,'<div style="padding:2px 0 2px 16px;">$&</div>')
-    .replace(/\n\n/g,'<br><br>')
+    .replace(/#{3}\s(.+)/g,'<div style="font-size:14px;font-weight:600;margin:8px 0 2px;">$1</div>')
+    .replace(/#{2}\s(.+)/g,'<div style="font-size:15px;font-weight:600;margin:10px 0 3px;">$1</div>')
+    .replace(/#{1}\s(.+)/g,'<div style="font-size:16px;font-weight:600;margin:10px 0 4px;">$1</div>')
+    .replace(/^---+$/gm,'<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:6px 0;">')
+    .replace(/^[-•]\s(.+)/gm,'<div style="padding:1px 0 1px 14px;">• $1</div>')
+    .replace(/^\d+\.\s(.+)/gm,'<div style="padding:1px 0 1px 14px;">$&</div>')
+    .replace(/\n\n/g,'<br>')
     .replace(/\n/g,'<br>');
 }
 function stripMarkdown(text) {
