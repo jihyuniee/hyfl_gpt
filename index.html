@@ -565,23 +565,55 @@
         </div>
       </div>
       <div class="input-wrap">
+        <!-- 파일 업로드 미리보기 -->
+        <div id="file-preview" style="display:none;margin-bottom:8px;padding:8px 12px;
+          background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);
+          border-radius:10px;font-size:12px;color:#10b981;
+          display:none;align-items:center;gap:8px;">
+          <span>📄</span>
+          <span id="file-name"></span>
+          <button onclick="clearFile()" style="margin-left:auto;background:none;border:none;color:#10b981;cursor:pointer;font-size:14px;">✕</button>
+        </div>
         <div class="input-inner">
           <textarea id="user-input" placeholder="메시지를 입력하세요... (Shift+Enter 줄바꿈)" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <button class="send-btn" onclick="sendMessage()">
             <svg viewBox="0 0 24 24"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
           </button>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
-          <button id="improve-btn" onclick="improvePrompt()" style="
-            font-size:12px;padding:5px 12px;
-            background:rgba(108,99,255,0.15);
-            border:1px solid rgba(108,99,255,0.35);
-            border-radius:8px;color:var(--accent2);
-            cursor:pointer;font-family:'Noto Sans KR',sans-serif;
-            transition:all 0.15s;display:flex;align-items:center;gap:5px;
-          ">✨ 프롬프트 개선</button>
-          <div class="input-footer" style="margin-top:0;">
-            현재 모델: <span class="model-tag" id="model-label">GPT-4o</span> &nbsp;·&nbsp; 수업 목적으로만 사용하세요
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button id="improve-btn" onclick="improvePrompt()" style="
+              font-size:12px;padding:5px 12px;
+              background:rgba(108,99,255,0.15);
+              border:1px solid rgba(108,99,255,0.35);
+              border-radius:8px;color:var(--accent2);
+              cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+              transition:all 0.15s;
+            ">✨ 프롬프트 개선</button>
+            <label style="
+              font-size:12px;padding:5px 12px;
+              background:rgba(16,185,129,0.1);
+              border:1px solid rgba(16,185,129,0.3);
+              border-radius:8px;color:#10b981;
+              cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+            ">
+              📁 파일 업로드
+              <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="handleFileUpload(this)">
+            </label>
+          </div>
+          <!-- 모델 드롭다운 -->
+          <div style="display:flex;align-items:center;gap:8px;">
+            <select id="model-select" onchange="setModelFromSelect(this.value)" style="
+              font-size:12px;padding:5px 10px;
+              background:var(--surface2);border:1px solid var(--border2);
+              border-radius:8px;color:var(--text);
+              font-family:'Noto Sans KR',sans-serif;cursor:pointer;
+            ">
+              <option value="gpt">GPT-4o</option>
+              <option value="gemini">Gemini 1.5</option>
+              <option value="claude" selected>Claude Sonnet</option>
+            </select>
+            <div class="input-footer" style="margin-top:0;white-space:nowrap;">수업 목적으로만</div>
           </div>
         </div>
         <!-- 개선된 프롬프트 미리보기 -->
@@ -1126,22 +1158,49 @@ function addBubble(type, text, isMarkdown = false) {
   row.className = 'msg-row' + (type === 'user' ? ' user' : '');
   const initials = type === 'user' ? (currentTeam?.slice(0,1) || '팀') : 'AI';
   const content = isMarkdown ? renderMarkdown(text) : text.replace(/\n/g,'<br>');
+  const copyBtn = type === 'ai' ? `
+    <button onclick="copyBubble(this)" style="
+      margin-top:8px;font-size:11px;padding:4px 10px;
+      background:transparent;border:1px solid var(--border);
+      border-radius:6px;color:var(--muted);cursor:pointer;
+      font-family:'Noto Sans KR',sans-serif;transition:all 0.15s;
+      display:block;
+    ">📋 복사</button>` : '';
   row.innerHTML = `
     <div class="msg-avatar ${type === 'user' ? 'user-av' : 'ai-av'}">${initials}</div>
-    <div class="bubble ${type === 'user' ? 'user-bubble' : 'ai-bubble'}">${content}</div>`;
+    <div style="display:flex;flex-direction:column;max-width:600px;">
+      <div class="bubble ${type === 'user' ? 'user-bubble' : 'ai-bubble'}">${content}</div>
+      ${copyBtn}
+    </div>`;
   msgDiv.appendChild(row);
   msgDiv.scrollTop = msgDiv.scrollHeight;
   return row.querySelector('.bubble');
 }
 
+function copyBubble(btn) {
+  const bubble = btn.previousElementSibling;
+  const text = bubble.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ 복사됨!';
+    setTimeout(() => btn.textContent = '📋 복사', 1500);
+  });
+}
+
 async function sendMessage() {
   const input = document.getElementById('user-input');
-  const text = input.value.trim();
-  if (!text) return;
+  let text = input.value.trim();
+  if (!text && !uploadedFileContent) return;
   input.value = ''; input.style.height = 'auto';
 
-  addBubble('user', text);
-  messages.push({ role: 'user', content: text });
+  // 파일 내용 포함
+  let fullText = text;
+  if (uploadedFileContent) {
+    fullText = `${text}\n\n[업로드된 파일 내용]\n${uploadedFileContent.slice(0, 3000)}`;
+    clearFile();
+  }
+
+  addBubble('user', text || '📁 파일 분석 요청', false);
+  messages.push({ role: 'user', content: fullText });
 
   const thinkingBubble = addBubble('ai', '<span class="thinking">생각하는 중</span>', false);
 
@@ -1155,7 +1214,41 @@ async function sendMessage() {
   document.getElementById('messages').scrollTop = 99999;
 }
 
-// ── Prompt Improvement ──
+// ── File Upload ──
+let uploadedFileContent = null;
+
+function handleFileUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const preview = document.getElementById('file-preview');
+  document.getElementById('file-name').textContent = file.name;
+  preview.style.display = 'flex';
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    uploadedFileContent = e.target.result;
+    // CSV/텍스트는 바로 읽기, 엑셀은 안내
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      uploadedFileContent = `[엑셀 파일: ${file.name}] - CSV로 변환 후 업로드하면 더 정확하게 분석할 수 있어요.`;
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function clearFile() {
+  uploadedFileContent = null;
+  document.getElementById('file-preview').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+// ── Model Select Dropdown ──
+function setModelFromSelect(model) {
+  currentModel = model;
+  // 사이드바 버튼도 동기화
+  document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + model);
+  if (btn) btn.classList.add('active');
+}
 function renderMarkdown(text) {
   return text
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
