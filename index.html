@@ -590,10 +590,12 @@
           border-radius:10px;font-size:13px;line-height:1.6;">
           <div style="font-size:11px;color:var(--accent2);margin-bottom:6px;">✨ 개선된 프롬프트 — 직접 수정도 가능해요</div>
           <textarea id="improved-text" style="
-            width:100%;background:transparent;border:none;outline:none;
+            width:100%;background:rgba(255,255,255,0.05);border:none;outline:none;
             color:var(--text);font-family:'Noto Sans KR',sans-serif;
-            font-size:13px;line-height:1.7;resize:vertical;min-height:80px;
-          "></textarea>
+            font-size:13px;line-height:1.7;resize:none;
+            min-height:120px;max-height:300px;overflow-y:auto;
+            border-radius:6px;padding:6px;
+          " oninput="autoResize(this)"></textarea>
           <div style="display:flex;gap:8px;margin-top:10px;">
             <button onclick="useImproved()" style="
               flex:1;font-size:12px;padding:7px;
@@ -1201,7 +1203,10 @@ async function improvePrompt() {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     const cleaned = stripMarkdown(data.reply);
-    document.getElementById('improved-text').value = cleaned;
+    const ta = document.getElementById('improved-text');
+    ta.value = cleaned;
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 300) + 'px';
     document.getElementById('improved-preview').style.display = 'block';
   } catch(e) {
     alert('개선 중 오류: ' + e.message);
