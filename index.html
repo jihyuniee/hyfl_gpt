@@ -571,8 +571,38 @@
             <svg viewBox="0 0 24 24"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
           </button>
         </div>
-        <div class="input-footer">
-          현재 모델: <span class="model-tag" id="model-label">GPT-4o</span> &nbsp;·&nbsp; 수업 목적으로만 사용하세요
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+          <button id="improve-btn" onclick="improvePrompt()" style="
+            font-size:12px;padding:5px 12px;
+            background:rgba(108,99,255,0.15);
+            border:1px solid rgba(108,99,255,0.35);
+            border-radius:8px;color:var(--accent2);
+            cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+            transition:all 0.15s;display:flex;align-items:center;gap:5px;
+          ">✨ 프롬프트 개선</button>
+          <div class="input-footer" style="margin-top:0;">
+            현재 모델: <span class="model-tag" id="model-label">GPT-4o</span> &nbsp;·&nbsp; 수업 목적으로만 사용하세요
+          </div>
+        </div>
+        <!-- 개선된 프롬프트 미리보기 -->
+        <div id="improved-preview" style="display:none;margin-top:8px;padding:10px 14px;
+          background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);
+          border-radius:10px;font-size:13px;line-height:1.6;">
+          <div style="font-size:11px;color:var(--accent2);margin-bottom:6px;">✨ 개선된 프롬프트</div>
+          <div id="improved-text" style="color:var(--text);"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button onclick="useImproved()" style="
+              flex:1;font-size:12px;padding:7px;
+              background:var(--accent);color:white;border:none;
+              border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+            ">이걸로 보내기</button>
+            <button onclick="document.getElementById('improved-preview').style.display='none'" style="
+              flex:1;font-size:12px;padding:7px;
+              background:transparent;color:var(--muted);
+              border:1px solid var(--border);border-radius:8px;
+              cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+            ">원래대로</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1119,7 +1149,47 @@ async function sendMessage() {
   document.getElementById('messages').scrollTop = 99999;
 }
 
-// ── AI API Calls (Vercel 서버리스 프록시 경유) ──
+// ── Prompt Improvement ──
+let improvedPromptText = '';
+
+async function improvePrompt() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) { alert('먼저 메시지를 입력해주세요!'); return; }
+
+  const btn = document.getElementById('improve-btn');
+  btn.textContent = '✨ 개선 중...';
+  btn.style.opacity = '0.6';
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: currentModel,
+        system: '당신은 프롬프트 엔지니어링 전문가입니다. 학생이 입력한 프롬프트를 더 구체적이고 효과적인 프롬프트로 개선해주세요. 개선된 프롬프트만 출력하고 다른 설명은 하지 마세요.',
+        messages: [{ role: 'user', content: `다음 프롬프트를 개선해줘:\n"${text}"` }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    improvedPromptText = data.reply.trim();
+    document.getElementById('improved-text').textContent = improvedPromptText;
+    document.getElementById('improved-preview').style.display = 'block';
+  } catch(e) {
+    alert('개선 중 오류: ' + e.message);
+  } finally {
+    btn.textContent = '✨ 프롬프트 개선';
+    btn.style.opacity = '1';
+  }
+}
+
+function useImproved() {
+  document.getElementById('user-input').value = improvedPromptText;
+  document.getElementById('improved-preview').style.display = 'none';
+  autoResize(document.getElementById('user-input'));
+  sendMessage();
+}
 async function callAI(model, msgs) {
   const systemPrompt = lessons[currentLesson].system;
   const res = await fetch('/api/chat', {
