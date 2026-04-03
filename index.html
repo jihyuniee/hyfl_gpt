@@ -588,8 +588,12 @@
         <div id="improved-preview" style="display:none;margin-top:8px;padding:10px 14px;
           background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);
           border-radius:10px;font-size:13px;line-height:1.6;">
-          <div style="font-size:11px;color:var(--accent2);margin-bottom:6px;">✨ 개선된 프롬프트</div>
-          <div id="improved-text" style="color:var(--text);"></div>
+          <div style="font-size:11px;color:var(--accent2);margin-bottom:6px;">✨ 개선된 프롬프트 — 직접 수정도 가능해요</div>
+          <textarea id="improved-text" style="
+            width:100%;background:transparent;border:none;outline:none;
+            color:var(--text);font-family:'Noto Sans KR',sans-serif;
+            font-size:13px;line-height:1.7;resize:vertical;min-height:80px;
+          "></textarea>
           <div style="display:flex;gap:8px;margin-top:10px;">
             <button onclick="useImproved()" style="
               flex:1;font-size:12px;padding:7px;
@@ -1150,7 +1154,14 @@ async function sendMessage() {
 }
 
 // ── Prompt Improvement ──
-let improvedPromptText = '';
+function stripMarkdown(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/#{1,6}\s/g, '')
+    .replace(/`(.*?)`/g, '$1')
+    .trim();
+}
 
 async function improvePrompt() {
   const input = document.getElementById('user-input');
@@ -1167,14 +1178,14 @@ async function improvePrompt() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: currentModel,
-        system: '당신은 프롬프트 엔지니어링 전문가입니다. 학생이 입력한 프롬프트를 더 구체적이고 효과적인 프롬프트로 개선해주세요. 개선된 프롬프트만 출력하고 다른 설명은 하지 마세요.',
+        system: '당신은 프롬프트 엔지니어링 전문가입니다. 학생이 입력한 프롬프트를 더 구체적이고 효과적인 프롬프트로 개선해주세요. 개선된 프롬프트 텍스트만 출력하세요. 마크다운 기호(**,##,- 등)를 사용하지 말고 일반 텍스트로만 작성하세요. 설명이나 부연은 하지 마세요.',
         messages: [{ role: 'user', content: `다음 프롬프트를 개선해줘:\n"${text}"` }]
       })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    improvedPromptText = data.reply.trim();
-    document.getElementById('improved-text').textContent = improvedPromptText;
+    const cleaned = stripMarkdown(data.reply);
+    document.getElementById('improved-text').value = cleaned;
     document.getElementById('improved-preview').style.display = 'block';
   } catch(e) {
     alert('개선 중 오류: ' + e.message);
@@ -1185,7 +1196,8 @@ async function improvePrompt() {
 }
 
 function useImproved() {
-  document.getElementById('user-input').value = improvedPromptText;
+  const improved = document.getElementById('improved-text').value.trim();
+  document.getElementById('user-input').value = improved;
   document.getElementById('improved-preview').style.display = 'none';
   autoResize(document.getElementById('user-input'));
   sendMessage();
