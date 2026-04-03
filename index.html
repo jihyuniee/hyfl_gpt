@@ -1172,6 +1172,8 @@ function renderMarkdown(text) {
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>');
 }
+
+function stripMarkdown(text) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/\*(.*?)\*/g, '$1')
