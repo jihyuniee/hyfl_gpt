@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HYFL eduAI — 2026 공공교육데이터 AI활용대회</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #0f0f13;
@@ -589,6 +590,13 @@
               📁 파일 업로드
               <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="handleFileUpload(this)">
             </label>
+            <button onclick="showChartFromFile()" style="
+              font-size:12px;padding:5px 12px;
+              background:rgba(59,130,246,0.12);
+              border:1px solid rgba(59,130,246,0.3);
+              border-radius:8px;color:#60a5fa;
+              cursor:pointer;font-family:'Noto Sans KR',sans-serif;
+            ">📊 차트 그리기</button>
           </div>
           <!-- 모델 드롭다운 -->
           <div style="display:flex;align-items:center;gap:8px;">
@@ -1197,6 +1205,104 @@ async function sendMessage() {
     const reply = await callAI(currentModel, messages);
     thinkingBubble.innerHTML = renderMarkdown(reply);
     messages.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    thinkingBubble.innerHTML = `<span style="color:var(--danger)">오류: ${e.message}</span>`;
+  }
+  document.getElementById('messages').scrollTop = 99999;
+}
+
+// ── Chart Visualization ──
+let chartInstance = null;
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g,''));
+  const rows = lines.slice(1).map(line => {
+    const vals = line.split(',').map(v => v.trim().replace(/"/g,''));
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i]);
+    return obj;
+  });
+  return { headers, rows };
+}
+
+async function showChartFromFile() {
+  if (!uploadedFileContent) { alert('먼저 CSV 파일을 업로드해주세요!'); return; }
+
+  const analysisPrompt = `다음 CSV 데이터를 분석해서 차트로 시각화할 JSON을 만들어줘.
+반드시 아래 형식으로만 답해줘 (다른 텍스트 없이):
+{"chartType":"bar","title":"차트 제목","labelColumn":"X축 컬럼명","valueColumn":"Y축 컬럼명","insight":"핵심 인사이트 2-3줄"}
+
+chartType은 bar, line, pie 중 데이터에 가장 적합한 것으로.
+CSV 데이터:
+${uploadedFileContent.slice(0, 2000)}`;
+
+  addBubble('user', '📊 이 데이터를 차트로 시각화해줘', false);
+  messages.push({ role: 'user', content: analysisPrompt });
+  const thinkingBubble = addBubble('ai', '<span class="thinking">데이터 분석 중</span>', false);
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: currentModel,
+        system: '데이터 분석 전문가입니다. 요청한 JSON 형식으로만 답변하세요. 코드블록 없이 순수 JSON만 출력하세요.',
+        messages: [{ role: 'user', content: analysisPrompt }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    let config;
+    try {
+      config = JSON.parse(data.reply.replace(/```json|```/g,'').trim());
+    } catch(e) { throw new Error('차트 설정 파싱 실패. 다시 시도해주세요.'); }
+
+    const { rows } = parseCSV(uploadedFileContent);
+    const labels = rows.map(r => r[config.labelColumn] || '').filter(Boolean);
+    const values = rows.map(r => parseFloat(r[config.valueColumn]) || 0);
+    const colors = ['rgba(108,99,255,0.8)','rgba(16,185,129,0.8)','rgba(245,158,11,0.8)',
+      'rgba(239,68,68,0.8)','rgba(59,130,246,0.8)','rgba(168,85,247,0.8)'];
+
+    const chartId = 'chart-' + Date.now();
+    thinkingBubble.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;max-width:560px;">
+        <div style="font-size:13px;font-weight:500;margin-bottom:12px;">📊 ${config.title}</div>
+        <canvas id="${chartId}" style="max-height:280px;"></canvas>
+        <div style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.6;padding:10px;background:var(--surface2);border-radius:8px;">
+          💡 ${config.insight}
+        </div>
+      </div>`;
+    messages.push({ role: 'assistant', content: `차트: ${config.title}\n${config.insight}` });
+
+    setTimeout(() => {
+      const ctx = document.getElementById(chartId);
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: config.chartType || 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: config.valueColumn,
+            data: values,
+            backgroundColor: config.chartType === 'pie' ? colors : colors[0],
+            borderColor: config.chartType === 'pie' ? colors : 'rgba(108,99,255,1)',
+            borderWidth: 1,
+            borderRadius: config.chartType === 'bar' ? 6 : 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: '#f0f0f5', font: { family: 'Noto Sans KR', size: 12 } } } },
+          scales: config.chartType !== 'pie' ? {
+            x: { ticks: { color: '#8888a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#8888a0' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          } : {}
+        }
+      });
+    }, 100);
+    clearFile();
   } catch(e) {
     thinkingBubble.innerHTML = `<span style="color:var(--danger)">오류: ${e.message}</span>`;
   }
