@@ -138,33 +138,51 @@
 
   /* ── Sidebar ── */
   .sidebar {
-    width: 200px; flex-shrink: 0;
+    width: 210px; flex-shrink: 0;
     background: var(--surface);
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column;
-    padding: 16px 12px;
+    padding: 12px 10px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border2) transparent;
   }
-  .sidebar-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
-  .model-btn {
-    display: flex; align-items: center; gap: 10px;
-    width: 100%; background: transparent; border: 1px solid transparent;
-    border-radius: 10px; padding: 9px 10px; cursor: pointer;
-    color: var(--muted); font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px; text-align: left; margin-bottom: 4px;
-    transition: all 0.15s;
+  .sidebar-label {
+    font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 6px; margin-top: 10px;
+    padding: 0 4px;
   }
-  .model-btn:hover { background: var(--surface2); color: var(--text); }
-  .model-btn.active { background: var(--surface2); border-color: var(--border2); color: var(--text); }
-  .mdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .mdot-gpt { background: var(--gpt); }
-  .mdot-gemini { background: var(--gemini); }
-  .mdot-claude { background: var(--claude); }
+  .sidebar-label:first-child { margin-top: 0; }
+  .lesson-btn {
+    display: block; width: 100%;
+    text-align: left; padding: 7px 10px;
+    border-radius: 8px; border: 1px solid transparent;
+    background: transparent; color: var(--muted);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 12px; cursor: pointer; margin-bottom: 2px;
+    transition: all 0.15s; line-height: 1.4;
+  }
+  .lesson-btn:hover { background: var(--surface2); color: var(--text); }
+  .lesson-btn.active {
+    background: rgba(108,99,255,0.15);
+    border-color: rgba(108,99,255,0.35);
+    color: var(--accent2); font-weight: 500;
+  }
+  .lesson-link-btn {
+    display: block; font-size: 11px;
+    padding: 6px 10px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); text-decoration: none;
+    transition: all 0.15s; margin-bottom: 3px;
+  }
+  .lesson-link-btn:hover { color: var(--accent2); border-color: rgba(108,99,255,0.3); }
   .new-chat-btn {
     display: flex; align-items: center; gap: 8px;
     width: 100%; background: transparent; border: 1px solid var(--border);
-    border-radius: 10px; padding: 9px 10px; cursor: pointer;
+    border-radius: 10px; padding: 8px 10px; cursor: pointer;
     color: var(--muted); font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px; margin-top: 16px; margin-bottom: 12px;
+    font-size: 12px; margin-top: 10px; margin-bottom: 8px;
     transition: all 0.15s;
   }
   .new-chat-btn:hover { border-color: var(--border2); color: var(--text); }
@@ -175,12 +193,13 @@
     transition: all 0.15s;
   }
   .history-item:hover { background: var(--surface2); color: var(--text); }
-  .sidebar-space { flex: 1; }
+  .sidebar-space { flex: 1; min-height: 12px; }
   .sidebar-notice {
     font-size: 11px; color: var(--muted);
     padding: 10px; background: var(--surface2);
     border-radius: 8px; line-height: 1.5;
     border: 1px solid var(--border);
+    margin-top: 8px; flex-shrink: 0;
   }
 
   /* ── Chat ── */
@@ -193,10 +212,7 @@
     display: flex; flex-direction: column; gap: 20px;
     scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
   }
-  .welcome {
-    text-align: center; padding: 60px 20px;
-    color: var(--muted);
-  }
+  .welcome { text-align: center; padding: 60px 20px; color: var(--muted); }
   .welcome h2 {
     font-size: 24px; font-weight: 500;
     color: var(--text); margin-bottom: 10px;
@@ -226,14 +242,11 @@
     font-size: 14px; line-height: 1.75; max-width: 600px;
   }
   .ai-bubble {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px 14px 14px 14px;
-    color: var(--text);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px 14px 14px 14px; color: var(--text);
   }
   .user-bubble {
-    background: var(--accent);
-    color: white;
+    background: var(--accent); color: white;
     border-radius: 14px 4px 14px 14px;
   }
   .thinking { color: var(--muted); font-size: 13px; }
@@ -256,10 +269,8 @@
   }
   .input-inner {
     display: flex; gap: 10px; align-items: flex-end;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 14px;
-    padding: 10px 14px;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 14px; padding: 10px 14px;
     transition: border-color 0.2s;
   }
   .input-inner:focus-within { border-color: var(--accent); }
@@ -278,17 +289,12 @@
   }
   .send-btn:hover { opacity: 0.85; }
   .send-btn svg { width: 16px; height: 16px; fill: white; }
-  .input-footer {
-    font-size: 11px; color: var(--muted);
-    text-align: center; margin-top: 8px;
-  }
-  .model-tag { color: var(--accent2); }
+  .input-footer { font-size: 11px; color: var(--muted); text-align: center; margin-top: 8px; }
 
   /* ── Admin Panel ── */
   #admin-screen {
     position: fixed; inset: 0; z-index: 200;
-    background: var(--bg); display: none;
-    flex-direction: column;
+    background: var(--bg); display: none; flex-direction: column;
   }
   #admin-screen.visible { display: flex; }
   .admin-top {
@@ -308,10 +314,7 @@
   .admin-section { margin-bottom: 32px; }
   .admin-section h3 { font-size: 14px; font-weight: 500; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-  .team-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 16px;
-  }
+  .team-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
   .team-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .team-name { font-size: 15px; font-weight: 500; }
   .status-dot { width: 10px; height: 10px; border-radius: 50%; }
@@ -343,11 +346,7 @@
     transition: opacity 0.2s;
   }
   .add-btn:hover { opacity: 0.85; }
-
-  .api-config {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px;
-  }
+  .api-config { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
   .api-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
   .api-label { font-size: 13px; width: 100px; flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
   .api-row input { flex: 1; font-family: monospace; font-size: 12px; }
@@ -358,8 +357,6 @@
     margin-top: 4px; transition: opacity 0.2s;
   }
   .save-api-btn:hover { opacity: 0.85; }
-  .save-note { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
-
   .admin-login-box {
     width: 340px; background: var(--surface);
     border: 1px solid var(--border2); border-radius: 16px; padding: 32px;
@@ -371,56 +368,6 @@
     .sidebar { display: none; }
     .login-box { width: 92%; padding: 28px 20px; }
   }
-
-  /* ── Lesson buttons ── */
-  .lesson-btn {
-    display: block; width: 100%;
-    text-align: left; padding: 8px 10px;
-    border-radius: 8px; border: 1px solid transparent;
-    background: transparent; color: var(--muted);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 12px; cursor: pointer; margin-bottom: 3px;
-    transition: all 0.15s;
-  }
-  .lesson-btn:hover { background: var(--surface2); color: var(--text); }
-  .lesson-btn.active {
-    background: rgba(108,99,255,0.15);
-    border-color: rgba(108,99,255,0.35);
-    color: var(--accent2); font-weight: 500;
-  }
-  .lesson-link-btn {
-    display: block; font-size: 11px;
-    padding: 6px 10px; border-radius: 8px;
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--muted); text-decoration: none;
-    transition: all 0.15s;
-  }
-  .lesson-link-btn:hover { color: var(--accent2); border-color: rgba(108,99,255,0.3); }
-  .sb-tab {
-    flex:1; padding:7px 4px; font-size:12px;
-    font-family:'Noto Sans KR',sans-serif;
-    border:1px solid var(--border); border-radius:8px;
-    background:transparent; color:var(--muted); cursor:pointer;
-    transition:all 0.15s;
-  }
-  .sb-tab.active { background:var(--accent); color:white; border-color:var(--accent); }
-
-  /* ── Info panel ── */
-  .info-section { margin-bottom:14px; }
-  .info-title { font-size:12px; font-weight:500; color:var(--text); margin-bottom:6px; padding:0 2px; }
-  .info-card {
-    background:var(--surface2); border:1px solid var(--border);
-    border-radius:10px; padding:12px;
-  }
-  .info-row { display:flex; align-items:flex-start; gap:6px; font-size:12px; color:var(--muted); margin-bottom:5px; line-height:1.5; }
-  .info-dot { width:4px; height:4px; border-radius:50%; background:var(--accent2); flex-shrink:0; margin-top:5px; }
-  .info-link-btn {
-    display:inline-block; margin-top:8px; font-size:12px;
-    color:var(--accent2); text-decoration:none;
-    padding:5px 10px; border:1px solid rgba(108,99,255,0.3);
-    border-radius:6px; transition:all 0.15s; width:100%; text-align:center;
-  }
-  .info-link-btn:hover { background:rgba(108,99,255,0.1); }
 </style>
 </head>
 <body>
@@ -434,14 +381,10 @@
       📊 2026 공공교육데이터 AI활용대회<br>
       대회 기간 중 교사 승인 팀만 접속 가능합니다
     </div>
-
-    <!-- 탭 -->
     <div style="display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border2);border-radius:10px;overflow:hidden;">
       <button id="tab-login" onclick="switchTab('login')" style="flex:1;padding:10px;font-size:13px;font-family:'Noto Sans KR',sans-serif;border:none;cursor:pointer;background:var(--accent);color:white;font-weight:500;">입장하기</button>
       <button id="tab-register" onclick="switchTab('register')" style="flex:1;padding:10px;font-size:13px;font-family:'Noto Sans KR',sans-serif;border:none;cursor:pointer;background:var(--surface2);color:var(--muted);">팀 등록 신청</button>
     </div>
-
-    <!-- 입장 폼 -->
     <div id="form-login">
       <div class="field-group">
         <div class="field-label">반</div>
@@ -454,9 +397,7 @@
       </div>
       <div class="field-group">
         <div class="field-label">팀</div>
-        <select id="team-select">
-          <option value="">— 팀 선택 —</option>
-        </select>
+        <select id="team-select"><option value="">— 팀 선택 —</option></select>
       </div>
       <div class="field-group">
         <div class="field-label">팀 비밀번호</div>
@@ -465,8 +406,6 @@
       <button class="login-btn" onclick="doLogin()">입장하기</button>
       <div class="login-error" id="login-error"></div>
     </div>
-
-    <!-- 팀 등록 신청 폼 -->
     <div id="form-register" style="display:none;">
       <div style="display:flex;gap:8px;margin-bottom:14px;">
         <div style="flex:1;">
@@ -484,8 +423,8 @@
         </div>
       </div>
       <div class="field-group">
-        <div class="field-label">팀원 이름 <span style="color:var(--muted);font-size:11px;">(쉼표로 구분, 예: 홍길동, 김철수, 이영희)</span></div>
-        <input type="text" id="reg-members" placeholder="팀원 이름을 입력하세요">
+        <div class="field-label">팀원 이름 <span style="color:var(--muted);font-size:11px;">(쉼표로 구분)</span></div>
+        <input type="text" id="reg-members" placeholder="홍길동, 김철수, 이영희">
       </div>
       <div class="field-group">
         <div class="field-label">팀 비밀번호 설정</div>
@@ -499,8 +438,7 @@
       <div class="login-error" id="register-error"></div>
       <div id="register-success" style="display:none;margin-top:12px;padding:12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;font-size:13px;color:#10b981;text-align:center;line-height:1.6;"></div>
     </div>
-
-    <div style="margin-top:20px; text-align:center;">
+    <div style="margin-top:20px;text-align:center;">
       <button onclick="showAdminLogin()" style="font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;">교사 관리자 로그인</button>
     </div>
   </div>
@@ -517,17 +455,31 @@
     </div>
   </div>
   <div class="body-wrap">
+    <!-- ── Sidebar ── -->
     <div class="sidebar">
-      <div style="height:1px;background:var(--border);margin:12px 0;"></div>
-
       <div class="sidebar-label">📚 수업 차시</div>
       <button class="lesson-btn active" id="lesson-0" onclick="setLesson(0,this)">🏠 자유 대화</button>
-      <button class="lesson-btn" id="lesson-1" onclick="setLesson(1,this)">3차시 · 주제선정</button>
+
+      <div class="sidebar-label" style="margin-top:8px;">📘 1권 · 출발·탐색</div>
+      <button class="lesson-btn" id="lesson-1" onclick="setLesson(1,this)">1차시 · 공공데이터란?</button>
+      <button class="lesson-btn" id="lesson-2" onclick="setLesson(2,this)">2차시 · 데이터→AI 흐름</button>
+      <button class="lesson-btn" id="lesson-3" onclick="setLesson(3,this)">3차시 · 문제 정의</button>
+      <button class="lesson-btn" id="lesson-4" onclick="setLesson(4,this)">4차시 · 데이터 찾기</button>
+      <button class="lesson-btn" id="lesson-5" onclick="setLesson(5,this)">5차시 · 데이터 분석</button>
+      <button class="lesson-btn" id="lesson-6" onclick="setLesson(6,this)">6차시 · AI 기법 선택</button>
+
+      <div class="sidebar-label" style="margin-top:8px;">📗 2권 · 설계·완성</div>
+      <button class="lesson-btn" id="lesson-7" onclick="setLesson(7,this)">7차시 · 시나리오 설계</button>
+      <button class="lesson-btn" id="lesson-8" onclick="setLesson(8,this)">8차시 · 생성형AI 기획</button>
+      <button class="lesson-btn" id="lesson-9" onclick="setLesson(9,this)">9차시 · 시각화</button>
+      <button class="lesson-btn" id="lesson-10" onclick="setLesson(10,this)">10차시 · PPT 구조</button>
+      <button class="lesson-btn" id="lesson-11" onclick="setLesson(11,this)">11차시 · 최종 완성</button>
+      <button class="lesson-btn" id="lesson-12" onclick="setLesson(12,this)">12차시 · 발표·제출</button>
 
       <!-- 차시별 링크 -->
       <div id="lesson-links" style="display:none;margin-top:8px;">
-        <a id="lesson-book-link" href="https://jihyuniee.github.io/hyfl-aidata/" target="_blank" class="lesson-link-btn">📖 웹 교과서 열기</a>
-        <a id="lesson-activity-link" href="#" target="_blank" class="lesson-link-btn" style="margin-top:4px;">📝 활동지 열기</a>
+        <a id="lesson-book-link" href="#" target="_blank" class="lesson-link-btn">📖 웹 교과서 열기</a>
+        <a id="lesson-activity-link" href="#" target="_blank" class="lesson-link-btn" style="display:none;">📝 활동지 열기</a>
       </div>
 
       <button class="new-chat-btn" onclick="newChat()">
@@ -537,10 +489,10 @@
       <div class="sidebar-label">대화 기록</div>
       <div id="history-list"></div>
       <div class="sidebar-space"></div>
-      <div class="sidebar-notice">
-        💡 개인정보나 민감한 정보는 입력하지 마세요
-      </div>
+      <div class="sidebar-notice">💡 개인정보나 민감한 정보는 입력하지 마세요</div>
     </div>
+
+    <!-- ── Chat Area ── -->
     <div class="chat-area">
       <div class="messages" id="messages">
         <div class="welcome" id="welcome">
@@ -550,16 +502,14 @@
             <div class="chip" onclick="quickSend('공공데이터 분석 아이디어를 알려줘')">📊 데이터 분석 아이디어</div>
             <div class="chip" onclick="quickSend('발표 자료 구성 방법을 알려줘')">📋 발표 구성</div>
             <div class="chip" onclick="quickSend('데이터 시각화 방법을 추천해줘')">📈 시각화 방법</div>
-            <div class="chip" onclick="quickSend('AI 활용 대회에서 좋은 점수를 받으려면 어떻게 해야 해?')">🏆 대회 전략</div>
+            <div class="chip" onclick="quickSend('AI 활용 대회에서 좋은 점수를 받으려면?')">🏆 대회 전략</div>
           </div>
         </div>
       </div>
       <div class="input-wrap">
-        <!-- 파일 업로드 미리보기 -->
         <div id="file-preview" style="display:none;margin-bottom:8px;padding:8px 12px;
           background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);
-          border-radius:10px;font-size:12px;color:#10b981;
-          display:none;align-items:center;gap:8px;">
+          border-radius:10px;font-size:12px;color:#10b981;align-items:center;gap:8px;">
           <span>📄</span>
           <span id="file-name"></span>
           <button onclick="clearFile()" style="margin-left:auto;background:none;border:none;color:#10b981;cursor:pointer;font-size:14px;">✕</button>
@@ -572,40 +522,15 @@
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap;">
           <div style="display:flex;gap:6px;align-items:center;">
-            <button id="improve-btn" onclick="improvePrompt()" style="
-              font-size:12px;padding:5px 12px;
-              background:rgba(108,99,255,0.15);
-              border:1px solid rgba(108,99,255,0.35);
-              border-radius:8px;color:var(--accent2);
-              cursor:pointer;font-family:'Noto Sans KR',sans-serif;
-              transition:all 0.15s;
-            ">✨ 프롬프트 개선</button>
-            <label style="
-              font-size:12px;padding:5px 12px;
-              background:rgba(16,185,129,0.1);
-              border:1px solid rgba(16,185,129,0.3);
-              border-radius:8px;color:#10b981;
-              cursor:pointer;font-family:'Noto Sans KR',sans-serif;
-            ">
+            <button id="improve-btn" onclick="improvePrompt()" style="font-size:12px;padding:5px 12px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.35);border-radius:8px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.15s;">✨ 프롬프트 개선</button>
+            <label style="font-size:12px;padding:5px 12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
               📁 파일 업로드
               <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="handleFileUpload(this)">
             </label>
-            <button onclick="showChartFromFile()" style="
-              font-size:12px;padding:5px 12px;
-              background:rgba(59,130,246,0.12);
-              border:1px solid rgba(59,130,246,0.3);
-              border-radius:8px;color:#60a5fa;
-              cursor:pointer;font-family:'Noto Sans KR',sans-serif;
-            ">📊 차트 그리기</button>
+            <button onclick="showChartFromFile()" style="font-size:12px;padding:5px 12px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);border-radius:8px;color:#60a5fa;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📊 차트 그리기</button>
           </div>
-          <!-- 모델 드롭다운 -->
           <div style="display:flex;align-items:center;gap:8px;">
-            <select id="model-select" onchange="setModelFromSelect(this.value)" style="
-              font-size:12px;padding:5px 10px;
-              background:var(--surface2);border:1px solid var(--border2);
-              border-radius:8px;color:var(--text);
-              font-family:'Noto Sans KR',sans-serif;cursor:pointer;
-            ">
+            <select id="model-select" onchange="setModelFromSelect(this.value)" style="font-size:12px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;cursor:pointer;">
               <option value="gpt">GPT-4o</option>
               <option value="gemini">Gemini 1.5</option>
               <option value="claude" selected>Claude Sonnet</option>
@@ -613,30 +538,12 @@
             <div class="input-footer" style="margin-top:0;white-space:nowrap;">수업 목적으로만</div>
           </div>
         </div>
-        <!-- 개선된 프롬프트 미리보기 -->
-        <div id="improved-preview" style="display:none;margin-top:8px;padding:10px 14px;
-          background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);
-          border-radius:10px;font-size:13px;line-height:1.6;">
+        <div id="improved-preview" style="display:none;margin-top:8px;padding:10px 14px;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:10px;font-size:13px;line-height:1.6;">
           <div style="font-size:11px;color:var(--accent2);margin-bottom:6px;">✨ 개선된 프롬프트 — 직접 수정도 가능해요</div>
-          <textarea id="improved-text" style="
-            width:100%;background:rgba(255,255,255,0.05);border:none;outline:none;
-            color:var(--text);font-family:'Noto Sans KR',sans-serif;
-            font-size:13px;line-height:1.7;resize:none;
-            min-height:120px;max-height:300px;overflow-y:auto;
-            border-radius:6px;padding:6px;
-          " oninput="autoResize(this)"></textarea>
+          <textarea id="improved-text" style="width:100%;background:rgba(255,255,255,0.05);border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;line-height:1.7;resize:none;min-height:120px;max-height:300px;overflow-y:auto;border-radius:6px;padding:6px;" oninput="autoResize(this)"></textarea>
           <div style="display:flex;gap:8px;margin-top:10px;">
-            <button onclick="useImproved()" style="
-              flex:1;font-size:12px;padding:7px;
-              background:var(--accent);color:white;border:none;
-              border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;
-            ">이걸로 보내기</button>
-            <button onclick="document.getElementById('improved-preview').style.display='none'" style="
-              flex:1;font-size:12px;padding:7px;
-              background:transparent;color:var(--muted);
-              border:1px solid var(--border);border-radius:8px;
-              cursor:pointer;font-family:'Noto Sans KR',sans-serif;
-            ">원래대로</button>
+            <button onclick="useImproved()" style="flex:1;font-size:12px;padding:7px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">이걸로 보내기</button>
+            <button onclick="document.getElementById('improved-preview').style.display='none'" style="flex:1;font-size:12px;padding:7px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">원래대로</button>
           </div>
         </div>
       </div>
@@ -669,10 +576,7 @@
       <div class="admin-section">
         <h3>API 키 설정</h3>
         <div class="api-config">
-          <div style="font-size:13px;color:var(--text);line-height:1.9;">
-            API 키는 보안상 <b>Vercel 환경변수</b>에 저장합니다.<br>
-            아래 순서대로 설정하세요.
-          </div>
+          <div style="font-size:13px;color:var(--text);line-height:1.9;">API 키는 보안상 <b>Vercel 환경변수</b>에 저장합니다.</div>
           <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
             <div class="api-row" style="align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:10px 14px;">
               <div style="width:10px;height:10px;border-radius:50%;background:var(--claude);flex-shrink:0;"></div>
@@ -688,21 +592,18 @@
             </div>
           </div>
           <div style="margin-top:14px;font-size:12px;color:var(--muted);line-height:1.7;background:var(--surface2);border-radius:8px;padding:12px;">
-            📌 설정 방법: Vercel 대시보드 → 프로젝트 선택 → <b>Settings</b> → <b>Environment Variables</b> → 변수명과 키 값 입력 후 저장 → <b>Redeploy</b>
+            📌 Vercel 대시보드 → 프로젝트 → <b>Settings</b> → <b>Environment Variables</b> → 변수명과 키 입력 → <b>Redeploy</b>
           </div>
         </div>
       </div>
-
       <div class="admin-section">
         <h3>팀 등록 및 승인</h3>
         <div class="add-team-form">
           <div style="font-size:13px;color:var(--muted);display:flex;align-items:center;padding:0 4px;flex-shrink:0;">2학년</div>
           <select id="new-team-class" style="flex:0 0 80px;">
             <option value="">반 선택</option>
-            <option value="1">1반</option>
-            <option value="2">2반</option>
-            <option value="3">3반</option>
-            <option value="4">4반</option>
+            <option value="1">1반</option><option value="2">2반</option>
+            <option value="3">3반</option><option value="4">4반</option>
             <option value="5">5반</option>
           </select>
           <input type="text" id="new-team-name" placeholder="팀 이름 (예: 1조, 데이터탐험대)" style="flex:1;min-width:130px;">
@@ -712,7 +613,6 @@
         <div style="height:14px;"></div>
         <div class="team-grid" id="team-grid"></div>
       </div>
-
       <div class="admin-section">
         <h3>관리자 비밀번호 변경</h3>
         <div class="api-config">
@@ -730,25 +630,104 @@
 <script>
 // ── State ──
 const ADMIN_PW_KEY = 'eduai_admin_pw';
-const TEAMS_KEY = 'eduai_teams';
-const API_KEYS_KEY = 'eduai_api_keys';
 const DEFAULT_ADMIN_PW = 'teacher1234';
 
 let currentTeam = null;
-let currentModel = 'gpt';
+let currentModel = 'claude';
 let messages = [];
 let histories = [];
-let currentHistoryIdx = -1;
+let currentLesson = 0;
 
-const modelInfo = {
-  claude:  { label: 'Claude Sonnet', color: 'var(--claude)' },
-  gpt:     { label: 'GPT-4o',        color: 'var(--gpt)' },
-  gemini:  { label: 'Gemini 1.5',    color: 'var(--gemini)' }
-};
+// ── Master System Prompt (12차시 통합) ──
+const MASTER_SYSTEM = `당신은 한양외국어고등학교 학생들의 "제8회 교육 공공데이터 AI 활용대회" 준비를 돕는 전담 AI 도우미입니다.
 
-// ── Teams (서버 API) ──
+## 대회 핵심 정보
+- 대회명: 제8회 교육 공공데이터 AI활용대회
+- 분야: AI 활용 아이디어 기획 (학생부문, 중·고등학생)
+- 제출물: PPT/PDF 최대 15매 기획서
+- 핵심 요건: 교육 공공데이터 1개 이상 필수 활용 + AI 기법 적용
+- 심사기준 우선순위: 독창성 → AI활용도 → 활용가능성 → 논리성 → 표현성
+- 제출 마감: 2026년 5월 31일 / data.edmgr.kr
+
+## 수업 12차시 전체 흐름
+1차시: 공공데이터 개념 이해, 교육 공공데이터 포털 탐색
+2차시: 데이터 수집→처리→AI 흐름 이해, 머신러닝 기본 개념
+3차시: 팀 주제 선정, 문제 정의문 작성
+4차시: 우리 주제에 맞는 데이터셋 찾기, 출처·라이선스 확인
+5차시: 데이터 읽기·분석·인사이트 발견
+6차시: AI 기법 선택 (분류/예측/추천/챗봇/생성형AI)
+7차시: 서비스 시나리오 설계 (페르소나, 사용자 여정)
+8차시: 생성형AI로 기획 초안 작성, 아이디어 확장
+9차시: 데이터 시각화 (차트 유형 선택, 시각화 제작)
+10차시: PPT 15매 구조 설계, 슬라이드별 내용 초안
+11차시: 기획서 최종 점검, 심사기준 체크리스트
+12차시: 발표 스크립트, 예상 질문 대비, 최종 제출
+
+## 주요 교육 공공데이터 포털
+- 공공데이터포털: data.go.kr
+- 학교알리미: schoolinfo.go.kr (학사·학생·재정·시설)
+- 나이스 개방포털: open.neis.go.kr (급식·시간표·학사일정 API)
+- 교육통계서비스: kess.kedi.re.kr (유초중등·대학 통계)
+- 교육데이터플랫폼: edmgr.kr
+- 대학알리미: academyinfo.go.kr
+- 한국교육고용패널: krivet.re.kr (진로·취업 데이터)
+
+## AI 기법 선택 가이드
+- 분류: 이미지·텍스트를 카테고리로 나눔 → 티처블머신
+- 예측: 과거 데이터로 미래 수치 예측 → 회귀분석
+- 추천: 맞춤형 콘텐츠·서비스 제안 → 규칙기반 + 생성형AI
+- 감성분석: 텍스트 감정 파악 → 생성형AI 프롬프트
+- 챗봇: 대화형 서비스 → 생성형AI API
+- 시각화: 데이터 차트화 → Chart.js, Tableau Public
+
+## PPT 15매 권장 구조
+1p 표지 / 2p 활용데이터정보(필수) / 3p 문제제기 / 4p 문제정의문
+5p 공공데이터소개 / 6~7p 데이터분석결과 / 8p AI기법설명
+9p 서비스개요 / 10p AI적용시나리오 / 11p 기대효과
+12p 사회적가치 / 13p 실현가능성 / 14p 역할분담 / 15p 참고자료+AI활용내역
+
+## 제출 규정 체크리스트
+- 교육 공공데이터 1개 이상 필수 (출처·라이선스 명시)
+- 2페이지에 활용 데이터 정보 작성
+- AI 활용 도구명·프롬프트 기재
+- 팀명 외 학교명·개인명 기재 금지
+- 상업용 무료 폰트만 사용
+- 15매 이내 (부록 제외)
+
+## 학교 특성
+- 한양외국어고등학교 (외국어고, 기숙사+통학 혼합)
+- 어학·진로·입시 관련 주제도 훌륭한 소재
+- 학생 수준: 고등학생, 코딩 경험 거의 없음 → 노코드 우선 안내
+
+## 행동 원칙
+1. 학생이 어떤 질문을 하든 현재 단계를 파악해서 맞춤 도움 제공
+2. 전문 용어는 반드시 쉬운 예시와 함께 설명
+3. 추상적 조언보다 구체적 예시·초안·템플릿 제공
+4. 기획서 내용 요청 시 바로 초안 작성해주기
+5. 아이디어 약점도 솔직하게 말하되 개선 방향 제시
+6. 노코드 도구 우선 추천 (티처블머신, 구글시트, 이 플랫폼)
+7. 항상 대회 심사기준(독창성·AI활용도·실현가능성)을 염두에 두고 피드백
+8. 답변은 한국어로, 친절하고 명확하게`;
+
+// ── Lessons (링크 관리용) ──
+const lessons = [
+  { title: '자유 대화',         bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',           activityUrl: null },
+  { title: '1차시 · 공공데이터란?',   bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter01/', activityUrl: null },
+  { title: '2차시 · 데이터→AI 흐름', bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter02/', activityUrl: null },
+  { title: '3차시 · 문제 정의',      bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter03/', activityUrl: 'https://docs.google.com/document/d/11L2IoxFknvSp1GyUZZhxNRZK_1vlOsxT5R4Pm-mdosg/edit?usp=sharing' },
+  { title: '4차시 · 데이터 찾기',    bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter04/', activityUrl: null },
+  { title: '5차시 · 데이터 분석',    bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter05/', activityUrl: null },
+  { title: '6차시 · AI 기법 선택',   bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter06/', activityUrl: null },
+  { title: '7차시 · 시나리오 설계',  bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter07/', activityUrl: null },
+  { title: '8차시 · 생성형AI 기획',  bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter08/', activityUrl: null },
+  { title: '9차시 · 시각화',         bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter09/', activityUrl: null },
+  { title: '10차시 · PPT 구조',      bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter10/', activityUrl: null },
+  { title: '11차시 · 최종 완성',     bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter11/', activityUrl: null },
+  { title: '12차시 · 발표·제출',     bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/chapter12/', activityUrl: null },
+];
+
+// ── Teams API ──
 let _teamsCache = null;
-
 async function getTeams() {
   try {
     const r = await fetch('/api/teams');
@@ -759,7 +738,6 @@ async function getTeams() {
     return JSON.parse(localStorage.getItem('eduai_teams_backup') || '[]');
   }
 }
-
 async function teamsAPI(action, team) {
   const r = await fetch('/api/teams', {
     method: 'POST',
@@ -786,9 +764,7 @@ function switchTab(tab) {
   document.getElementById('register-success').style.display = 'none';
 }
 
-// ── Cascade Selects ──
-function updateClassSelect() { updateTeamSelect(); }
-
+// ── Selects ──
 async function updateTeamSelect() {
   const cls = document.getElementById('class-select').value;
   const teamSel = document.getElementById('team-select');
@@ -801,7 +777,6 @@ async function updateTeamSelect() {
     teamSel.appendChild(opt);
   });
 }
-
 function populateTeamSelect() { updateTeamSelect(); }
 
 // ── Login ──
@@ -868,9 +843,7 @@ function doLogout() {
   switchTab('login');
 }
 
-function showError(el, msg) {
-  el.textContent = msg; el.style.display = 'block';
-}
+function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
 
 // ── Admin ──
 function showAdminLogin() {
@@ -891,7 +864,6 @@ function doAdminLogin() {
   err.style.display = 'none';
   document.getElementById('admin-login-wrap').style.display = 'none';
   document.getElementById('admin-panel').style.display = 'flex';
-  loadApiKeyInputs();
   renderTeamGrid();
 }
 function hideAdmin() {
@@ -906,23 +878,6 @@ function changeAdminPw() {
   localStorage.setItem(ADMIN_PW_KEY, pw);
   alert('관리자 비밀번호가 변경되었습니다');
   document.getElementById('new-admin-pw').value = '';
-}
-
-// ── API Keys ──
-function loadApiKeyInputs() {
-  const k = getApiKeys();
-  if (k.claude) document.getElementById('api-claude').value = k.claude;
-  if (k.openai) document.getElementById('api-openai').value = k.openai;
-  if (k.gemini) document.getElementById('api-gemini').value = k.gemini;
-}
-function saveApiKeys() {
-  const keys = {
-    claude: document.getElementById('api-claude').value.trim(),
-    openai: document.getElementById('api-openai').value.trim(),
-    gemini: document.getElementById('api-gemini').value.trim()
-  };
-  localStorage.setItem(API_KEYS_KEY, JSON.stringify(keys));
-  alert('API 키가 저장되었습니다');
 }
 
 // ── Team Management ──
@@ -941,26 +896,18 @@ async function addTeam() {
   document.getElementById('new-team-pw').value = '';
   renderTeamGrid();
 }
-async function approveTeam(grade, cls, name) {
-  await teamsAPI('approve', { grade, cls, name });
-  renderTeamGrid();
-}
-async function revokeTeam(grade, cls, name) {
-  await teamsAPI('revoke', { grade, cls, name });
-  renderTeamGrid();
-}
+async function approveTeam(grade, cls, name) { await teamsAPI('approve', { grade, cls, name }); renderTeamGrid(); }
+async function revokeTeam(grade, cls, name)  { await teamsAPI('revoke',  { grade, cls, name }); renderTeamGrid(); }
 async function removeTeam(grade, cls, name) {
   if (!confirm(`${grade}학년 ${cls}반 ${name} 팀을 삭제하시겠습니까?`)) return;
-  await teamsAPI('remove', { grade, cls, name });
-  renderTeamGrid();
+  await teamsAPI('remove', { grade, cls, name }); renderTeamGrid();
 }
-
 async function renderTeamGrid() {
   const grid = document.getElementById('team-grid');
   grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">불러오는 중...</div>';
   _teamsCache = null;
   const teams = await getTeams();
-  if (!teams.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">등록된 팀이 없습니다. 학생들이 팀 등록 신청을 하면 여기에 나타납니다.</div>'; return; }
+  if (!teams.length) { grid.innerHTML = '<div style="color:var(--muted);font-size:13px;">등록된 팀이 없습니다.</div>'; return; }
   const sorted = [...teams].sort((a,b) => {
     const order = { pending:0, active:1, inactive:2 };
     if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
@@ -977,9 +924,9 @@ async function renderTeamGrid() {
   Object.entries(grouped).sort().map(([label, ts]) => `
     <div style="grid-column:1/-1;font-size:11px;color:var(--muted);margin-top:12px;margin-bottom:4px;padding:0 2px;text-transform:uppercase;letter-spacing:0.5px;">${label}</div>
     ${ts.map(t => {
-      const dotClass = t.status === 'active' ? 'status-active' : t.status === 'pending' ? 'status-pending' : 'status-inactive';
-      const statusLabel = t.status === 'active' ? '승인됨' : t.status === 'pending' ? '승인 대기' : '비활성';
-      const g = t.grade, c = t.cls, n = t.name;
+      const dotClass = t.status==='active' ? 'status-active' : t.status==='pending' ? 'status-pending' : 'status-inactive';
+      const statusLabel = t.status==='active' ? '승인됨' : t.status==='pending' ? '승인 대기' : '비활성';
+      const g=t.grade, c=t.cls, n=t.name;
       const membersHtml = t.members ? `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">👥 ${t.members}</div>` : '';
       return `<div class="team-card" style="${t.status==='pending'?'border-color:rgba(245,158,11,0.4);':''}">
         <div class="team-card-header">
@@ -1002,51 +949,7 @@ async function renderTeamGrid() {
   `).join('');
 }
 
-// ── Lesson Data ──
-const lessons = [
-  {
-    title: '자유 대화',
-    bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
-    activityUrl: null,
-    system: '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다. 학생 수준에 맞게 친절하고 명확하게 답변하세요.',
-    welcome: '안녕하세요! 무엇이든 자유롭게 질문해보세요 😊'
-  },
-  {
-    title: '3차시 · 주제 선정 — 아이디어를 서비스로',
-    bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
-    activityUrl: 'https://docs.google.com/document/d/11L2IoxFknvSp1GyUZZhxNRZK_1vlOsxT5R4Pm-mdosg/edit?usp=sharing',
-    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다.
-지금은 3차시 수업 "주제 선정 — 아이디어를 서비스로 만들기" 단계입니다.
-활동지 STEP 순서:
-STEP1 대회 핵심 기준 이해 (교육공공데이터·AI·교육문제해결·독창성·실현가능성)
-STEP2 주제 방향 선택 (AI 교육안전복지 / 교육자원최적화 / 미래교육 / 학습자중심)
-STEP3 데이터 기반 문제 탐색 (숫자·사례 포함)
-STEP4 공공데이터 활용 방법 결정
-STEP5 AI 활용 방법 선택 (예측/추천/분류/챗봇/생성형AI)
-STEP6 생성형 AI로 아이디어 확장
-STEP7 서비스 아이디어 정리
-STEP8 AI 적용 시나리오 작성 (데이터수집→AI분석→결과제공)
-STEP9 대회 평가기준 점검 (독창성→AI활용도→실현가능성→논리성→표현성)
-STEP10 최종 주제 선정
-STEP11 AI 피드백 (독창성·실현가능성·AI활용도 1~5점)
-STEP12 최종 문제 정의문 확정
-학교는 한양외고(외국어고등학교, 기숙사·통학 혼합)입니다.
-학생들이 각 STEP을 진행할 때 막히는 부분을 친절하게 도와주세요.
-좋은 문제 정의문 구조: [공공데이터]를 활용하여 + [대상]의 + [구체적 문제]를 + [AI방법]으로 해결할 수 있을까?`,
-    welcome: `안녕하세요! 3차시 **"주제 선정"** 수업이에요 💡
-
-오늘 목표:
-① 팀 주제 1개 선정
-② 공공데이터 활용 방향 결정
-③ 최종 문제 정의문 확정
-
-활동지 STEP 1부터 순서대로 진행하면서 막히는 부분을 질문해보세요!
-예) "STEP3 문제 탐색 도와줘", "좋은 주제 아이디어 뭐가 있을까?"`
-  }
-];
-
-let currentLesson = 0;
-
+// ── Lesson ──
 function setLesson(idx, btn) {
   currentLesson = idx;
   document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
@@ -1067,23 +970,21 @@ function setLesson(idx, btn) {
       activityLink.style.display = 'none';
     }
   }
-  // 새 대화로 시작
   newChat();
-  // 웰컴 메시지를 차시 맞춤으로
   const msgDiv = document.getElementById('messages');
   msgDiv.innerHTML = '';
   const welcome = document.createElement('div');
   welcome.id = 'welcome';
   welcome.className = 'welcome';
   welcome.innerHTML = `<h2>${idx === 0 ? '무엇을 도와드릴까요?' : lesson.title}</h2>
-    <p style="white-space:pre-line;text-align:left;max-width:500px;margin:0 auto;">${lesson.welcome}</p>`;
+    <p style="color:var(--muted);font-size:14px;margin-top:8px;">${idx === 0 ? '대회 준비 전 과정을 도와드려요.<br>데이터 분석, 아이디어 기획, 발표 준비까지!' : '웹 교과서를 함께 열어두고 질문해보세요 😊<br>막히는 부분을 자유롭게 물어보세요!'}</p>
+    ${idx === 0 ? `<div class="welcome-chips">
+      <div class="chip" onclick="quickSend('우리 팀 주제 정하는 것 도와줘')">💡 주제 선정</div>
+      <div class="chip" onclick="quickSend('교육 공공데이터 어디서 찾아?')">🔍 데이터 찾기</div>
+      <div class="chip" onclick="quickSend('PPT 기획서 어떻게 써?')">📋 기획서 작성</div>
+      <div class="chip" onclick="quickSend('대회 심사기준 설명해줘')">🏆 대회 전략</div>
+    </div>` : ''}`;
   msgDiv.appendChild(welcome);
-}
-function setModel(m, btn) {
-  currentModel = m;
-  document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('model-label').textContent = modelInfo[m].label;
 }
 
 // ── Chat ──
@@ -1091,12 +992,12 @@ function createWelcome() {
   const d = document.createElement('div');
   d.className = 'welcome'; d.id = 'welcome';
   d.innerHTML = `<h2>무엇을 도와드릴까요?</h2>
-    <p>공공교육데이터 AI 활용대회를 위한 AI 도우미입니다.<br>데이터 분석, 아이디어 정리, 발표 자료 구성 등 도와드립니다.</p>
+    <p>대회 준비 전 과정을 도와드려요.<br>데이터 분석, 아이디어 기획, 발표 준비까지!</p>
     <div class="welcome-chips">
-      <div class="chip" onclick="quickSend('공공데이터 분석 아이디어를 알려줘')">📊 데이터 분석 아이디어</div>
-      <div class="chip" onclick="quickSend('발표 자료 구성 방법을 알려줘')">📋 발표 구성</div>
-      <div class="chip" onclick="quickSend('데이터 시각화 방법을 추천해줘')">📈 시각화 방법</div>
-      <div class="chip" onclick="quickSend('AI 활용 대회에서 좋은 점수를 받으려면 어떻게 해야 해?')">🏆 대회 전략</div>
+      <div class="chip" onclick="quickSend('우리 팀 주제 정하는 것 도와줘')">💡 주제 선정</div>
+      <div class="chip" onclick="quickSend('교육 공공데이터 어디서 찾아?')">🔍 데이터 찾기</div>
+      <div class="chip" onclick="quickSend('PPT 기획서 어떻게 써?')">📋 기획서 작성</div>
+      <div class="chip" onclick="quickSend('대회 심사기준 설명해줘')">🏆 대회 전략</div>
     </div>`;
   return d;
 }
@@ -1137,11 +1038,9 @@ function quickSend(text) {
   document.getElementById('user-input').value = text;
   sendMessage();
 }
-
 function handleKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 }
-
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
@@ -1156,13 +1055,7 @@ function addBubble(type, text, isMarkdown = false) {
   const initials = type === 'user' ? (currentTeam?.slice(0,1) || '팀') : 'AI';
   const content = isMarkdown ? renderMarkdown(text) : text.replace(/\n/g,'<br>');
   const copyBtn = type === 'ai' ? `
-    <button onclick="copyBubble(this)" style="
-      margin-top:8px;font-size:11px;padding:4px 10px;
-      background:transparent;border:1px solid var(--border);
-      border-radius:6px;color:var(--muted);cursor:pointer;
-      font-family:'Noto Sans KR',sans-serif;transition:all 0.15s;
-      display:block;
-    ">📋 복사</button>` : '';
+    <button onclick="copyBubble(this)" style="margin-top:8px;font-size:11px;padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.15s;display:block;">📋 복사</button>` : '';
   row.innerHTML = `
     <div class="msg-avatar ${type === 'user' ? 'user-av' : 'ai-av'}">${initials}</div>
     <div style="display:flex;flex-direction:column;max-width:600px;">
@@ -1175,8 +1068,7 @@ function addBubble(type, text, isMarkdown = false) {
 }
 
 function copyBubble(btn) {
-  const bubble = btn.previousElementSibling;
-  const text = bubble.innerText;
+  const text = btn.previousElementSibling.innerText;
   navigator.clipboard.writeText(text).then(() => {
     btn.textContent = '✅ 복사됨!';
     setTimeout(() => btn.textContent = '📋 복사', 1500);
@@ -1188,19 +1080,14 @@ async function sendMessage() {
   let text = input.value.trim();
   if (!text && !uploadedFileContent) return;
   input.value = ''; input.style.height = 'auto';
-
-  // 파일 내용 포함
   let fullText = text;
   if (uploadedFileContent) {
     fullText = `${text}\n\n[업로드된 파일 내용]\n${uploadedFileContent.slice(0, 3000)}`;
     clearFile();
   }
-
   addBubble('user', text || '📁 파일 분석 요청', false);
   messages.push({ role: 'user', content: fullText });
-
   const thinkingBubble = addBubble('ai', '<span class="thinking">생각하는 중</span>', false);
-
   try {
     const reply = await callAI(currentModel, messages);
     thinkingBubble.innerHTML = renderMarkdown(reply);
@@ -1211,9 +1098,19 @@ async function sendMessage() {
   document.getElementById('messages').scrollTop = 99999;
 }
 
-// ── Chart Visualization ──
-let chartInstance = null;
+// ── AI Call (통합 시스템 프롬프트 사용) ──
+async function callAI(model, msgs) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, messages: msgs, system: MASTER_SYSTEM })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data.reply;
+}
 
+// ── Chart ──
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   const headers = lines[0].split(',').map(h => h.trim().replace(/"/g,''));
@@ -1228,19 +1125,15 @@ function parseCSV(text) {
 
 async function showChartFromFile() {
   if (!uploadedFileContent) { alert('먼저 CSV 파일을 업로드해주세요!'); return; }
-
   const analysisPrompt = `다음 CSV 데이터를 분석해서 차트로 시각화할 JSON을 만들어줘.
 반드시 아래 형식으로만 답해줘 (다른 텍스트 없이):
 {"chartType":"bar","title":"차트 제목","labelColumn":"X축 컬럼명","valueColumn":"Y축 컬럼명","insight":"핵심 인사이트 2-3줄"}
-
 chartType은 bar, line, pie 중 데이터에 가장 적합한 것으로.
-CSV 데이터:
-${uploadedFileContent.slice(0, 2000)}`;
+CSV 데이터:\n${uploadedFileContent.slice(0, 2000)}`;
 
   addBubble('user', '📊 이 데이터를 차트로 시각화해줘', false);
   messages.push({ role: 'user', content: analysisPrompt });
   const thinkingBubble = addBubble('ai', '<span class="thinking">데이터 분석 중</span>', false);
-
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
@@ -1253,53 +1146,28 @@ ${uploadedFileContent.slice(0, 2000)}`;
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-
     let config;
-    try {
-      config = JSON.parse(data.reply.replace(/```json|```/g,'').trim());
-    } catch(e) { throw new Error('차트 설정 파싱 실패. 다시 시도해주세요.'); }
-
+    try { config = JSON.parse(data.reply.replace(/```json|```/g,'').trim()); }
+    catch(e) { throw new Error('차트 설정 파싱 실패. 다시 시도해주세요.'); }
     const { rows } = parseCSV(uploadedFileContent);
     const labels = rows.map(r => r[config.labelColumn] || '').filter(Boolean);
     const values = rows.map(r => parseFloat(r[config.valueColumn]) || 0);
-    const colors = ['rgba(108,99,255,0.8)','rgba(16,185,129,0.8)','rgba(245,158,11,0.8)',
-      'rgba(239,68,68,0.8)','rgba(59,130,246,0.8)','rgba(168,85,247,0.8)'];
-
+    const colors = ['rgba(108,99,255,0.8)','rgba(16,185,129,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.8)','rgba(59,130,246,0.8)','rgba(168,85,247,0.8)'];
     const chartId = 'chart-' + Date.now();
     thinkingBubble.innerHTML = `
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;max-width:560px;">
         <div style="font-size:13px;font-weight:500;margin-bottom:12px;">📊 ${config.title}</div>
         <canvas id="${chartId}" style="max-height:280px;"></canvas>
-        <div style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.6;padding:10px;background:var(--surface2);border-radius:8px;">
-          💡 ${config.insight}
-        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.6;padding:10px;background:var(--surface2);border-radius:8px;">💡 ${config.insight}</div>
       </div>`;
     messages.push({ role: 'assistant', content: `차트: ${config.title}\n${config.insight}` });
-
     setTimeout(() => {
       const ctx = document.getElementById(chartId);
       if (!ctx) return;
       new Chart(ctx, {
         type: config.chartType || 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: config.valueColumn,
-            data: values,
-            backgroundColor: config.chartType === 'pie' ? colors : colors[0],
-            borderColor: config.chartType === 'pie' ? colors : 'rgba(108,99,255,1)',
-            borderWidth: 1,
-            borderRadius: config.chartType === 'bar' ? 6 : 0
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { labels: { color: '#f0f0f5', font: { family: 'Noto Sans KR', size: 12 } } } },
-          scales: config.chartType !== 'pie' ? {
-            x: { ticks: { color: '#8888a0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { ticks: { color: '#8888a0' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-          } : {}
-        }
+        data: { labels, datasets: [{ label: config.valueColumn, data: values, backgroundColor: config.chartType === 'pie' ? colors : colors[0], borderColor: config.chartType === 'pie' ? colors : 'rgba(108,99,255,1)', borderWidth: 1, borderRadius: config.chartType === 'bar' ? 6 : 0 }] },
+        options: { responsive: true, plugins: { legend: { labels: { color: '#f0f0f5', font: { family: 'Noto Sans KR', size: 12 } } } }, scales: config.chartType !== 'pie' ? { x: { ticks: { color: '#8888a0' }, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { ticks: { color: '#8888a0' }, grid: { color: 'rgba(255,255,255,0.05)' } } } : {} }
       });
     }, 100);
     clearFile();
@@ -1311,74 +1179,56 @@ ${uploadedFileContent.slice(0, 2000)}`;
 
 // ── File Upload ──
 let uploadedFileContent = null;
-
 function handleFileUpload(input) {
   const file = input.files[0];
   if (!file) return;
-  const preview = document.getElementById('file-preview');
   document.getElementById('file-name').textContent = file.name;
-  preview.style.display = 'flex';
-
+  document.getElementById('file-preview').style.display = 'flex';
   const reader = new FileReader();
   reader.onload = (e) => {
     uploadedFileContent = e.target.result;
-    // CSV/텍스트는 바로 읽기, 엑셀은 안내
     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
       uploadedFileContent = `[엑셀 파일: ${file.name}] - CSV로 변환 후 업로드하면 더 정확하게 분석할 수 있어요.`;
     }
   };
   reader.readAsText(file, 'UTF-8');
 }
-
 function clearFile() {
   uploadedFileContent = null;
   document.getElementById('file-preview').style.display = 'none';
   document.getElementById('file-input').value = '';
 }
 
-// ── Model Select Dropdown ──
-function setModelFromSelect(model) {
-  currentModel = model;
-  // 사이드바 버튼도 동기화
-  document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('btn-' + model);
-  if (btn) btn.classList.add('active');
-}
+// ── Model ──
+function setModelFromSelect(model) { currentModel = model; }
+
+// ── Markdown ──
 function renderMarkdown(text) {
   return text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;">$1</code>')
-    .replace(/#{3}\s(.+)/g, '<div style="font-size:14px;font-weight:600;margin:10px 0 4px;">$1</div>')
-    .replace(/#{2}\s(.+)/g, '<div style="font-size:15px;font-weight:600;margin:12px 0 5px;">$1</div>')
-    .replace(/#{1}\s(.+)/g, '<div style="font-size:16px;font-weight:600;margin:14px 0 6px;">$1</div>')
-    .replace(/^\|\s(.+)\s\|$/gm, '<tr><td style="padding:4px 8px;border:1px solid rgba(255,255,255,0.1);">$1</td></tr>')
-    .replace(/^---+$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:8px 0;">')
-    .replace(/^[-•]\s(.+)/gm, '<div style="padding:2px 0 2px 16px;position:relative;">• $1</div>')
-    .replace(/^\d+\.\s(.+)/gm, '<div style="padding:2px 0 2px 16px;">$&</div>')
-    .replace(/\n\n/g, '<br><br>')
-    .replace(/\n/g, '<br>');
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/`(.*?)`/g,'<code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;">$1</code>')
+    .replace(/#{3}\s(.+)/g,'<div style="font-size:14px;font-weight:600;margin:10px 0 4px;">$1</div>')
+    .replace(/#{2}\s(.+)/g,'<div style="font-size:15px;font-weight:600;margin:12px 0 5px;">$1</div>')
+    .replace(/#{1}\s(.+)/g,'<div style="font-size:16px;font-weight:600;margin:14px 0 6px;">$1</div>')
+    .replace(/^---+$/gm,'<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:8px 0;">')
+    .replace(/^[-•]\s(.+)/gm,'<div style="padding:2px 0 2px 16px;">• $1</div>')
+    .replace(/^\d+\.\s(.+)/gm,'<div style="padding:2px 0 2px 16px;">$&</div>')
+    .replace(/\n\n/g,'<br><br>')
+    .replace(/\n/g,'<br>');
 }
-
 function stripMarkdown(text) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '$1')
-    .replace(/\*(.*?)\*/g, '$1')
-    .replace(/#{1,6}\s/g, '')
-    .replace(/`(.*?)`/g, '$1')
-    .trim();
+  return text.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/#{1,6}\s/g,'').replace(/`(.*?)`/g,'$1').trim();
 }
 
+// ── Prompt Improve ──
 async function improvePrompt() {
   const input = document.getElementById('user-input');
   const text = input.value.trim();
   if (!text) { alert('먼저 메시지를 입력해주세요!'); return; }
-
   const btn = document.getElementById('improve-btn');
-  btn.textContent = '✨ 개선 중...';
-  btn.style.opacity = '0.6';
-
+  btn.textContent = '✨ 개선 중...'; btn.style.opacity = '0.6';
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
@@ -1400,28 +1250,15 @@ async function improvePrompt() {
   } catch(e) {
     alert('개선 중 오류: ' + e.message);
   } finally {
-    btn.textContent = '✨ 프롬프트 개선';
-    btn.style.opacity = '1';
+    btn.textContent = '✨ 프롬프트 개선'; btn.style.opacity = '1';
   }
 }
-
 function useImproved() {
   const improved = document.getElementById('improved-text').value.trim();
   document.getElementById('user-input').value = improved;
   document.getElementById('improved-preview').style.display = 'none';
   autoResize(document.getElementById('user-input'));
   sendMessage();
-}
-async function callAI(model, msgs) {
-  const systemPrompt = lessons[currentLesson].system;
-  const res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages: msgs, system: systemPrompt })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data.reply;
 }
 
 // ── Init ──
