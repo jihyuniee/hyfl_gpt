@@ -721,7 +721,6 @@ const modelInfo = {
 let _teamsCache = null;
 
 async function getTeams() {
-  if (_teamsCache) return _teamsCache;
   try {
     const r = await fetch('/api/teams');
     const d = await r.json();
