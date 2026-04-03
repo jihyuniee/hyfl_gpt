@@ -1100,7 +1100,7 @@ function loadChat(idx) {
   messages = [...h.messages];
   const msgDiv = document.getElementById('messages');
   msgDiv.innerHTML = '';
-  messages.forEach(m => addBubble(m.role === 'user' ? 'user' : 'ai', m.content));
+  messages.forEach(m => addBubble(m.role === 'user' ? 'user' : 'ai', m.content, m.role !== 'user'));
 }
 
 function quickSend(text) {
@@ -1117,16 +1117,17 @@ function autoResize(el) {
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
-function addBubble(type, text) {
+function addBubble(type, text, isMarkdown = false) {
   const welcome = document.getElementById('welcome');
   if (welcome) welcome.remove();
   const msgDiv = document.getElementById('messages');
   const row = document.createElement('div');
   row.className = 'msg-row' + (type === 'user' ? ' user' : '');
   const initials = type === 'user' ? (currentTeam?.slice(0,1) || '팀') : 'AI';
+  const content = isMarkdown ? renderMarkdown(text) : text.replace(/\n/g,'<br>');
   row.innerHTML = `
     <div class="msg-avatar ${type === 'user' ? 'user-av' : 'ai-av'}">${initials}</div>
-    <div class="bubble ${type === 'user' ? 'user-bubble' : 'ai-bubble'}">${text.replace(/\n/g,'<br>')}</div>`;
+    <div class="bubble ${type === 'user' ? 'user-bubble' : 'ai-bubble'}">${content}</div>`;
   msgDiv.appendChild(row);
   msgDiv.scrollTop = msgDiv.scrollHeight;
   return row.querySelector('.bubble');
@@ -1141,11 +1142,11 @@ async function sendMessage() {
   addBubble('user', text);
   messages.push({ role: 'user', content: text });
 
-  const thinkingBubble = addBubble('ai', '<span class="thinking">생각하는 중</span>');
+  const thinkingBubble = addBubble('ai', '<span class="thinking">생각하는 중</span>', false);
 
   try {
     const reply = await callAI(currentModel, messages);
-    thinkingBubble.innerHTML = reply.replace(/\n/g,'<br>');
+    thinkingBubble.innerHTML = renderMarkdown(reply);
     messages.push({ role: 'assistant', content: reply });
   } catch(e) {
     thinkingBubble.innerHTML = `<span style="color:var(--danger)">오류: ${e.message}</span>`;
@@ -1154,7 +1155,22 @@ async function sendMessage() {
 }
 
 // ── Prompt Improvement ──
-function stripMarkdown(text) {
+function renderMarkdown(text) {
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;">$1</code>')
+    .replace(/#{3}\s(.+)/g, '<div style="font-size:14px;font-weight:600;margin:10px 0 4px;">$1</div>')
+    .replace(/#{2}\s(.+)/g, '<div style="font-size:15px;font-weight:600;margin:12px 0 5px;">$1</div>')
+    .replace(/#{1}\s(.+)/g, '<div style="font-size:16px;font-weight:600;margin:14px 0 6px;">$1</div>')
+    .replace(/^\|\s(.+)\s\|$/gm, '<tr><td style="padding:4px 8px;border:1px solid rgba(255,255,255,0.1);">$1</td></tr>')
+    .replace(/^---+$/gm, '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:8px 0;">')
+    .replace(/^[-•]\s(.+)/gm, '<div style="padding:2px 0 2px 16px;position:relative;">• $1</div>')
+    .replace(/^\d+\.\s(.+)/gm, '<div style="padding:2px 0 2px 16px;">$&</div>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
   return text
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/\*(.*?)\*/g, '$1')
