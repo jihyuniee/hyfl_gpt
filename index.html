@@ -1216,20 +1216,16 @@ async function callAI(model, msgs) {
 }
 
 // ── File Upload ──
-function handleFileUpload(input) {
+async function handleFileUpload(input) {
   const file = input.files[0];
   if (!file) return;
   document.getElementById('file-name').textContent = file.name;
   document.getElementById('file-preview').style.display = 'flex';
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-      uploadedFileContent = `[엑셀 파일: ${file.name}] CSV로 변환 후 업로드하면 더 정확하게 분석할 수 있어요.`;
-    } else {
-      uploadedFileContent = e.target.result;
-    }
-  };
-  reader.readAsText(file, 'UTF-8');
+  if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+    uploadedFileContent = `[엑셀 파일: ${file.name}] CSV로 변환 후 업로드하면 더 정확하게 분석할 수 있어요.`;
+  } else {
+    uploadedFileContent = await readFileWithEncoding(file);
+  }
 }
 function clearFile() {
   uploadedFileContent = null;
@@ -1238,6 +1234,30 @@ function clearFile() {
 }
 
 // ── Lesson 4: Data ──
+// ★ 인코딩 자동 감지: EUC-KR(공공데이터 기본) → UTF-8 fallback
+function readFileWithEncoding(file) {
+  return new Promise((resolve, reject) => {
+    // EUC-KR로 먼저 시도
+    const readerEUC = new FileReader();
+    readerEUC.onload = (e) => {
+      const textEUC = e.target.result;
+      // 깨진 한글 감지: UTF-8로 읽힌 EUC-KR은 "replacement character" 또는 특수패턴 포함
+      const hasGarbled = (textEUC.match(/\uFFFD/g) || []).length > 5;
+      if (hasGarbled) {
+        // UTF-8로 재시도
+        const readerUTF = new FileReader();
+        readerUTF.onload = (e2) => resolve(e2.target.result);
+        readerUTF.onerror = reject;
+        readerUTF.readAsText(file, 'UTF-8');
+      } else {
+        resolve(textEUC);
+      }
+    };
+    readerEUC.onerror = reject;
+    readerEUC.readAsText(file, 'EUC-KR');
+  });
+}
+
 async function handleLesson4File(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1245,17 +1265,19 @@ async function handleLesson4File(input) {
     let headers, rows;
     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
       const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array' });
+      // ★ XLSX는 자체적으로 인코딩 처리됨 (codepage 자동 감지)
+      const wb = XLSX.read(buf, { type: 'array', codepage: 949 });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-      headers = data[0].map(h => String(h||'').trim());
-      rows = data.slice(1).map(r => {
+      const data = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false });
+      headers = data[0].map(h => String(h||'').trim()).filter(h => h);
+      rows = data.slice(1).filter(r => r.some(v => v !== undefined && v !== '')).map(r => {
         const obj = {};
-        headers.forEach((h,i) => obj[h] = r[i]!==undefined ? r[i] : '');
+        headers.forEach((h,i) => obj[h] = r[i] !== undefined ? r[i] : '');
         return obj;
       });
     } else {
-      const text = await file.text();
+      // ★ CSV: EUC-KR 우선 시도
+      const text = await readFileWithEncoding(file);
       const parsed = parseCSV(text);
       headers = parsed.headers; rows = parsed.rows;
     }
