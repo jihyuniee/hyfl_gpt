@@ -240,6 +240,7 @@
     border: 1px solid var(--border);
     border-radius: 4px 14px 14px 14px;
     color: var(--text);
+    line-height: 1.6;
   }
   .user-bubble {
     background: var(--accent);
@@ -472,6 +473,12 @@
       <button class="lesson-btn" onclick="setLesson(1,this)">3차시 · 주제선정</button>
       <button class="lesson-btn" onclick="setLesson(2,this)">4차시 · 데이터탐색</button>
 
+      <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+      <div class="sidebar-label">🏆 대회 정보</div>
+      <button class="lesson-btn" onclick="setLesson(3,this)">📋 대회 개요 · 일정</button>
+      <button class="lesson-btn" onclick="setLesson(4,this)">⭐ 심사 기준</button>
+      <button class="lesson-btn" onclick="setLesson(5,this)">🗂️ 데이터 목록</button>
+
       <div id="lesson-links" style="display:none;margin-top:8px;">
         <a id="lesson-book-link" href="#" target="_blank" class="lesson-link-btn">📖 웹 교과서 열기</a>
         <a id="lesson-activity-link" href="#" target="_blank" class="lesson-link-btn" style="display:none;">📝 활동지 열기</a>
@@ -488,6 +495,265 @@
     </div>
 
     <div class="chat-area">
+      <!-- 대회 개요 패널 -->
+      <div id="contest-panel" style="display:none;flex:1;overflow-y:auto;padding:20px 24px;">
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px;">제8회 교육 공공데이터 AI활용대회</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">주최: 교육부·17개 시도교육청 &nbsp;|&nbsp; 주관: 한국교육학술정보원(KERIS)</div>
+
+        <!-- 핵심 목표 -->
+        <div style="background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.3);border-radius:12px;padding:16px;margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:500;color:var(--accent2);margin-bottom:10px;">🎯 우리 팀이 만들어야 할 것</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.8;">
+            <b>교육 공공데이터</b>를 1개 이상 활용한 <b>AI 서비스 아이디어 기획서</b><br>
+            → PPT/PDF 최대 15장 + 데이터 출처·AI 활용 과정 명시
+          </div>
+        </div>
+
+        <!-- 일정 타임라인 -->
+        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">📅 대회 일정</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid rgba(245,158,11,0.4);border-radius:10px;padding:12px 14px;">
+            <div style="font-size:18px;">🔑</div>
+            <div>
+              <div style="font-size:12px;font-weight:500;color:#fbbf24;">AI 이용권 신청</div>
+              <div style="font-size:12px;color:var(--muted);">3.16(월) ~ 4.15(수) · data.edmgr.kr</div>
+            </div>
+            <div style="margin-left:auto;font-size:11px;padding:3px 8px;background:rgba(239,68,68,0.15);color:#f87171;border-radius:6px;">마감!</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid rgba(108,99,255,0.35);border-radius:10px;padding:12px 14px;">
+            <div style="font-size:18px;">📤</div>
+            <div>
+              <div style="font-size:12px;font-weight:500;color:var(--accent2);">작품 접수 및 제출</div>
+              <div style="font-size:12px;color:var(--muted);">5.1(금) ~ 5.31(일)</div>
+            </div>
+            <div style="margin-left:auto;font-size:11px;padding:3px 8px;background:rgba(108,99,255,0.2);color:var(--accent2);border-radius:6px;">D-DAY!</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+            <div style="font-size:18px;">📝</div>
+            <div>
+              <div style="font-size:12px;font-weight:500;color:var(--text);">1차 심사 (서면)</div>
+              <div style="font-size:12px;color:var(--muted);">6.1(월) ~ 6.14(일)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+            <div style="font-size:18px;">🎤</div>
+            <div>
+              <div style="font-size:12px;font-weight:500;color:var(--text);">2차 심사 (발표)</div>
+              <div style="font-size:12px;color:var(--muted);">7.18(토) ~ 7.19(일)</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:12px 14px;">
+            <div style="font-size:18px;">🏆</div>
+            <div>
+              <div style="font-size:12px;font-weight:500;color:#10b981;">시상식</div>
+              <div style="font-size:12px;color:var(--muted);">8.11(화) · 최종발표 7.29(수)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 시상 내역 -->
+        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">🎁 시상 내역 (학생 · AI 아이디어 기획 부문)</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;">
+          <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:4px;">🥇</div>
+            <div style="font-size:12px;font-weight:500;color:#fbbf24;">대상</div>
+            <div style="font-size:11px;color:var(--muted);">교육부장관상</div>
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-top:4px;">300만원</div>
+            <div style="font-size:11px;color:var(--muted);">+ 태블릿</div>
+          </div>
+          <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:4px;">🥈</div>
+            <div style="font-size:12px;font-weight:500;color:var(--accent2);">최우수상</div>
+            <div style="font-size:11px;color:var(--muted);">시도교육감상 17팀</div>
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-top:4px;">60만원</div>
+            <div style="font-size:11px;color:var(--muted);">+ 무선이어폰</div>
+          </div>
+          <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:4px;">🥉</div>
+            <div style="font-size:12px;font-weight:500;color:#10b981;">우수상</div>
+            <div style="font-size:11px;color:var(--muted);">시도교육감상 51팀</div>
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-top:4px;">30만원</div>
+            <div style="font-size:11px;color:var(--muted);">+ 무선이어폰</div>
+          </div>
+        </div>
+
+        <!-- 제출물 규격 -->
+        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">📄 제출물 규격 체크리스트</div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;">
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+            <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:500;">✓</span><span>PPT 또는 PDF · 최대 <b>15장</b> (표지 제외)</span></div>
+            <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:500;">✓</span><span>교육 공공데이터 <b>1개 이상</b> 필수 활용 (출처·라이선스 명시)</span></div>
+            <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:500;">✓</span><span>AI 활용 과정 기재 (사용 모델명·프롬프트·분석 절차)</span></div>
+            <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:500;">✓</span><span>첫 페이지에 <b>활용 데이터 정보</b> 작성</span></div>
+            <div style="display:flex;gap:8px;"><span style="color:#ef4444;font-weight:500;">✗</span><span style="color:var(--muted);">팀명 외 학교명·개인명·지역명 기재 금지</span></div>
+            <div style="display:flex;gap:8px;"><span style="color:#ef4444;font-weight:500;">✗</span><span style="color:var(--muted);">과도한 애니메이션·동영상 삽입 금지 (감점)</span></div>
+          </div>
+        </div>
+
+        <a href="https://data.edmgr.kr" target="_blank" style="display:block;text-align:center;padding:12px;background:var(--accent);color:white;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500;">🔗 대회 공식 홈페이지 바로가기</a>
+      </div>
+
+      <!-- 심사 기준 패널 -->
+      <div id="judge-panel" style="display:none;flex:1;overflow-y:auto;padding:20px 24px;">
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px;">심사 기준 & 전략</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">이 기준을 기억하면서 기획하면 점수가 달라져요</div>
+
+        <!-- 1차 심사 -->
+        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">📝 1차 심사 (서면) — 우선순위 순</div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;">
+          <div style="display:grid;grid-template-columns:28px 1fr auto;gap:0;">
+            <div style="background:rgba(245,158,11,0.8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#000;padding:10px 6px;">1</div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">독창성</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">기존에 없던 새로운 시각의 아이디어인가?</div></div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;"><div style="width:40px;height:6px;border-radius:3px;background:rgba(245,158,11,0.8);"></div></div>
+
+            <div style="background:rgba(108,99,255,0.7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;padding:10px 6px;border-bottom:1px solid var(--border);">2</div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">AI 활용도</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">AI가 구체적으로 어떻게 쓰이는지 명확한가?</div></div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;"><div style="width:32px;height:6px;border-radius:3px;background:rgba(108,99,255,0.7);"></div></div>
+
+            <div style="background:rgba(16,185,129,0.7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;padding:10px 6px;border-bottom:1px solid var(--border);">3</div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">활용가능성</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">실제로 만들 수 있는 현실적인 아이디어인가?</div></div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;"><div style="width:24px;height:6px;border-radius:3px;background:rgba(16,185,129,0.7);"></div></div>
+
+            <div style="background:rgba(59,130,246,0.7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;padding:10px 6px;border-bottom:1px solid var(--border);">4</div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">논리성</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">데이터 분석 → AI 적용 → 효과 흐름이 자연스러운가?</div></div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;"><div style="width:18px;height:6px;border-radius:3px;background:rgba(59,130,246,0.7);"></div></div>
+
+            <div style="background:rgba(168,85,247,0.7);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;padding:10px 6px;">5</div>
+            <div style="padding:10px 14px;"><div style="font-size:13px;font-weight:500;">표현성</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">발표 자료가 보기 좋고 이해하기 쉬운가?</div></div>
+            <div style="padding:10px 14px;display:flex;align-items:center;"><div style="width:12px;height:6px;border-radius:3px;background:rgba(168,85,247,0.7);"></div></div>
+          </div>
+        </div>
+
+        <!-- 2차 심사 -->
+        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">🎤 2차 심사 (발표) — 우선순위 순</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+          <div style="background:var(--surface);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px;">
+            <div style="font-size:11px;font-weight:600;color:#fbbf24;margin-bottom:4px;">① 이해도</div>
+            <div style="font-size:12px;color:var(--muted);">데이터와 AI를 얼마나 깊이 이해했는가</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid rgba(108,99,255,0.3);border-radius:10px;padding:12px;">
+            <div style="font-size:11px;font-weight:600;color:var(--accent2);margin-bottom:4px;">② 발표·태도</div>
+            <div style="font-size:12px;color:var(--muted);">자신감 있게 설명하고 질문에 답하는가</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:12px;">
+            <div style="font-size:11px;font-weight:600;color:#10b981;margin-bottom:4px;">③ 창의성</div>
+            <div style="font-size:12px;color:var(--muted);">독특한 시각과 새로운 접근이 있는가</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:12px;">
+            <div style="font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:4px;">④ 합리성</div>
+            <div style="font-size:12px;color:var(--muted);">논리가 맞고 근거가 충분한가</div>
+          </div>
+        </div>
+
+        <!-- 핵심 전략 -->
+        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">💡 점수 올리는 핵심 전략</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+          <div style="background:rgba(245,158,11,0.08);border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;line-height:1.6;">
+            <b style="color:#fbbf24;">독창성 올리기</b><br>
+            <span style="color:var(--muted);">"학교 안전" 같은 뻔한 주제 말고, 한양외고만의 특수한 상황(외국어·기숙사·진로)을 데이터와 연결해보세요</span>
+          </div>
+          <div style="background:rgba(108,99,255,0.08);border-left:3px solid var(--accent2);border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;line-height:1.6;">
+            <b style="color:var(--accent2);">AI 활용도 올리기</b><br>
+            <span style="color:var(--muted);">"AI를 활용한다"는 표현 말고, 구체적으로 어떤 AI(분류/예측/추천/생성)를 써서 무엇을 하는지 써야 해요</span>
+          </div>
+          <div style="background:rgba(16,185,129,0.08);border-left:3px solid #10b981;border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;line-height:1.6;">
+            <b style="color:#10b981;">논리성 올리기</b><br>
+            <span style="color:var(--muted);">데이터 수집 → 전처리 → AI 분석 → 결과 제공 흐름을 기획서에 명확히 보여주세요</span>
+          </div>
+        </div>
+
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;">
+          <b style="color:#f87171;">⚠️ 탈락 조심!</b><br>
+          <span style="color:var(--muted);">교육 공공데이터 미사용 시 <b style="color:#f87171;">즉시 탈락</b>. AI로 없는 데이터를 만들어내면 <b style="color:#f87171;">부정행위</b>. 타 대회 수상작 재제출도 탈락입니다.</span>
+        </div>
+      </div>
+
+      <!-- 데이터 목록 패널 -->
+      <div id="data-panel" style="display:none;flex:1;overflow-y:auto;padding:20px 24px;">
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px;">교육 공공데이터 찾기</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">여기서 데이터를 다운로드하면 돼요. CSV 파일을 받아서 4차시 탭에 업로드!</div>
+
+        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">⭐ 추천 데이터 사이트</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+          <a href="https://schoolinfo.go.kr" target="_blank" style="text-decoration:none;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+              <div style="font-size:24px;flex-shrink:0;">🏫</div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;">학교알리미 <span style="font-size:11px;color:var(--muted);">schoolinfo.go.kr</span></div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">학생 현황·급식·진로·건강·재정 데이터 · XLSX 다운로드</div>
+              </div>
+              <div style="font-size:11px;padding:3px 8px;background:rgba(16,185,129,0.15);color:#10b981;border-radius:6px;flex-shrink:0;">강력추천</div>
+            </div>
+          </a>
+          <a href="https://open.neis.go.kr" target="_blank" style="text-decoration:none;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+              <div style="font-size:24px;flex-shrink:0;">📅</div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;">NEIS 개방포털 <span style="font-size:11px;color:var(--muted);">open.neis.go.kr</span></div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">급식·시간표·학사일정 · CSV & API 제공</div>
+              </div>
+              <div style="font-size:11px;padding:3px 8px;background:rgba(108,99,255,0.15);color:var(--accent2);border-radius:6px;flex-shrink:0;">API 가능</div>
+            </div>
+          </a>
+          <a href="https://kess.kedi.re.kr" target="_blank" style="text-decoration:none;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+              <div style="font-size:24px;flex-shrink:0;">📊</div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;">교육통계서비스 <span style="font-size:11px;color:var(--muted);">kess.kedi.re.kr</span></div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">학업성취도·진학률·취업통계 · 시계열 분석 가능</div>
+              </div>
+            </div>
+          </a>
+          <a href="https://data.go.kr" target="_blank" style="text-decoration:none;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+              <div style="font-size:24px;flex-shrink:0;">🗂️</div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;">공공데이터포털 <span style="font-size:11px;color:var(--muted);">data.go.kr</span></div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">교육부 전체 데이터 · 가장 방대한 목록</div>
+              </div>
+            </div>
+          </a>
+          <a href="https://edmgr.kr" target="_blank" style="text-decoration:none;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+              <div style="font-size:24px;flex-shrink:0;">🔎</div>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;">교육데이터플랫폼 <span style="font-size:11px;color:var(--muted);">edmgr.kr</span></div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">대회 공식 플랫폼 · 수상작 사례 참고 가능</div>
+              </div>
+              <div style="font-size:11px;padding:3px 8px;background:rgba(245,158,11,0.15);color:#fbbf24;border-radius:6px;flex-shrink:0;">공식</div>
+            </div>
+          </a>
+        </div>
+
+        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">💡 한양외고에 어울리는 데이터 아이디어</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+          <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:12px;font-size:12px;line-height:1.7;">
+            <div style="font-weight:500;color:var(--accent2);margin-bottom:4px;">🌏 외국어 특화</div>
+            학교알리미 어학 관련 데이터 + 진로 데이터 결합<br>외국어 능력과 진로 선택 패턴 분석
+          </div>
+          <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px;font-size:12px;line-height:1.7;">
+            <div style="font-weight:500;color:#10b981;margin-bottom:4px;">🏠 기숙사 생활</div>
+            급식·건강 데이터 활용<br>기숙사 학생 맞춤형 서비스 기획
+          </div>
+          <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px;font-size:12px;line-height:1.7;">
+            <div style="font-weight:500;color:#fbbf24;margin-bottom:4px;">📈 진로·진학</div>
+            교육통계 진학률 데이터<br>전공별 취업 연계 AI 추천 시스템
+          </div>
+          <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:12px;font-size:12px;line-height:1.7;">
+            <div style="font-weight:500;color:#60a5fa;margin-bottom:4px;">📚 학습 패턴</div>
+            학업성취도 통계 데이터<br>외고 특성 반영 학습 지원 서비스
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);line-height:1.8;">
+          <b style="color:var(--text);">📥 데이터 다운로드 방법</b><br>
+          1. 위 사이트 접속 → 원하는 데이터 검색<br>
+          2. CSV 또는 XLSX 파일 다운로드<br>
+          3. 왼쪽 메뉴 <b style="color:var(--text);">"4차시 · 데이터탐색"</b> 탭으로 이동<br>
+          4. 파일 업로드 → AI 자동 분석 시작!
+        </div>
+      </div>
+
       <!-- 4차시 데이터 탐색 패널 -->
       <div id="lesson4-panel" style="display:none;flex:1;overflow-y:auto;padding:20px 24px;">
         <div style="margin-bottom:20px;">
@@ -1042,42 +1308,69 @@ async function renderTeamGrid() {
 
 // ── Lesson ──
 function setLesson(idx, btn) {
-  currentLesson = idx;
+  currentLesson = Math.min(idx, lessons.length - 1);
   document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const lesson = lessons[idx];
 
-  const panel = document.getElementById('lesson4-panel');
+  // 모든 패널 숨기기
+  const allPanels = ['lesson4-panel','contest-panel','judge-panel','data-panel'];
+  allPanels.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
   const msgArea = document.getElementById('messages');
   const inputWrap = document.querySelector('.input-wrap');
+  const linksDiv = document.getElementById('lesson-links');
 
-  if (lesson.isDataLesson) {
-    panel.style.display = 'block';
+  // 대회 정보 패널들 (idx 3,4,5)
+  if (idx === 3) {
+    document.getElementById('contest-panel').style.display = 'block';
     msgArea.style.display = 'none';
     if (inputWrap) inputWrap.style.display = 'none';
-  } else {
-    panel.style.display = 'none';
-    msgArea.style.display = 'flex';
-    if (inputWrap) inputWrap.style.display = 'block';
+    linksDiv.style.display = 'none';
+    return;
+  }
+  if (idx === 4) {
+    document.getElementById('judge-panel').style.display = 'block';
+    msgArea.style.display = 'none';
+    if (inputWrap) inputWrap.style.display = 'none';
+    linksDiv.style.display = 'none';
+    return;
+  }
+  if (idx === 5) {
+    document.getElementById('data-panel').style.display = 'block';
+    msgArea.style.display = 'none';
+    if (inputWrap) inputWrap.style.display = 'none';
+    linksDiv.style.display = 'none';
+    return;
   }
 
-  const linksDiv = document.getElementById('lesson-links');
-  const bookLink = document.getElementById('lesson-book-link');
-  const activityLink = document.getElementById('lesson-activity-link');
-  if (idx === 0) {
+  const lesson = lessons[currentLesson];
+
+  if (lesson.isDataLesson) {
+    document.getElementById('lesson4-panel').style.display = 'block';
+    msgArea.style.display = 'none';
+    if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
   } else {
-    linksDiv.style.display = 'block';
-    bookLink.href = lesson.bookUrl;
-    if (lesson.activityUrl) {
-      activityLink.href = lesson.activityUrl;
-      activityLink.style.display = 'block';
-    } else {
-      activityLink.style.display = 'none';
-    }
-  }
+    msgArea.style.display = 'flex';
+    if (inputWrap) inputWrap.style.display = 'block';
 
-  if (!lesson.isDataLesson) {
+    if (idx === 0) {
+      linksDiv.style.display = 'none';
+    } else {
+      linksDiv.style.display = 'block';
+      document.getElementById('lesson-book-link').href = lesson.bookUrl;
+      const activityLink = document.getElementById('lesson-activity-link');
+      if (lesson.activityUrl) {
+        activityLink.href = lesson.activityUrl;
+        activityLink.style.display = 'block';
+      } else {
+        activityLink.style.display = 'none';
+      }
+    }
+
     messages = [];
     const msgDiv = document.getElementById('messages');
     msgDiv.innerHTML = '';
@@ -1477,13 +1770,13 @@ function renderMarkdown(text) {
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
     .replace(/\*(.*?)\*/g,'<em>$1</em>')
     .replace(/`(.*?)`/g,'<code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;">$1</code>')
-    .replace(/#{3}\s(.+)/g,'<div style="font-size:14px;font-weight:600;margin:10px 0 4px;">$1</div>')
-    .replace(/#{2}\s(.+)/g,'<div style="font-size:15px;font-weight:600;margin:12px 0 5px;">$1</div>')
-    .replace(/#{1}\s(.+)/g,'<div style="font-size:16px;font-weight:600;margin:14px 0 6px;">$1</div>')
+    .replace(/#{3}\s(.+)/g,'<div style="font-size:13px;font-weight:600;margin:8px 0 2px;">$1</div>')
+    .replace(/#{2}\s(.+)/g,'<div style="font-size:14px;font-weight:600;margin:10px 0 3px;">$1</div>')
+    .replace(/#{1}\s(.+)/g,'<div style="font-size:15px;font-weight:600;margin:10px 0 4px;">$1</div>')
     .replace(/^---+$/gm,'<hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:8px 0;">')
-    .replace(/^[-•]\s(.+)/gm,'<div style="padding:2px 0 2px 16px;">• $1</div>')
-    .replace(/^\d+\.\s(.+)/gm,'<div style="padding:2px 0 2px 16px;">$&</div>')
-    .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+    .replace(/^[-•]\s(.+)/gm,'<div style="padding:1px 0 1px 14px;line-height:1.5;">• $1</div>')
+    .replace(/^\d+\.\s(.+)/gm,'<div style="padding:1px 0 1px 14px;line-height:1.5;">$&</div>')
+    .replace(/\n\n/g,'<br>').replace(/\n/g,'<br>');
 }
 </script>
 </body>
