@@ -388,6 +388,19 @@
     font-size: 11px; flex-shrink: 0;
   }
 
+  /* ── Model Tab Buttons ── */
+  .model-tab {
+    font-size: 11px; padding: 4px 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 7px; color: var(--muted);
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .model-tab.active {
+    background: var(--accent); border-color: var(--accent);
+    color: white; font-weight: 500;
+  }
+
   /* ── Scaffolding Bar ── */
   .scaffold-bar {
     display: none; flex-shrink: 0;
@@ -903,12 +916,12 @@
           <div>
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px;">데이터 분석 6단계</div>
             <div id="l4-steps" style="display:flex;flex-direction:column;gap:2px;">
-              <div class="l4-step-item active" id="l4-s1"><span class="l4-step-num">1</span>문제 정의</div>
-              <div class="l4-step-item" id="l4-s2"><span class="l4-step-num">2</span>데이터 수집</div>
-              <div class="l4-step-item" id="l4-s3"><span class="l4-step-num">3</span>전처리</div>
-              <div class="l4-step-item" id="l4-s4"><span class="l4-step-num">4</span>시각화</div>
-              <div class="l4-step-item" id="l4-s5"><span class="l4-step-num">5</span>분석/해석</div>
-              <div class="l4-step-item" id="l4-s6"><span class="l4-step-num">6</span>결론/발표</div>
+              <div class="l4-step-item active" id="l4-s1"><span class="l4-step-num">1</span>데이터 업로드</div>
+              <div class="l4-step-item" id="l4-s2"><span class="l4-step-num">2</span>결측치 발견</div>
+              <div class="l4-step-item" id="l4-s3"><span class="l4-step-num">3</span>상관관계·시각화</div>
+              <div class="l4-step-item" id="l4-s4"><span class="l4-step-num">4</span>패턴→아이디어</div>
+              <div class="l4-step-item" id="l4-s5"><span class="l4-step-num">5</span>AI서비스 설계</div>
+              <div class="l4-step-item" id="l4-s6"><span class="l4-step-num">6</span>자기반성 기록</div>
             </div>
           </div>
 
@@ -950,17 +963,56 @@
         <!-- 오른쪽: AI 대화 -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
           <!-- 파일 업로드 전 웰컴 -->
-          <div id="l4-welcome" style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px;text-align:center;">
-            <div>
-              <div style="font-size:36px;margin-bottom:16px;">🔍</div>
-              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:600;margin-bottom:10px;color:var(--text);">4차시 · 데이터 탐색</h3>
-              <p style="font-size:13px;color:var(--muted);line-height:1.8;max-width:380px;margin:0 auto 20px;">왼쪽에서 <b style="color:var(--text);">CSV 또는 XLSX 파일</b>을 업로드하면<br>AI가 데이터를 분석하고 질문으로 안내해요</p>
-              <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px;font-size:12px;color:var(--muted);line-height:2;text-align:left;max-width:340px;margin:0 auto;">
-                <div style="color:var(--accent2);font-weight:500;margin-bottom:6px;">학습 흐름</div>
-                📁 파일 업로드 → AI가 데이터 파악<br>
-                🤔 AI가 첫 질문 → 내 생각 말하기<br>
-                💬 대화하며 → 6단계 탐구<br>
-                📝 결론 도출 → 자기 반성 기록
+          <div id="l4-welcome" style="flex:1;overflow-y:auto;padding:28px 28px;">
+            <div style="max-width:560px;margin:0 auto;">
+              <div style="text-align:center;margin-bottom:22px;">
+                <div style="font-size:30px;margin-bottom:8px;">🔍</div>
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;margin-bottom:6px;color:var(--text);">4차시 · 데이터 탐색 & 검증</h3>
+                <p style="font-size:12px;color:var(--muted);">왼쪽에서 CSV/XLSX 파일을 업로드하면 AI가 분석을 시작해요</p>
+              </div>
+
+              <!-- 오늘 수업 핵심 규칙 -->
+              <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+                <div style="font-size:12px;font-weight:600;color:#f87171;margin-bottom:8px;">⚠ 오늘 수업 핵심 규칙</div>
+                <div style="font-size:12px;color:var(--muted);line-height:1.9;">
+                  ❌ AI에게 <b style="color:var(--text);">'찾아줘 / 써줘 / 알려줘'</b> — 금지<br>
+                  ✅ <b style="color:#10b981;">내가 먼저 생각</b> → AI에게 보여준다 → 질문 받기 → 수정<br>
+                  ✅ AI가 쓴 것 vs 내가 쓴 것 <b style="color:#10b981;">차이 분석</b>하면 점수 올라감
+                </div>
+              </div>
+
+              <!-- STEP 1-6 안내 -->
+              <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+                <div style="font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">오늘 진행 순서</div>
+                <div style="background:var(--surface);border:1px solid var(--accent);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--text);">
+                  <span style="color:var(--accent);font-weight:600;">STEP 1</span> <span style="color:var(--muted);">5~15분</span> — 업로드 <b>전</b> 예측 먼저 쓰기 → 파일 업로드
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 2</span> <span style="color:var(--muted);">15~22분</span> — 결측치 발견 & 처리 방법 설계
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 3</span> <span style="color:var(--muted);">22~30분</span> — 상관관계 예측 → 차트로 검증
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 4</span> <span style="color:var(--muted);">30~35분</span> — 데이터 패턴 → AI 서비스 아이디어 도출
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 5</span> <span style="color:var(--muted);">35~45분</span> — AI 서비스 구조 완성 (입력→처리→출력→사용자)
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 6</span> <span style="color:var(--muted);">45~50분</span> — 자기반성 보고서 → 🪞 자기 반성 기록 탭에서 작성
+                </div>
+              </div>
+
+              <!-- 파일 업로드 전 예측 메모 -->
+              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:14px 16px;">
+                <div style="font-size:12px;font-weight:600;color:#10b981;margin-bottom:8px;">📝 STEP 1 시작 전 — 파일 열기 전에 먼저 예측하세요</div>
+                <div style="font-size:12px;color:var(--muted);line-height:1.9;">
+                  이 데이터에 몇 행(건수)이 있을 것 같나요?<br>
+                  어떤 컬럼(항목)이 있을 것 같나요? (3개 이상)<br>
+                  결측값이 있을 것 같나요? 어떤 항목에?<br>
+                  <span style="color:#10b981;font-weight:500;">→ 위 내용을 활동지에 먼저 쓴 후 파일을 업로드하세요!</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1108,13 +1160,10 @@
               <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="handleFileUpload(this)">
             </label>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <select id="model-select" onchange="currentModel=this.value" style="font-size:12px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;cursor:pointer;">
-              <option value="gpt">GPT-4o</option>
-              <option value="gemini">Gemini 2.0</option>
-              <option value="claude" selected>Claude Sonnet</option>
-            </select>
-            <div style="font-size:11px;color:var(--muted);white-space:nowrap;">수업 목적으로만</div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <button onclick="setModel('gpt',this)" class="model-tab" id="tab-gpt">GPT-4o</button>
+            <button onclick="setModel('gemini',this)" class="model-tab active" id="tab-gemini">Gemini</button>
+            <button onclick="setModel('claude',this)" class="model-tab" id="tab-claude">Claude</button>
           </div>
         </div>
         <div id="improved-preview" style="display:none;margin-top:8px;padding:10px 14px;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:10px;font-size:13px;line-height:1.6;">
@@ -1217,7 +1266,7 @@ const DEFAULT_ADMIN_PW = 'teacher1234';
 
 // ── State ──
 let currentTeam = null;
-let currentModel = 'claude';
+let currentModel = 'gemini';
 let messages = [];
 let histories = [];
 let currentLesson = 0;
@@ -1273,26 +1322,33 @@ STEP12 최종 문제 정의문 확정
     title: '4차시 · 데이터 탐색 및 검증',
     bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
     activityUrl: null,
-    system: `당신은 고등학생 데이터 과학 프로젝트를 안내하는 AI 튜터입니다. 소크라테스식 질문으로 학생 스스로 발견하도록 이끌어주세요.
+    system: `당신은 한영외고 2학년 공공교육데이터 AI활용대회 4차시 수업을 돕는 AI 튜터입니다.
+오늘 수업은 경기여고 데이터 과학 워크북 기반으로 STEP 1~6을 진행합니다.
 
-[데이터 분석 6단계 기반 튜터링]
-학생이 파일을 업로드하면:
-1. 데이터의 핵심 특징 2-3가지를 간략히 소개하세요 (행/열 수, 흥미로운 컬럼, 결측치 여부)
-2. 반드시 첫 질문으로 마무리하세요: "이 데이터에서 어떤 점이 가장 궁금해?"
-3. 학생 답변에 따라 6단계를 자연스럽게 안내하세요:
-   - 1단계 문제정의: "이 데이터로 어떤 질문에 답하고 싶어?"
-   - 2단계 수집확인: "이 데이터는 어디서 왔을까? 신뢰할 수 있을까?"
-   - 3단계 전처리: "빈 값이나 이상한 숫자가 있진 않을까? 어떻게 처리할까?"
-   - 4단계 시각화: "어떤 그래프가 이 데이터에 어울릴까? 이유도 말해봐"
-   - 5단계 분석해석: "그 패턴은 왜 생겼을까? 어떤 의미가 있을까?"
-   - 6단계 결론: "이 분석 결과로 어떤 제안을 할 수 있을까?"
-
-[원칙 - 반드시 준수]
-- 직접 분석 결론을 먼저 말하지 마세요
+[핵심 규칙 - 절대 준수]
+- '찾아줘/써줘/알려줘' 요청에는 바로 답하지 말고 "어떻게 생각해?" 로 돌려보내세요
 - 한 번에 질문 하나만, 항상 질문으로 마무리하세요
-- 틀려도 바로 정정하지 말고 "왜 그렇게 생각해?"로 사고 유도
-- 막히면 아주 작은 힌트 하나만 주고 나머지는 스스로 발견하게 하세요
-- 답변은 3-4문장 이내로 간결하게, 항상 질문으로 마무리`,
+- 틀려도 바로 정정 금지 — "왜 그렇게 생각했어?" 로 사고 유도
+- 답변은 2~3문장 이내로 간결하게, 반드시 질문으로 마무리
+
+[파일 업로드 직후 - STEP 1]
+데이터의 기본 정보(행수·컬럼명·결측치 여부) 2문장으로만 소개 후 즉시 질문:
+"업로드 전에 예측했던 것과 비교하면 어떤 점이 달랐어? 가장 놀란 점은?"
+
+[STEP 2 - 결측치]
+"어떤 컬럼에 빈 값이 있어? 왜 이 값이 비어있을 것 같아? 어떻게 처리하면 좋을까?"
+
+[STEP 3 - 상관관계]
+"A 컬럼이 높을 때 B 컬럼은 어떻게 변해? 차트 그리기 전에 먼저 예측해봐"
+
+[STEP 4 - 아이디어]
+"이 패턴을 발견했다면, 누가 가장 도움받을 것 같아? 어떤 AI 서비스가 이 문제를 해결할 수 있을까?"
+
+[STEP 5 - 서비스 설계]
+입력→AI처리→출력→사용자 구조로 안내: "AI가 어떤 데이터를 받아서 무엇을 하고 누구에게 결과를 주는지 한 문장으로 말해봐"
+
+[STEP 6 - 자기반성]
+"오늘 AI 없이 내가 직접 한 것은 무엇이야? AI가 어떤 질문으로 생각을 바꿔줬어?"`,
     welcome: `안녕하세요! 4차시 **"데이터 탐색 및 검증"** 수업이에요 🔍\n\n오늘 목표:\n① 공공데이터 포털에서 데이터 다운로드\n② CSV/XLSX 파일 업로드 및 구조 파악\n③ AI 활용 아이디어 도출\n\n왼쪽 패널에서 파일을 업로드해보세요!`,
     isDataLesson: true
   }
@@ -2157,6 +2213,13 @@ function parseCSV(text) {
     return obj;
   });
   return { headers, rows };
+}
+
+// ── Model Tab ──
+function setModel(m, btn) {
+  currentModel = m;
+  document.querySelectorAll('.model-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 }
 
 // ── Scaffolding Toggle ──

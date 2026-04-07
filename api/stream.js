@@ -27,7 +27,7 @@ export default async function handler(req) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
             body: JSON.stringify({
-              model: 'gpt-4o', max_tokens: 1024, stream: true,
+              model: 'gpt-4o', max_tokens: 600, stream: true,
               messages: [
                 { role: 'system', content: systemPrompt },
                 ...messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
@@ -60,7 +60,7 @@ export default async function handler(req) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
             body: JSON.stringify({
-              model: 'claude-sonnet-4-20250514', max_tokens: 1024, stream: true,
+              model: 'claude-sonnet-4-20250514', max_tokens: 600, stream: true,
               system: systemPrompt,
               messages: messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
             })
@@ -92,7 +92,7 @@ export default async function handler(req) {
             body: JSON.stringify({
               system_instruction: { parts: [{ text: systemPrompt }] },
               contents: messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-              generationConfig: { maxOutputTokens: 1024 }
+              generationConfig: { maxOutputTokens: 600 }
             })
           });
           const reader = r.body.getReader();
