@@ -371,6 +371,106 @@
     .sidebar { display: none; }
     .login-box { width: 92%; padding: 28px 20px; }
   }
+
+  /* ── Tool Links in Sidebar ── */
+  .tool-link {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); text-decoration: none;
+    font-size: 11px; transition: all 0.15s; margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tool-link:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+  .tool-icon {
+    width: 18px; height: 18px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+  }
+
+  /* ── Scaffolding Bar ── */
+  .scaffold-bar {
+    display: none; flex-shrink: 0;
+    align-items: center; gap: 8px;
+    margin-bottom: 8px; padding: 6px 12px;
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .scaffold-bar.visible { display: flex; }
+  .scaffold-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .scaffold-label { font-size: 11px; flex: 1; }
+  .scaffold-toggle-btn {
+    font-size: 10px; padding: 3px 8px;
+    background: transparent; border-radius: 6px;
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    white-space: nowrap; border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+
+  /* ── Writing Compare Panel ── */
+  #write-compare-panel {
+    flex: 1; overflow-y: auto; padding: 20px 24px; display: none;
+  }
+  .compare-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 800px) { .compare-grid { grid-template-columns: 1fr; } }
+  .compare-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+  }
+  .compare-box-title {
+    font-size: 12px; font-weight: 500; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .compare-textarea {
+    width: 100%; min-height: 180px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px;
+    padding: 10px 12px; resize: vertical; outline: none; line-height: 1.7;
+    transition: border-color 0.2s;
+  }
+  .compare-textarea:focus { border-color: var(--accent); }
+
+  /* ── Self Reflection Panel ── */
+  #self-reflect-panel {
+    flex: 1; overflow-y: auto; padding: 20px 24px; display: none;
+  }
+  .reflect-form { max-width: 680px; }
+  .reflect-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; margin-bottom: 12px;
+  }
+  .reflect-q {
+    font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text);
+  }
+  .reflect-q-hint {
+    font-size: 11px; color: var(--muted); margin-bottom: 10px; line-height: 1.5;
+  }
+  .reflect-ta {
+    width: 100%; min-height: 72px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px;
+    padding: 9px 11px; resize: vertical; outline: none; line-height: 1.6;
+    transition: border-color 0.2s;
+  }
+  .reflect-ta:focus { border-color: var(--accent); }
+  .reflect-check-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .reflect-opt {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text); cursor: pointer;
+    padding: 6px 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    transition: all 0.15s;
+  }
+  .reflect-opt:has(input:checked) {
+    border-color: rgba(108,99,255,0.4);
+    background: rgba(108,99,255,0.12); color: var(--accent2);
+  }
+  .reflect-opt input { display: none; }
 </style>
 </head>
 <body>
@@ -478,6 +578,20 @@
       <button class="lesson-btn" onclick="setLesson(3,this)">📋 대회 개요 · 일정</button>
       <button class="lesson-btn" onclick="setLesson(4,this)">⭐ 심사 기준</button>
       <button class="lesson-btn" onclick="setLesson(5,this)">🗂️ 데이터 목록</button>
+
+      <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+      <div class="sidebar-label">✏️ 학습 활동</div>
+      <button class="lesson-btn" onclick="setLesson(6,this)">✍️ 글쓰기 비교</button>
+      <button class="lesson-btn" onclick="setLesson(7,this)">🪞 자기 반성 기록</button>
+
+      <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+      <div class="sidebar-label">🛠️ 수업 도구</div>
+      <a href="https://www.miricanvas.com" target="_blank" class="tool-link">
+        <span class="tool-icon" style="background:rgba(108,99,255,0.15);">🎨</span>미리캔버스
+      </a>
+      <a href="https://www.canva.com/ko_kr/" target="_blank" class="tool-link">
+        <span class="tool-icon" style="background:rgba(66,133,244,0.15);">🖌️</span>Canva
+      </a>
 
       <div id="lesson-links" style="display:none;margin-top:8px;">
         <a id="lesson-book-link" href="#" target="_blank" class="lesson-link-btn">📖 웹 교과서 열기</a>
@@ -846,6 +960,94 @@
         </div>
       </div>
 
+      <!-- 글쓰기 비교 패널 -->
+      <div id="write-compare-panel">
+        <div style="font-size:16px;font-weight:600;margin-bottom:6px;font-family:'Space Grotesk',sans-serif;">✍️ 글쓰기 비교</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:12px;">
+          같은 주제로 <b style="color:var(--text);">내가 먼저 쓴 뒤</b> AI에게도 쓰게 하고, 차이를 분석해요.<br>
+          <span style="color:var(--accent2);">AI 글을 먼저 보지 마세요 — 내 생각이 중요합니다!</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">📌 글쓰기 주제 / 과제</div>
+          <textarea id="compare-topic" class="compare-textarea" style="min-height:56px;" placeholder="예) 학교 급식 개선 방안을 300자로 써보세요" oninput="autoResize(this)"></textarea>
+        </div>
+        <div class="compare-grid">
+          <div class="compare-box">
+            <div class="compare-box-title" style="color:var(--accent2);">
+              1️⃣ 내가 쓴 글
+              <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px;">AI 보기 전, 먼저 쓰세요</span>
+            </div>
+            <textarea id="student-write" class="compare-textarea" placeholder="AI를 보기 전, 내 생각으로 먼저 써보세요..." oninput="updateCharCount(this)"></textarea>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;" id="student-char-count">0자</div>
+          </div>
+          <div class="compare-box">
+            <div class="compare-box-title" style="color:#10b981;">
+              2️⃣ AI가 쓴 글
+              <button onclick="generateAIWrite()" id="ai-write-btn" style="margin-left:auto;font-size:11px;padding:4px 10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:6px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">AI에게 써달라고 하기</button>
+            </div>
+            <textarea id="ai-write" class="compare-textarea" placeholder="'AI에게 써달라고 하기' 버튼을 눌러주세요..." readonly style="background:rgba(16,185,129,0.04);cursor:default;"></textarea>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+          <button onclick="analyzeWriteDiff()" id="analyze-btn" style="background:var(--accent);color:white;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;">🔍 차이 분석하기</button>
+          <button onclick="showRewriteArea()" style="background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:10px 18px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;">🔄 분석 보고 다시 쓰기</button>
+        </div>
+        <div id="compare-analysis" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;"></div>
+        <div id="rewrite-area" style="display:none;">
+          <div style="background:var(--surface);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px;">
+            <div style="font-size:12px;color:#fbbf24;font-weight:500;margin-bottom:8px;">3️⃣ 분석을 보고 다시 쓴 내 글</div>
+            <textarea id="rewrite-ta" class="compare-textarea" placeholder="차이 분석을 보고, 더 발전시켜서 다시 써보세요..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 자기 반성 기록 패널 -->
+      <div id="self-reflect-panel">
+        <div style="font-size:16px;font-weight:600;margin-bottom:6px;font-family:'Space Grotesk',sans-serif;">🪞 자기 반성 기록</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:12px;">
+          오늘 수업에서 AI를 어떻게 활용했는지 솔직하게 돌아보세요.<br>
+          <span style="color:var(--accent2);">AI 활용 과정 자체가 학습의 일부입니다 — AI를 어떻게 사용했는지가 평가에 반영됩니다.</span>
+        </div>
+        <div class="reflect-form">
+          <div class="reflect-section">
+            <div class="reflect-q">Q1. 오늘 AI를 어떻게 활용했나요? (복수 선택 가능)</div>
+            <div class="reflect-q-hint">솔직하게 체크해요. 정답이 없습니다.</div>
+            <div class="reflect-check-group">
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="answer"> 모르는 답을 바로 물어보는 데 사용했다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="partner"> AI와 대화하며 내 아이디어를 발전시켰다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="teacher"> 내가 배운 것을 AI에게 가르쳐보며 이해를 확인했다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="hint"> 힌트나 방향만 얻고 내가 직접 해결했다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="compare"> AI 결과와 내 결과를 비교하며 차이를 분석했다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="other"> 기타</label>
+            </div>
+          </div>
+          <div class="reflect-section">
+            <div class="reflect-q">Q2. AI 없이 내가 직접 생각하고 한 부분은 무엇인가요?</div>
+            <div class="reflect-q-hint">AI에게 맡기지 않고 내 힘으로 해낸 것들을 구체적으로 적어주세요.</div>
+            <textarea class="reflect-ta" id="reflect-q2" placeholder="예) 주제 선정의 방향은 내가 직접 정했고, 어떤 데이터를 쓸지도 내가 판단했다..."></textarea>
+          </div>
+          <div class="reflect-section">
+            <div class="reflect-q">Q3. 결과물 중 AI 도움을 받은 부분은 어디인가요?</div>
+            <div class="reflect-q-hint">AI 도움을 받은 부분을 명확히 표시할 수 있어야 평가에서 인정받습니다.</div>
+            <textarea class="reflect-ta" id="reflect-q3" placeholder="예) 문장 다듬기는 AI 도움을 받았고, 배경지식도 AI에게 물어봤다..."></textarea>
+          </div>
+          <div class="reflect-section">
+            <div class="reflect-q">Q4. 내가 쓴 것과 AI가 쓴 것의 차이는 무엇이었나요?</div>
+            <div class="reflect-q-hint">어느 부분이 달랐나요? 그 차이에서 무엇을 배웠나요?</div>
+            <textarea class="reflect-ta" id="reflect-q4" placeholder="예) AI는 근거가 더 구체적이었고, 나는 개인적 경험 위주였다. 다음엔 통계 자료를 넣어야겠다..."></textarea>
+          </div>
+          <div class="reflect-section">
+            <div class="reflect-q">Q5. 다음 수업에서 AI를 어떻게 다르게 활용할 건가요?</div>
+            <div class="reflect-q-hint">답을 구하는 도구가 아닌, 사고를 돕는 동반자로 쓰려면?</div>
+            <textarea class="reflect-ta" id="reflect-q5" placeholder="예) 다음엔 바로 답을 묻지 않고, 내 생각을 먼저 정리한 뒤 AI와 비교해볼 것이다..."></textarea>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button onclick="printReflection()" style="flex:1;background:var(--accent);color:white;border:none;border-radius:10px;padding:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;">🖨️ 인쇄 / PDF 저장</button>
+            <button onclick="clearReflection()" style="background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:12px 16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;">초기화</button>
+          </div>
+        </div>
+      </div>
+
       <div class="messages" id="messages">
         <div class="welcome" id="welcome">
           <h2>무엇을 도와드릴까요?</h2>
@@ -860,6 +1062,11 @@
       </div>
 
       <div class="input-wrap">
+        <div id="scaffold-bar" class="scaffold-bar" style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);">
+          <div class="scaffold-dot" style="background:#10b981;"></div>
+          <span class="scaffold-label" style="color:#10b981;">사고 돕기 모드 — AI가 답 대신 질문으로 생각을 이끌어드립니다</span>
+          <button onclick="toggleScaffold()" id="scaffold-toggle-btn" class="scaffold-toggle-btn" style="color:#10b981;border-color:rgba(16,185,129,0.3);">자유 답변 전환</button>
+        </div>
         <div id="file-preview" style="display:none;margin-bottom:8px;padding:8px 12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;font-size:12px;color:#10b981;align-items:center;gap:8px;">
           <span>📄</span>
           <span id="file-name"></span>
@@ -995,6 +1202,7 @@ let histories = [];
 let currentLesson = 0;
 let uploadedFileContent = null;
 let lesson4Data = null;
+let scaffoldingMode = false;
 
 // ── Lessons ──
 // ★ 버그 수정: lessons 배열을 올바르게 정의 (3차시와 4차시 순서 수정)
@@ -1011,8 +1219,17 @@ const lessons = [
     title: '3차시 · 주제선정',
     bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
     activityUrl: 'https://docs.google.com/document/d/11L2IoxFknvSp1GyUZZhxNRZK_1vlOsxT5R4Pm-mdosg/edit?usp=sharing',
-    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다.
+    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 튜터입니다.
 지금은 3차시 수업 "주제 선정 — 아이디어를 서비스로 만들기" 단계입니다.
+
+[튜터링 원칙 - 반드시 준수]
+- 학생이 질문하면 바로 답을 주지 마세요. 먼저 "지금까지 어떤 생각을 해봤어?" 또는 "어떤 방향으로 생각하고 있어?"를 물어보세요.
+- 학생 답변을 들은 뒤, 다음 사고 단계를 이끄는 질문을 하세요.
+- 힌트는 단계적으로 제공하세요 (첫 힌트는 작게, 학생이 여전히 막히면 조금씩 더 구체적으로).
+- 포기하지 않도록 격려하면서 끝까지 완성하도록 도와주세요.
+- "왜 그렇게 생각해?", "다른 관점에서 보면?", "이 부분은 어떻게 느껴져?" 같은 질문을 활용하세요.
+- AI가 결론을 내리지 말고, 학생이 스스로 결론에 도달하도록 도와주세요.
+
 활동지 STEP 순서:
 STEP1 대회 핵심 기준 이해 (교육공공데이터·AI·교육문제해결·독창성·실현가능성)
 STEP2 주제 방향 선택 (AI 교육안전복지 / 교육자원최적화 / 미래교육 / 학습자중심)
@@ -1035,10 +1252,16 @@ STEP12 최종 문제 정의문 확정
     title: '4차시 · 데이터 탐색 및 검증',
     bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
     activityUrl: null,
-    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다.
+    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 튜터입니다.
 지금은 4차시 "데이터 탐색 및 검증" 단계입니다.
-학생들이 공공데이터 CSV/XLSX 파일을 업로드하고 데이터 구조를 이해하며 AI 활용 아이디어를 도출하는 단계입니다.
-학생들의 데이터 기반 사고를 돕고, 데이터에서 의미있는 패턴을 찾도록 안내해주세요.`,
+
+[튜터링 원칙 - 반드시 준수]
+- 학생이 데이터 분석 방법을 물어보면 바로 답하지 말고, "이 데이터에서 어떤 패턴이 흥미롭게 보여?" 같은 질문으로 학생의 관찰을 먼저 이끌어내세요.
+- 학생의 아이디어를 들은 뒤, 그것을 발전시킬 수 있는 후속 질문을 하세요.
+- 데이터에서 의미있는 패턴을 스스로 발견하도록 유도하세요. 직접 알려주지 마세요.
+- 막히면 힌트를 단계적으로 제공하고, 학생이 포기하지 않도록 격려하세요.
+
+학생들이 공공데이터 CSV/XLSX 파일을 업로드하고 데이터 구조를 이해하며 AI 활용 아이디어를 도출하는 단계입니다.`,
     welcome: `안녕하세요! 4차시 **"데이터 탐색 및 검증"** 수업이에요 🔍\n\n오늘 목표:\n① 공공데이터 포털에서 데이터 다운로드\n② CSV/XLSX 파일 업로드 및 구조 파악\n③ AI 활용 아이디어 도출\n\n왼쪽 패널에서 파일을 업로드해보세요!`,
     isDataLesson: true
   }
@@ -1313,7 +1536,7 @@ function setLesson(idx, btn) {
   btn.classList.add('active');
 
   // 모든 패널 숨기기
-  const allPanels = ['lesson4-panel','contest-panel','judge-panel','data-panel'];
+  const allPanels = ['lesson4-panel','contest-panel','judge-panel','data-panel','write-compare-panel','self-reflect-panel'];
   allPanels.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
@@ -1329,6 +1552,7 @@ function setLesson(idx, btn) {
     msgArea.style.display = 'none';
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
     return;
   }
   if (idx === 4) {
@@ -1336,6 +1560,7 @@ function setLesson(idx, btn) {
     msgArea.style.display = 'none';
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
     return;
   }
   if (idx === 5) {
@@ -1343,6 +1568,23 @@ function setLesson(idx, btn) {
     msgArea.style.display = 'none';
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
+    return;
+  }
+  if (idx === 6) {
+    document.getElementById('write-compare-panel').style.display = 'block';
+    msgArea.style.display = 'none';
+    if (inputWrap) inputWrap.style.display = 'none';
+    linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
+    return;
+  }
+  if (idx === 7) {
+    document.getElementById('self-reflect-panel').style.display = 'block';
+    msgArea.style.display = 'none';
+    if (inputWrap) inputWrap.style.display = 'none';
+    linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
     return;
   }
 
@@ -1379,6 +1621,26 @@ function setLesson(idx, btn) {
     welcome.innerHTML = `<h2>${idx===0?'무엇을 도와드릴까요?':lesson.title}</h2>
       <p style="white-space:pre-line;text-align:left;max-width:500px;margin:0 auto;">${lesson.welcome}</p>`;
     msgDiv.appendChild(welcome);
+
+    // 스캐폴딩 모드: 수업 차시(1,2)는 기본 ON, 자유 대화(0)는 OFF
+    if (idx === 0) {
+      scaffoldingMode = false;
+      document.getElementById('scaffold-bar').classList.remove('visible');
+      document.getElementById('user-input').placeholder = '메시지를 입력하세요... (Shift+Enter 줄바꿈)';
+    } else {
+      scaffoldingMode = true;
+      const bar = document.getElementById('scaffold-bar');
+      bar.classList.add('visible');
+      bar.style.background = 'rgba(16,185,129,0.06)';
+      bar.style.borderColor = 'rgba(16,185,129,0.2)';
+      bar.querySelector('.scaffold-label').style.color = '#10b981';
+      bar.querySelector('.scaffold-label').textContent = '사고 돕기 모드 — AI가 답 대신 질문으로 생각을 이끌어드립니다';
+      const tbtn = document.getElementById('scaffold-toggle-btn');
+      tbtn.textContent = '자유 답변 전환';
+      tbtn.style.color = '#10b981';
+      tbtn.style.borderColor = 'rgba(16,185,129,0.3)';
+      document.getElementById('user-input').placeholder = 'AI가 생각을 돕는 질문을 드립니다... (Shift+Enter 줄바꿈)';
+    }
   }
 }
 
@@ -1497,7 +1759,10 @@ async function sendMessage() {
 }
 
 async function callAI(model, msgs) {
-  const systemPrompt = lessons[currentLesson].system;
+  let systemPrompt = (lessons[currentLesson] || lessons[0]).system;
+  if (scaffoldingMode) {
+    systemPrompt += `\n\n[스캐폴딩 모드 - 추가 지침]\n학생의 메시지에 직접 답하지 마세요. 반드시 아래 순서로 응답하세요:\n1. 학생의 현재 생각/시도를 먼저 물어보세요 (아직 없으면 "어떻게 접근해봤어?")\n2. 학생이 이미 생각을 밝혔다면, 그 생각을 발전시키는 질문을 하세요\n3. 막혀있다면 작은 힌트 하나만 주고, 나머지는 스스로 생각하게 하세요\n4. 절대로 완성된 답이나 결론을 먼저 제시하지 마세요\n5. 끝에는 항상 "어떻게 생각해?" 또는 "이 부분에 대해 먼저 생각해봐" 같은 질문으로 마무리하세요`;
+  }
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1762,6 +2027,150 @@ function parseCSV(text) {
     return obj;
   });
   return { headers, rows };
+}
+
+// ── Scaffolding Toggle ──
+function toggleScaffold() {
+  scaffoldingMode = !scaffoldingMode;
+  const bar = document.getElementById('scaffold-bar');
+  const label = bar.querySelector('.scaffold-label');
+  const btn = document.getElementById('scaffold-toggle-btn');
+  if (scaffoldingMode) {
+    bar.style.background = 'rgba(16,185,129,0.06)';
+    bar.style.borderColor = 'rgba(16,185,129,0.2)';
+    bar.querySelector('.scaffold-dot').style.background = '#10b981';
+    label.style.color = '#10b981';
+    label.textContent = '사고 돕기 모드 — AI가 답 대신 질문으로 생각을 이끌어드립니다';
+    btn.textContent = '자유 답변 전환';
+    btn.style.color = '#10b981';
+    btn.style.borderColor = 'rgba(16,185,129,0.3)';
+    document.getElementById('user-input').placeholder = 'AI가 생각을 돕는 질문을 드립니다... (Shift+Enter 줄바꿈)';
+  } else {
+    bar.style.background = 'rgba(245,158,11,0.06)';
+    bar.style.borderColor = 'rgba(245,158,11,0.2)';
+    bar.querySelector('.scaffold-dot').style.background = '#fbbf24';
+    label.style.color = '#fbbf24';
+    label.textContent = '자유 답변 모드 — AI가 질문에 직접 답변합니다';
+    btn.textContent = '사고 돕기 모드 전환';
+    btn.style.color = '#fbbf24';
+    btn.style.borderColor = 'rgba(245,158,11,0.3)';
+    document.getElementById('user-input').placeholder = '메시지를 입력하세요... (Shift+Enter 줄바꿈)';
+  }
+}
+
+// ── Writing Compare ──
+function updateCharCount(el) {
+  document.getElementById('student-char-count').textContent = el.value.length + '자';
+  autoResize(el);
+}
+
+async function generateAIWrite() {
+  const topic = document.getElementById('compare-topic').value.trim();
+  if (!topic) { alert('먼저 글쓰기 주제를 입력해주세요!'); return; }
+  const studentText = document.getElementById('student-write').value.trim();
+  if (!studentText) {
+    if (!confirm('내가 쓴 글이 없습니다.\nAI 글을 먼저 보면 학습 효과가 크게 줄어요.\n정말 계속할까요?')) return;
+  }
+  const btn = document.getElementById('ai-write-btn');
+  btn.textContent = '작성 중...'; btn.disabled = true;
+  const aiTa = document.getElementById('ai-write');
+  aiTa.value = '';
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: currentModel,
+        system: '당신은 글쓰기 전문가입니다. 주어진 주제로 글을 작성해주세요. 마크다운 기호 없이 일반 텍스트로만 작성하세요.',
+        messages: [{ role: 'user', content: `다음 주제로 글을 써주세요:\n\n${topic}` }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    aiTa.value = data.reply.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/#{1,6}\s/g,'').trim();
+    aiTa.style.height = 'auto';
+    aiTa.style.height = Math.min(aiTa.scrollHeight, 400) + 'px';
+  } catch(e) { alert('오류: ' + e.message); }
+  finally { btn.textContent = 'AI에게 써달라고 하기'; btn.disabled = false; }
+}
+
+async function analyzeWriteDiff() {
+  const topic = document.getElementById('compare-topic').value.trim();
+  const studentText = document.getElementById('student-write').value.trim();
+  const aiText = document.getElementById('ai-write').value.trim();
+  if (!studentText) { alert('내가 쓴 글을 먼저 작성해주세요!'); return; }
+  if (!aiText) { alert('AI 글을 먼저 생성해주세요!'); return; }
+  const btn = document.getElementById('analyze-btn');
+  btn.textContent = '🔍 분석 중...'; btn.disabled = true;
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: currentModel,
+        system: '당신은 글쓰기 교육 전문가입니다. 학생에게 따뜻하고 격려하는 톤으로 구체적인 피드백을 제공하세요.',
+        messages: [{ role: 'user', content: `두 글을 비교 분석해주세요.\n\n[주제]\n${topic || '(미입력)'}\n\n[학생 글]\n${studentText}\n\n[AI 글]\n${aiText}\n\n[분석 항목]\n1. 두 글의 주요 차이점 (내용·구조·표현 각각)\n2. 학생 글의 강점 (잘한 점)\n3. 학생 글이 발전시킬 수 있는 부분\n4. 다시 쓸 때 집중할 핵심 1가지\n\n학생이 의욕을 갖고 다시 쓸 수 있도록 격려해주세요.` }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    const box = document.getElementById('compare-analysis');
+    box.style.display = 'block';
+    box.innerHTML = `<div style="font-size:13px;font-weight:500;color:var(--accent2);margin-bottom:10px;">🔍 차이 분석 결과</div><div style="font-size:13px;line-height:1.8;">${renderMarkdown(data.reply)}</div>`;
+    box.scrollIntoView({ behavior: 'smooth' });
+  } catch(e) { alert('오류: ' + e.message); }
+  finally { btn.textContent = '🔍 차이 분석하기'; btn.disabled = false; }
+}
+
+function showRewriteArea() {
+  const area = document.getElementById('rewrite-area');
+  area.style.display = 'block';
+  area.scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('rewrite-ta').focus();
+}
+
+// ── Self Reflection ──
+function printReflection() {
+  const team = currentTeam || '팀';
+  const date = new Date().toLocaleDateString('ko-KR');
+  const usageLabels = { answer:'답을 바로 물어봄', partner:'AI와 대화하며 발전', teacher:'AI에게 가르쳐봄', hint:'힌트만 얻고 직접 해결', compare:'AI와 비교 분석', other:'기타' };
+  const usages = Array.from(document.querySelectorAll('input[name="ai-usage"]:checked')).map(el => usageLabels[el.value] || el.value);
+  const q2 = document.getElementById('reflect-q2').value || '(미작성)';
+  const q3 = document.getElementById('reflect-q3').value || '(미작성)';
+  const q4 = document.getElementById('reflect-q4').value || '(미작성)';
+  const q5 = document.getElementById('reflect-q5').value || '(미작성)';
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>AI 활용 자기 반성 기록</title>
+  <style>body{font-family:'Noto Sans KR',sans-serif;max-width:700px;margin:40px auto;font-size:14px;color:#1a1a1a;line-height:1.8;}
+  h1{font-size:20px;color:#6C63FF;border-bottom:2px solid #6C63FF;padding-bottom:10px;margin-bottom:6px;}
+  .meta{font-size:12px;color:#888;margin-bottom:24px;}
+  h2{font-size:14px;font-weight:600;color:#333;margin:20px 0 6px;}
+  .ans{background:#f9f9ff;border-left:3px solid #6C63FF;padding:10px 14px;border-radius:0 8px 8px 0;white-space:pre-wrap;font-size:13px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+  .chip{background:#ede9ff;color:#6C63FF;padding:4px 12px;border-radius:20px;font-size:12px;}
+  .empty{color:#aaa;font-style:italic;}
+  @media print{.no-print{display:none;}}
+  </style></head><body>
+  <h1>AI 활용 자기 반성 기록</h1>
+  <div class="meta">${team} &nbsp;|&nbsp; ${date}</div>
+  <h2>Q1. 오늘 AI를 어떻게 활용했나요?</h2>
+  <div class="chips">${usages.length ? usages.map(u=>`<span class="chip">${u}</span>`).join('') : '<span class="empty">미선택</span>'}</div>
+  <h2>Q2. AI 없이 내가 직접 생각하고 한 부분</h2>
+  <div class="ans">${q2}</div>
+  <h2>Q3. 결과물 중 AI 도움을 받은 부분</h2>
+  <div class="ans">${q3}</div>
+  <h2>Q4. 내 글과 AI 글의 차이점</h2>
+  <div class="ans">${q4}</div>
+  <h2>Q5. 다음에 AI를 다르게 활용할 방법</h2>
+  <div class="ans">${q5}</div>
+  <br><button class="no-print" onclick="window.print()" style="padding:10px 20px;background:#6C63FF;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">🖨️ 인쇄하기</button>
+  </body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 400);
+}
+
+function clearReflection() {
+  if (!confirm('자기 반성 내용을 모두 초기화하시겠습니까?')) return;
+  document.querySelectorAll('input[name="ai-usage"]').forEach(el => el.checked = false);
+  ['reflect-q2','reflect-q3','reflect-q4','reflect-q5'].forEach(id => document.getElementById(id).value = '');
 }
 
 function renderMarkdown(text) {
