@@ -1161,8 +1161,8 @@
             </label>
           </div>
           <div style="display:flex;align-items:center;gap:4px;">
-            <button onclick="setModel('gpt',this)" class="model-tab" id="tab-gpt">GPT-4o</button>
-            <button onclick="setModel('gemini',this)" class="model-tab active" id="tab-gemini">Gemini</button>
+            <button onclick="setModel('gpt',this)" class="model-tab active" id="tab-gpt">GPT-4o</button>
+            <button onclick="setModel('gemini',this)" class="model-tab" id="tab-gemini">Gemini</button>
             <button onclick="setModel('claude',this)" class="model-tab" id="tab-claude">Claude</button>
           </div>
         </div>
@@ -1266,7 +1266,7 @@ const DEFAULT_ADMIN_PW = 'teacher1234';
 
 // ── State ──
 let currentTeam = null;
-let currentModel = 'gemini';
+let currentModel = 'gpt';
 let messages = [];
 let histories = [];
 let currentLesson = 0;
