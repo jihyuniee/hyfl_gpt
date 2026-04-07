@@ -371,6 +371,146 @@
     .sidebar { display: none; }
     .login-box { width: 92%; padding: 28px 20px; }
   }
+
+  /* ── Tool Links in Sidebar ── */
+  .tool-link {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--muted); text-decoration: none;
+    font-size: 11px; transition: all 0.15s; margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .tool-link:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+  .tool-icon {
+    width: 18px; height: 18px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+  }
+
+  /* ── Model Tab Buttons ── */
+  .model-tab {
+    font-size: 11px; padding: 4px 10px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 7px; color: var(--muted);
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .model-tab.active {
+    background: var(--accent); border-color: var(--accent);
+    color: white; font-weight: 500;
+  }
+
+  /* ── Scaffolding Bar ── */
+  .scaffold-bar {
+    display: none; flex-shrink: 0;
+    align-items: center; gap: 8px;
+    margin-bottom: 8px; padding: 6px 12px;
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .scaffold-bar.visible { display: flex; }
+  .scaffold-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .scaffold-label { font-size: 11px; flex: 1; }
+  .scaffold-toggle-btn {
+    font-size: 10px; padding: 3px 8px;
+    background: transparent; border-radius: 6px;
+    cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    white-space: nowrap; border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+
+  /* ── Writing Compare Panel ── */
+  #write-compare-panel {
+    flex: 1; overflow-y: auto; padding: 20px 24px; display: none;
+  }
+  .compare-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 800px) { .compare-grid { grid-template-columns: 1fr; } }
+  .compare-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+  }
+  .compare-box-title {
+    font-size: 12px; font-weight: 500; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .compare-textarea {
+    width: 100%; min-height: 180px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px;
+    padding: 10px 12px; resize: vertical; outline: none; line-height: 1.7;
+    transition: border-color 0.2s;
+  }
+  .compare-textarea:focus { border-color: var(--accent); }
+
+  /* ── Self Reflection Panel ── */
+  #self-reflect-panel {
+    flex: 1; overflow-y: auto; padding: 20px 24px; display: none;
+  }
+  .reflect-form { max-width: 680px; }
+  .reflect-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; margin-bottom: 12px;
+  }
+  .reflect-q {
+    font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text);
+  }
+  .reflect-q-hint {
+    font-size: 11px; color: var(--muted); margin-bottom: 10px; line-height: 1.5;
+  }
+  .reflect-ta {
+    width: 100%; min-height: 72px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px;
+    padding: 9px 11px; resize: vertical; outline: none; line-height: 1.6;
+    transition: border-color 0.2s;
+  }
+  .reflect-ta:focus { border-color: var(--accent); }
+  .reflect-check-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .reflect-opt {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text); cursor: pointer;
+    padding: 6px 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    transition: all 0.15s;
+  }
+  .reflect-opt:has(input:checked) {
+    border-color: rgba(108,99,255,0.4);
+    background: rgba(108,99,255,0.12); color: var(--accent2);
+  }
+  .reflect-opt input { display: none; }
+
+  /* ── Lesson4 Two-column Layout ── */
+  .l4-sidebar {
+    width: 260px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    overflow-y: auto; background: var(--surface);
+    padding: 14px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .l4-step-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--muted); padding: 5px 8px;
+    border-radius: 6px; transition: background 0.2s;
+  }
+  .l4-step-item.active { background: rgba(108,99,255,0.12); color: var(--accent2); }
+  .l4-step-num {
+    width: 17px; height: 17px; border-radius: 50%;
+    background: var(--surface2); font-size: 10px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .l4-step-item.active .l4-step-num { background: rgba(108,99,255,0.3); color: var(--accent2); }
+  .l4-data-link {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11px; color: var(--muted); padding: 6px 8px;
+    border-radius: 7px; border: 1px solid var(--border);
+    text-decoration: none; transition: all 0.15s;
+  }
+  .l4-data-link:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
 </style>
 </head>
 <body>
@@ -479,6 +619,20 @@
       <button class="lesson-btn" onclick="setLesson(4,this)">⭐ 심사 기준</button>
       <button class="lesson-btn" onclick="setLesson(5,this)">🗂️ 데이터 목록</button>
 
+      <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+      <div class="sidebar-label">✏️ 학습 활동</div>
+      <button class="lesson-btn" onclick="setLesson(6,this)">✍️ 글쓰기 비교</button>
+      <button class="lesson-btn" onclick="setLesson(7,this)">🪞 자기 반성 기록</button>
+
+      <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+      <div class="sidebar-label">🛠️ 수업 도구</div>
+      <a href="https://www.miricanvas.com" target="_blank" class="tool-link">
+        <span class="tool-icon" style="background:rgba(108,99,255,0.15);">🎨</span>미리캔버스
+      </a>
+      <a href="https://www.canva.com/ko_kr/" target="_blank" class="tool-link">
+        <span class="tool-icon" style="background:rgba(66,133,244,0.15);">🖌️</span>Canva
+      </a>
+
       <div id="lesson-links" style="display:none;margin-top:8px;">
         <a id="lesson-book-link" href="#" target="_blank" class="lesson-link-btn">📖 웹 교과서 열기</a>
         <a id="lesson-activity-link" href="#" target="_blank" class="lesson-link-btn" style="display:none;">📝 활동지 열기</a>
@@ -516,7 +670,7 @@
             <div style="font-size:18px;">🔑</div>
             <div>
               <div style="font-size:12px;font-weight:500;color:#fbbf24;">AI 이용권 신청</div>
-              <div style="font-size:12px;color:var(--muted);">3.16(월) ~ 4.15(수) · data.edmgr.kr</div>
+              <div style="font-size:12px;color:var(--muted);">3.16(월) ~ 4.15(수) · 2026edudataaicontest.com</div>
             </div>
             <div style="margin-left:auto;font-size:11px;padding:3px 8px;background:rgba(239,68,68,0.15);color:#f87171;border-radius:6px;">마감!</div>
           </div>
@@ -590,7 +744,7 @@
           </div>
         </div>
 
-        <a href="https://data.edmgr.kr" target="_blank" style="display:block;text-align:center;padding:12px;background:var(--accent);color:white;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500;">🔗 대회 공식 홈페이지 바로가기</a>
+        <a href="https://www.2026edudataaicontest.com/" target="_blank" style="display:block;text-align:center;padding:12px;background:var(--accent);color:white;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500;">🔗 대회 공식 홈페이지 바로가기</a>
       </div>
 
       <!-- 심사 기준 패널 -->
@@ -650,7 +804,7 @@
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
           <div style="background:rgba(245,158,11,0.08);border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;line-height:1.6;">
             <b style="color:#fbbf24;">독창성 올리기</b><br>
-            <span style="color:var(--muted);">"학교 안전" 같은 뻔한 주제 말고, 한양외고만의 특수한 상황(외국어·기숙사·진로)을 데이터와 연결해보세요</span>
+            <span style="color:var(--muted);">"학교 안전" 같은 뻔한 주제 말고, 한영외고만의 특수한 상황(외국어·기숙사·진로)을 데이터와 연결해보세요</span>
           </div>
           <div style="background:rgba(108,99,255,0.08);border-left:3px solid var(--accent2);border-radius:0 8px 8px 0;padding:10px 14px;font-size:13px;line-height:1.6;">
             <b style="color:var(--accent2);">AI 활용도 올리기</b><br>
@@ -713,19 +867,19 @@
               </div>
             </div>
           </a>
-          <a href="https://edmgr.kr" target="_blank" style="text-decoration:none;">
+          <a href="https://www.2026edudataaicontest.com/" target="_blank" style="text-decoration:none;">
             <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
               <div style="font-size:24px;flex-shrink:0;">🔎</div>
               <div style="flex:1;">
-                <div style="font-size:13px;font-weight:500;">교육데이터플랫폼 <span style="font-size:11px;color:var(--muted);">edmgr.kr</span></div>
-                <div style="font-size:12px;color:var(--muted);margin-top:2px;">대회 공식 플랫폼 · 수상작 사례 참고 가능</div>
+                <div style="font-size:13px;font-weight:500;">2026 AI활용대회 공식 홈페이지 <span style="font-size:11px;color:var(--muted);">2026edudataaicontest.com</span></div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">대회 공식 플랫폼 · 공지사항 · 참가신청</div>
               </div>
               <div style="font-size:11px;padding:3px 8px;background:rgba(245,158,11,0.15);color:#fbbf24;border-radius:6px;flex-shrink:0;">공식</div>
             </div>
           </a>
         </div>
 
-        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">💡 한양외고에 어울리는 데이터 아이디어</div>
+        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">💡 한영외고에 어울리는 데이터 아이디어</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
           <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:12px;font-size:12px;line-height:1.7;">
             <div style="font-weight:500;color:var(--accent2);margin-bottom:4px;">🌏 외국어 특화</div>
@@ -755,94 +909,216 @@
       </div>
 
       <!-- 4차시 데이터 탐색 패널 -->
-      <div id="lesson4-panel" style="display:none;flex:1;overflow-y:auto;padding:20px 24px;">
-        <div style="margin-bottom:20px;">
-          <div style="font-size:15px;font-weight:500;margin-bottom:12px;">🔍 교육 공공데이터 찾기</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
-            <a href="https://schoolinfo.go.kr" target="_blank" style="text-decoration:none;">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
-                <div style="font-size:18px;margin-bottom:6px;">🏫</div>
-                <div style="font-size:13px;font-weight:500;color:var(--text);">학교알리미</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:3px;">학생현황·급식·진로·건강</div>
+      <div id="lesson4-panel" style="display:none;flex:1;overflow:hidden;flex-direction:row;">
+        <!-- 왼쪽: 데이터 사이드바 -->
+        <div class="l4-sidebar">
+          <!-- 6단계 진행 -->
+          <div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px;">데이터 분석 6단계</div>
+            <div id="l4-steps" style="display:flex;flex-direction:column;gap:2px;">
+              <div class="l4-step-item active" id="l4-s1"><span class="l4-step-num">1</span>데이터 업로드</div>
+              <div class="l4-step-item" id="l4-s2"><span class="l4-step-num">2</span>결측치 발견</div>
+              <div class="l4-step-item" id="l4-s3"><span class="l4-step-num">3</span>상관관계·시각화</div>
+              <div class="l4-step-item" id="l4-s4"><span class="l4-step-num">4</span>패턴→아이디어</div>
+              <div class="l4-step-item" id="l4-s5"><span class="l4-step-num">5</span>AI서비스 설계</div>
+              <div class="l4-step-item" id="l4-s6"><span class="l4-step-num">6</span>자기반성 기록</div>
+            </div>
+          </div>
+
+          <!-- 파일 업로드 -->
+          <div id="l4-upload-box" style="border:2px dashed var(--border2);border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-size:22px;margin-bottom:6px;">📁</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5;">CSV 또는 XLSX 파일<br>업로드하면 AI가 분석해요</div>
+            <label style="background:var(--accent);color:white;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'Noto Sans KR',sans-serif;display:inline-block;">
+              파일 선택
+              <input type="file" id="lesson4-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleLesson4File(this)">
+            </label>
+          </div>
+
+          <!-- 데이터 통계 (업로드 후) -->
+          <div id="l4-stats-area" style="display:none;">
+            <div style="font-size:11px;color:var(--accent2);font-weight:500;margin-bottom:6px;">📋 데이터 통계</div>
+            <div id="lesson4-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;"></div>
+            <div id="lesson4-columns" style="font-size:11px;"></div>
+            <details style="margin-top:8px;">
+              <summary style="font-size:11px;color:var(--muted);cursor:pointer;padding:4px 0;">데이터 미리보기 (상위 5행)</summary>
+              <div style="overflow-x:auto;margin-top:6px;">
+                <table id="lesson4-preview" style="font-size:10px;border-collapse:collapse;"></table>
               </div>
-            </a>
-            <a href="https://kess.kedi.re.kr" target="_blank" style="text-decoration:none;">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
-                <div style="font-size:18px;margin-bottom:6px;">📊</div>
-                <div style="font-size:13px;font-weight:500;color:var(--text);">교육통계서비스</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:3px;">학업성취도·진학·취업통계</div>
+            </details>
+            <button onclick="lesson4Chart()" style="margin-top:10px;width:100%;background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;">📊 차트 그리기</button>
+            <div id="lesson4-chart-area" style="display:none;margin-top:8px;"></div>
+          </div>
+
+          <!-- 공공데이터 링크 -->
+          <div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">데이터 찾기</div>
+            <a href="https://schoolinfo.go.kr" target="_blank" class="l4-data-link">🏫 학교알리미</a>
+            <a href="https://kess.kedi.re.kr" target="_blank" class="l4-data-link">📊 교육통계서비스</a>
+            <a href="https://data.go.kr" target="_blank" class="l4-data-link">🗂️ 공공데이터포털</a>
+            <a href="https://open.neis.go.kr" target="_blank" class="l4-data-link">📅 NEIS 개방포털</a>
+          </div>
+        </div>
+
+        <!-- 오른쪽: AI 대화 -->
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+          <!-- 파일 업로드 전 웰컴 -->
+          <div id="l4-welcome" style="flex:1;overflow-y:auto;padding:28px 28px;">
+            <div style="max-width:560px;margin:0 auto;">
+              <div style="text-align:center;margin-bottom:22px;">
+                <div style="font-size:30px;margin-bottom:8px;">🔍</div>
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;margin-bottom:6px;color:var(--text);">4차시 · 데이터 탐색 & 검증</h3>
+                <p style="font-size:12px;color:var(--muted);">왼쪽에서 CSV/XLSX 파일을 업로드하면 AI가 분석을 시작해요</p>
               </div>
-            </a>
-            <a href="https://data.go.kr" target="_blank" style="text-decoration:none;">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
-                <div style="font-size:18px;margin-bottom:6px;">🗂️</div>
-                <div style="font-size:13px;font-weight:500;color:var(--text);">공공데이터포털</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:3px;">교육부 전체 데이터</div>
+
+              <!-- 오늘 수업 핵심 규칙 -->
+              <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+                <div style="font-size:12px;font-weight:600;color:#f87171;margin-bottom:8px;">⚠ 오늘 수업 핵심 규칙</div>
+                <div style="font-size:12px;color:var(--muted);line-height:1.9;">
+                  ❌ AI에게 <b style="color:var(--text);">'찾아줘 / 써줘 / 알려줘'</b> — 금지<br>
+                  ✅ <b style="color:#10b981;">내가 먼저 생각</b> → AI에게 보여준다 → 질문 받기 → 수정<br>
+                  ✅ AI가 쓴 것 vs 내가 쓴 것 <b style="color:#10b981;">차이 분석</b>하면 점수 올라감
+                </div>
               </div>
-            </a>
-            <a href="https://open.neis.go.kr" target="_blank" style="text-decoration:none;">
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;transition:all 0.15s;" onmouseover="this.style.borderColor='rgba(108,99,255,0.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
-                <div style="font-size:18px;margin-bottom:6px;">📅</div>
-                <div style="font-size:13px;font-weight:500;color:var(--text);">NEIS 개방포털</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:3px;">급식·시간표·학사일정</div>
+
+              <!-- STEP 1-6 안내 -->
+              <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+                <div style="font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">오늘 진행 순서</div>
+                <div style="background:var(--surface);border:1px solid var(--accent);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--text);">
+                  <span style="color:var(--accent);font-weight:600;">STEP 1</span> <span style="color:var(--muted);">5~15분</span> — 업로드 <b>전</b> 예측 먼저 쓰기 → 파일 업로드
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 2</span> <span style="color:var(--muted);">15~22분</span> — 결측치 발견 & 처리 방법 설계
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 3</span> <span style="color:var(--muted);">22~30분</span> — 상관관계 예측 → 차트로 검증
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 4</span> <span style="color:var(--muted);">30~35분</span> — 데이터 패턴 → AI 서비스 아이디어 도출
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 5</span> <span style="color:var(--muted);">35~45분</span> — AI 서비스 구조 완성 (입력→처리→출력→사용자)
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--muted);">
+                  <span style="color:var(--accent2);font-weight:600;">STEP 6</span> <span style="color:var(--muted);">45~50분</span> — 자기반성 보고서 → 🪞 자기 반성 기록 탭에서 작성
+                </div>
               </div>
-            </a>
+
+              <!-- 파일 업로드 전 예측 메모 -->
+              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:14px 16px;">
+                <div style="font-size:12px;font-weight:600;color:#10b981;margin-bottom:8px;">📝 STEP 1 시작 전 — 파일 열기 전에 먼저 예측하세요</div>
+                <div style="font-size:12px;color:var(--muted);line-height:1.9;">
+                  이 데이터에 몇 행(건수)이 있을 것 같나요?<br>
+                  어떤 컬럼(항목)이 있을 것 같나요? (3개 이상)<br>
+                  결측값이 있을 것 같나요? 어떤 항목에?<br>
+                  <span style="color:#10b981;font-weight:500;">→ 위 내용을 활동지에 먼저 쓴 후 파일을 업로드하세요!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 대화 메시지 (파일 업로드 후) -->
+          <div id="l4-messages" style="display:none;flex:1;overflow-y:auto;padding:20px;gap:16px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;flex-direction:column;"></div>
+
+          <!-- 대화 입력 (파일 업로드 후) -->
+          <div id="l4-input-wrap" style="display:none;padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;">
+            <div id="l4-input-inner" style="display:flex;gap:8px;align-items:flex-end;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:8px 12px;transition:border-color 0.2s;">
+              <textarea id="l4-input" placeholder="AI의 질문에 내 생각을 적어보세요... (Shift+Enter 줄바꿈)" rows="1" style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;resize:none;line-height:1.6;max-height:100px;min-height:24px;" onkeydown="handleL4Key(event)" oninput="autoResize(this)"></textarea>
+              <button onclick="sendL4Message()" style="width:32px;height:32px;border-radius:8px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
+              </button>
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;">AI가 질문으로 데이터 분석 6단계를 안내합니다 · 생각을 먼저, 답은 나중에</div>
           </div>
         </div>
+      </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
-          <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:14px;">
-            <div style="font-size:13px;font-weight:500;color:#10b981;margin-bottom:8px;">📄 CSV 파일</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.7;">• 가볍고 빠름<br>• 텍스트 기반<br>• 공공데이터포털 기본 형식<br>• AI 분석에 최적</div>
+      <!-- (이하 레거시 대회 정보 패널과 겹치지 않도록 lesson4 패널 닫음) -->
+      <!-- 글쓰기 비교 패널 -->
+      <div id="write-compare-panel">
+        <div style="font-size:16px;font-weight:600;margin-bottom:6px;font-family:'Space Grotesk',sans-serif;">✍️ 글쓰기 비교</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:12px;">
+          같은 주제로 <b style="color:var(--text);">내가 먼저 쓴 뒤</b> AI에게도 쓰게 하고, 차이를 분석해요.<br>
+          <span style="color:var(--accent2);">AI 글을 먼저 보지 마세요 — 내 생각이 중요합니다!</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">📌 글쓰기 주제 / 과제</div>
+          <textarea id="compare-topic" class="compare-textarea" style="min-height:56px;" placeholder="예) 학교 급식 개선 방안을 300자로 써보세요" oninput="autoResize(this)"></textarea>
+        </div>
+        <div class="compare-grid">
+          <div class="compare-box">
+            <div class="compare-box-title" style="color:var(--accent2);">
+              1️⃣ 내가 쓴 글
+              <span style="font-size:10px;color:var(--muted);font-weight:400;margin-left:4px;">AI 보기 전, 먼저 쓰세요</span>
+            </div>
+            <textarea id="student-write" class="compare-textarea" placeholder="AI를 보기 전, 내 생각으로 먼저 써보세요..." oninput="updateCharCount(this)"></textarea>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;" id="student-char-count">0자</div>
           </div>
-          <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);border-radius:10px;padding:14px;">
-            <div style="font-size:13px;font-weight:500;color:#60a5fa;margin-bottom:8px;">📊 XLSX 파일</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.7;">• 엑셀 형식<br>• 서식·수식 포함<br>• 학교알리미 다운로드 형식<br>• 시각화에 유용</div>
+          <div class="compare-box">
+            <div class="compare-box-title" style="color:#10b981;">
+              2️⃣ AI가 쓴 글
+              <button onclick="generateAIWrite()" id="ai-write-btn" style="margin-left:auto;font-size:11px;padding:4px 10px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:6px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">AI에게 써달라고 하기</button>
+            </div>
+            <textarea id="ai-write" class="compare-textarea" placeholder="'AI에게 써달라고 하기' 버튼을 눌러주세요..." readonly style="background:rgba(16,185,129,0.04);cursor:default;"></textarea>
           </div>
         </div>
-
-        <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:10px;padding:14px;margin-bottom:20px;">
-          <div style="font-size:13px;font-weight:500;color:var(--accent2);margin-bottom:10px;">📘 데이터 구조 이해하기</div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">
-            <div style="background:var(--surface2);border-radius:8px;padding:10px;font-size:12px;"><div style="color:var(--accent2);font-weight:500;margin-bottom:4px;">행 (Row)</div><div style="color:var(--muted);">데이터 한 줄<br>예: 학교 1개</div></div>
-            <div style="background:var(--surface2);border-radius:8px;padding:10px;font-size:12px;"><div style="color:var(--accent2);font-weight:500;margin-bottom:4px;">열 (Column)</div><div style="color:var(--muted);">데이터 항목<br>예: 학생수</div></div>
-            <div style="background:var(--surface2);border-radius:8px;padding:10px;font-size:12px;"><div style="color:var(--accent2);font-weight:500;margin-bottom:4px;">결측치</div><div style="color:var(--muted);">비어있는 값<br>분석 시 주의</div></div>
-            <div style="background:var(--surface2);border-radius:8px;padding:10px;font-size:12px;"><div style="color:var(--accent2);font-weight:500;margin-bottom:4px;">정형 데이터</div><div style="color:var(--muted);">표 형태<br>CSV/XLSX</div></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+          <button onclick="analyzeWriteDiff()" id="analyze-btn" style="background:var(--accent);color:white;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;">🔍 차이 분석하기</button>
+          <button onclick="showRewriteArea()" style="background:rgba(245,158,11,0.12);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:10px 18px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;">🔄 분석 보고 다시 쓰기</button>
+        </div>
+        <div id="compare-analysis" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;"></div>
+        <div id="rewrite-area" style="display:none;">
+          <div style="background:var(--surface);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px;">
+            <div style="font-size:12px;color:#fbbf24;font-weight:500;margin-bottom:8px;">3️⃣ 분석을 보고 다시 쓴 내 글</div>
+            <textarea id="rewrite-ta" class="compare-textarea" placeholder="차이 분석을 보고, 더 발전시켜서 다시 써보세요..."></textarea>
           </div>
         </div>
+      </div>
 
-        <div style="background:var(--surface);border:2px dashed var(--border2);border-radius:12px;padding:24px;text-align:center;margin-bottom:20px;">
-          <div style="font-size:24px;margin-bottom:8px;">📁</div>
-          <div style="font-size:14px;color:var(--text);margin-bottom:4px;">CSV 또는 XLSX 파일 업로드</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">공공데이터포털에서 다운로드한 파일을 올려주세요</div>
-          <label style="background:var(--accent);color:white;padding:8px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'Noto Sans KR',sans-serif;">
-            파일 선택
-            <input type="file" id="lesson4-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleLesson4File(this)">
-          </label>
+      <!-- 자기 반성 기록 패널 -->
+      <div id="self-reflect-panel">
+        <div style="font-size:16px;font-weight:600;margin-bottom:6px;font-family:'Space Grotesk',sans-serif;">🪞 자기 반성 기록</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.7;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:12px;">
+          오늘 수업에서 AI를 어떻게 활용했는지 솔직하게 돌아보세요.<br>
+          <span style="color:var(--accent2);">AI 활용 과정 자체가 학습의 일부입니다 — AI를 어떻게 사용했는지가 평가에 반영됩니다.</span>
         </div>
-
-        <div id="lesson4-result" style="display:none;">
-          <div style="font-size:15px;font-weight:500;margin-bottom:12px;">📋 데이터 분석 결과</div>
-          <div id="lesson4-stats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:14px;"></div>
-          <div id="lesson4-columns" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;"></div>
-          <div style="font-size:14px;font-weight:500;margin-bottom:8px;">🔍 상위 10행 미리보기</div>
-          <div style="overflow-x:auto;margin-bottom:16px;">
-            <table id="lesson4-preview" style="width:100%;font-size:12px;border-collapse:collapse;"></table>
+        <div class="reflect-form">
+          <div class="reflect-section">
+            <div class="reflect-q">Q1. 오늘 AI를 어떻게 활용했나요? (복수 선택 가능)</div>
+            <div class="reflect-q-hint">솔직하게 체크해요. 정답이 없습니다.</div>
+            <div class="reflect-check-group">
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="answer"> 모르는 답을 바로 물어보는 데 사용했다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="partner"> AI와 대화하며 내 아이디어를 발전시켰다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="teacher"> 내가 배운 것을 AI에게 가르쳐보며 이해를 확인했다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="hint"> 힌트나 방향만 얻고 내가 직접 해결했다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="compare"> AI 결과와 내 결과를 비교하며 차이를 분석했다</label>
+              <label class="reflect-opt"><input type="checkbox" name="ai-usage" value="other"> 기타</label>
+            </div>
           </div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
-            <button onclick="generateAIIdeas()" style="background:var(--accent);color:white;border:none;border-radius:10px;padding:10px 18px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;">🤖 AI 분석 아이디어 생성</button>
-            <button onclick="lesson4Chart()" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:10px 18px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;">📊 차트 그리기</button>
+          <div class="reflect-section">
+            <div class="reflect-q">Q2. AI 없이 내가 직접 생각하고 한 부분은 무엇인가요?</div>
+            <div class="reflect-q-hint">AI에게 맡기지 않고 내 힘으로 해낸 것들을 구체적으로 적어주세요.</div>
+            <textarea class="reflect-ta" id="reflect-q2" placeholder="예) 주제 선정의 방향은 내가 직접 정했고, 어떤 데이터를 쓸지도 내가 판단했다..."></textarea>
           </div>
-          <div id="lesson4-ideas" style="display:none;"></div>
-          <div id="lesson4-chart-area" style="display:none;"></div>
-        </div>
-
-        <div style="margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
-          <div style="font-size:15px;font-weight:500;margin-bottom:6px;">💬 AI 아이디어 피드백</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">3차시에서 선정한 주제를 입력하면 AI가 독창성·AI활용도·실현가능성을 평가해드려요</div>
-          <textarea id="feedback-input" placeholder="예) 학교알리미 진로 데이터를 활용하여 한양외고 학생의 전공 선택 패턴을 AI로 분석하고 맞춤 진로를 추천하는 서비스" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;padding:12px;resize:none;min-height:80px;outline:none;line-height:1.6;" oninput="autoResize(this)"></textarea>
-          <button onclick="getAIFeedback()" style="margin-top:10px;background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:10px 18px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;">⭐ AI 피드백 받기</button>
-          <div id="feedback-result" style="display:none;margin-top:14px;"></div>
+          <div class="reflect-section">
+            <div class="reflect-q">Q3. 결과물 중 AI 도움을 받은 부분은 어디인가요?</div>
+            <div class="reflect-q-hint">AI 도움을 받은 부분을 명확히 표시할 수 있어야 평가에서 인정받습니다.</div>
+            <textarea class="reflect-ta" id="reflect-q3" placeholder="예) 문장 다듬기는 AI 도움을 받았고, 배경지식도 AI에게 물어봤다..."></textarea>
+          </div>
+          <div class="reflect-section">
+            <div class="reflect-q">Q4. 내가 쓴 것과 AI가 쓴 것의 차이는 무엇이었나요?</div>
+            <div class="reflect-q-hint">어느 부분이 달랐나요? 그 차이에서 무엇을 배웠나요?</div>
+            <textarea class="reflect-ta" id="reflect-q4" placeholder="예) AI는 근거가 더 구체적이었고, 나는 개인적 경험 위주였다. 다음엔 통계 자료를 넣어야겠다..."></textarea>
+          </div>
+          <div class="reflect-section">
+            <div class="reflect-q">Q5. 다음 수업에서 AI를 어떻게 다르게 활용할 건가요?</div>
+            <div class="reflect-q-hint">답을 구하는 도구가 아닌, 사고를 돕는 동반자로 쓰려면?</div>
+            <textarea class="reflect-ta" id="reflect-q5" placeholder="예) 다음엔 바로 답을 묻지 않고, 내 생각을 먼저 정리한 뒤 AI와 비교해볼 것이다..."></textarea>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button onclick="printReflection()" style="flex:1;background:var(--accent);color:white;border:none;border-radius:10px;padding:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;">🖨️ 인쇄 / PDF 저장</button>
+            <button onclick="clearReflection()" style="background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:10px;padding:12px 16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;">초기화</button>
+          </div>
         </div>
       </div>
 
@@ -860,6 +1136,11 @@
       </div>
 
       <div class="input-wrap">
+        <div id="scaffold-bar" class="scaffold-bar" style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);">
+          <div class="scaffold-dot" style="background:#10b981;"></div>
+          <span class="scaffold-label" style="color:#10b981;">사고 돕기 모드 — AI가 답 대신 질문으로 생각을 이끌어드립니다</span>
+          <button onclick="toggleScaffold()" id="scaffold-toggle-btn" class="scaffold-toggle-btn" style="color:#10b981;border-color:rgba(16,185,129,0.3);">자유 답변 전환</button>
+        </div>
         <div id="file-preview" style="display:none;margin-bottom:8px;padding:8px 12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;font-size:12px;color:#10b981;align-items:center;gap:8px;">
           <span>📄</span>
           <span id="file-name"></span>
@@ -878,15 +1159,11 @@
               📁 파일 업로드
               <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="handleFileUpload(this)">
             </label>
-            <button onclick="showChartFromFile()" style="font-size:12px;padding:5px 12px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);border-radius:8px;color:#60a5fa;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📊 차트 그리기</button>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <select id="model-select" onchange="currentModel=this.value" style="font-size:12px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;cursor:pointer;">
-              <option value="gpt">GPT-4o</option>
-              <option value="gemini">Gemini 2.0</option>
-              <option value="claude" selected>Claude Sonnet</option>
-            </select>
-            <div style="font-size:11px;color:var(--muted);white-space:nowrap;">수업 목적으로만</div>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <button onclick="setModel('gpt',this)" class="model-tab" id="tab-gpt">GPT-4o</button>
+            <button onclick="setModel('gemini',this)" class="model-tab active" id="tab-gemini">Gemini</button>
+            <button onclick="setModel('claude',this)" class="model-tab" id="tab-claude">Claude</button>
           </div>
         </div>
         <div id="improved-preview" style="display:none;margin-top:8px;padding:10px 14px;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:10px;font-size:13px;line-height:1.6;">
@@ -989,12 +1266,13 @@ const DEFAULT_ADMIN_PW = 'teacher1234';
 
 // ── State ──
 let currentTeam = null;
-let currentModel = 'claude';
+let currentModel = 'gemini';
 let messages = [];
 let histories = [];
 let currentLesson = 0;
 let uploadedFileContent = null;
 let lesson4Data = null;
+let scaffoldingMode = false;
 
 // ── Lessons ──
 // ★ 버그 수정: lessons 배열을 올바르게 정의 (3차시와 4차시 순서 수정)
@@ -1011,8 +1289,17 @@ const lessons = [
     title: '3차시 · 주제선정',
     bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
     activityUrl: 'https://docs.google.com/document/d/11L2IoxFknvSp1GyUZZhxNRZK_1vlOsxT5R4Pm-mdosg/edit?usp=sharing',
-    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다.
+    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 튜터입니다.
 지금은 3차시 수업 "주제 선정 — 아이디어를 서비스로 만들기" 단계입니다.
+
+[튜터링 원칙 - 반드시 준수]
+- 학생이 질문하면 바로 답을 주지 마세요. 먼저 "지금까지 어떤 생각을 해봤어?" 또는 "어떤 방향으로 생각하고 있어?"를 물어보세요.
+- 학생 답변을 들은 뒤, 다음 사고 단계를 이끄는 질문을 하세요.
+- 힌트는 단계적으로 제공하세요 (첫 힌트는 작게, 학생이 여전히 막히면 조금씩 더 구체적으로).
+- 포기하지 않도록 격려하면서 끝까지 완성하도록 도와주세요.
+- "왜 그렇게 생각해?", "다른 관점에서 보면?", "이 부분은 어떻게 느껴져?" 같은 질문을 활용하세요.
+- AI가 결론을 내리지 말고, 학생이 스스로 결론에 도달하도록 도와주세요.
+
 활동지 STEP 순서:
 STEP1 대회 핵심 기준 이해 (교육공공데이터·AI·교육문제해결·독창성·실현가능성)
 STEP2 주제 방향 선택 (AI 교육안전복지 / 교육자원최적화 / 미래교육 / 학습자중심)
@@ -1026,7 +1313,7 @@ STEP9 대회 평가기준 점검 (독창성→AI활용도→실현가능성→�
 STEP10 최종 주제 선정
 STEP11 AI 피드백 (독창성·실현가능성·AI활용도 1~5점)
 STEP12 최종 문제 정의문 확정
-학교는 한양외고입니다. 학생들이 각 STEP을 진행할 때 막히는 부분을 친절하게 도와주세요.
+학교는 한영외고입니다. 학생들이 각 STEP을 진행할 때 막히는 부분을 친절하게 도와주세요.
 좋은 문제 정의문 구조: [공공데이터]를 활용하여 + [대상]의 + [구체적 문제]를 + [AI방법]으로 해결할 수 있을까?`,
     welcome: `안녕하세요! 3차시 **"주제 선정"** 수업이에요 💡\n\n오늘 목표:\n① 팀 주제 1개 선정\n② 공공데이터 활용 방향 결정\n③ 최종 문제 정의문 확정\n\n활동지 STEP 1부터 순서대로 진행하면서 막히는 부분을 질문해보세요!\n예) "STEP3 문제 탐색 도와줘", "좋은 주제 아이디어 뭐가 있을까?"`,
     isDataLesson: false
@@ -1035,10 +1322,33 @@ STEP12 최종 문제 정의문 확정
     title: '4차시 · 데이터 탐색 및 검증',
     bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
     activityUrl: null,
-    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다.
-지금은 4차시 "데이터 탐색 및 검증" 단계입니다.
-학생들이 공공데이터 CSV/XLSX 파일을 업로드하고 데이터 구조를 이해하며 AI 활용 아이디어를 도출하는 단계입니다.
-학생들의 데이터 기반 사고를 돕고, 데이터에서 의미있는 패턴을 찾도록 안내해주세요.`,
+    system: `당신은 한영외고 2학년 공공교육데이터 AI활용대회 4차시 수업을 돕는 AI 튜터입니다.
+오늘 수업은 경기여고 데이터 과학 워크북 기반으로 STEP 1~6을 진행합니다.
+
+[핵심 규칙 - 절대 준수]
+- '찾아줘/써줘/알려줘' 요청에는 바로 답하지 말고 "어떻게 생각해?" 로 돌려보내세요
+- 한 번에 질문 하나만, 항상 질문으로 마무리하세요
+- 틀려도 바로 정정 금지 — "왜 그렇게 생각했어?" 로 사고 유도
+- 답변은 2~3문장 이내로 간결하게, 반드시 질문으로 마무리
+
+[파일 업로드 직후 - STEP 1]
+데이터의 기본 정보(행수·컬럼명·결측치 여부) 2문장으로만 소개 후 즉시 질문:
+"업로드 전에 예측했던 것과 비교하면 어떤 점이 달랐어? 가장 놀란 점은?"
+
+[STEP 2 - 결측치]
+"어떤 컬럼에 빈 값이 있어? 왜 이 값이 비어있을 것 같아? 어떻게 처리하면 좋을까?"
+
+[STEP 3 - 상관관계]
+"A 컬럼이 높을 때 B 컬럼은 어떻게 변해? 차트 그리기 전에 먼저 예측해봐"
+
+[STEP 4 - 아이디어]
+"이 패턴을 발견했다면, 누가 가장 도움받을 것 같아? 어떤 AI 서비스가 이 문제를 해결할 수 있을까?"
+
+[STEP 5 - 서비스 설계]
+입력→AI처리→출력→사용자 구조로 안내: "AI가 어떤 데이터를 받아서 무엇을 하고 누구에게 결과를 주는지 한 문장으로 말해봐"
+
+[STEP 6 - 자기반성]
+"오늘 AI 없이 내가 직접 한 것은 무엇이야? AI가 어떤 질문으로 생각을 바꿔줬어?"`,
     welcome: `안녕하세요! 4차시 **"데이터 탐색 및 검증"** 수업이에요 🔍\n\n오늘 목표:\n① 공공데이터 포털에서 데이터 다운로드\n② CSV/XLSX 파일 업로드 및 구조 파악\n③ AI 활용 아이디어 도출\n\n왼쪽 패널에서 파일을 업로드해보세요!`,
     isDataLesson: true
   }
@@ -1313,7 +1623,7 @@ function setLesson(idx, btn) {
   btn.classList.add('active');
 
   // 모든 패널 숨기기
-  const allPanels = ['lesson4-panel','contest-panel','judge-panel','data-panel'];
+  const allPanels = ['lesson4-panel','contest-panel','judge-panel','data-panel','write-compare-panel','self-reflect-panel'];
   allPanels.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
@@ -1329,6 +1639,7 @@ function setLesson(idx, btn) {
     msgArea.style.display = 'none';
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
     return;
   }
   if (idx === 4) {
@@ -1336,6 +1647,7 @@ function setLesson(idx, btn) {
     msgArea.style.display = 'none';
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
     return;
   }
   if (idx === 5) {
@@ -1343,13 +1655,30 @@ function setLesson(idx, btn) {
     msgArea.style.display = 'none';
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
+    return;
+  }
+  if (idx === 6) {
+    document.getElementById('write-compare-panel').style.display = 'block';
+    msgArea.style.display = 'none';
+    if (inputWrap) inputWrap.style.display = 'none';
+    linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
+    return;
+  }
+  if (idx === 7) {
+    document.getElementById('self-reflect-panel').style.display = 'block';
+    msgArea.style.display = 'none';
+    if (inputWrap) inputWrap.style.display = 'none';
+    linksDiv.style.display = 'none';
+    document.getElementById('scaffold-bar').classList.remove('visible');
     return;
   }
 
   const lesson = lessons[currentLesson];
 
   if (lesson.isDataLesson) {
-    document.getElementById('lesson4-panel').style.display = 'block';
+    document.getElementById('lesson4-panel').style.display = 'flex';
     msgArea.style.display = 'none';
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
@@ -1379,6 +1708,26 @@ function setLesson(idx, btn) {
     welcome.innerHTML = `<h2>${idx===0?'무엇을 도와드릴까요?':lesson.title}</h2>
       <p style="white-space:pre-line;text-align:left;max-width:500px;margin:0 auto;">${lesson.welcome}</p>`;
     msgDiv.appendChild(welcome);
+
+    // 스캐폴딩 모드: 수업 차시(1,2)는 기본 ON, 자유 대화(0)는 OFF
+    if (idx === 0) {
+      scaffoldingMode = false;
+      document.getElementById('scaffold-bar').classList.remove('visible');
+      document.getElementById('user-input').placeholder = '메시지를 입력하세요... (Shift+Enter 줄바꿈)';
+    } else {
+      scaffoldingMode = true;
+      const bar = document.getElementById('scaffold-bar');
+      bar.classList.add('visible');
+      bar.style.background = 'rgba(16,185,129,0.06)';
+      bar.style.borderColor = 'rgba(16,185,129,0.2)';
+      bar.querySelector('.scaffold-label').style.color = '#10b981';
+      bar.querySelector('.scaffold-label').textContent = '사고 돕기 모드 — AI가 답 대신 질문으로 생각을 이끌어드립니다';
+      const tbtn = document.getElementById('scaffold-toggle-btn');
+      tbtn.textContent = '자유 답변 전환';
+      tbtn.style.color = '#10b981';
+      tbtn.style.borderColor = 'rgba(16,185,129,0.3)';
+      document.getElementById('user-input').placeholder = 'AI가 생각을 돕는 질문을 드립니다... (Shift+Enter 줄바꿈)';
+    }
   }
 }
 
@@ -1470,6 +1819,36 @@ function copyBubble(btn) {
   });
 }
 
+// ── Streaming ──
+async function callAIStream(model, msgs, systemPrompt, onToken) {
+  const res = await fetch('/api/stream', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, messages: msgs, system: systemPrompt })
+  });
+  if (!res.ok || !res.body) throw new Error('스트리밍 연결 실패');
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = '', full = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split('\n');
+    buf = lines.pop() || '';
+    for (const line of lines) {
+      if (line === 'data: [DONE]') continue;
+      if (line.startsWith('data: ')) {
+        try {
+          const d = JSON.parse(line.slice(6));
+          if (d.t) { full += d.t; onToken(d.t, full); }
+        } catch {}
+      }
+    }
+  }
+  return full;
+}
+
 async function sendMessage() {
   const input = document.getElementById('user-input');
   let text = input.value.trim();
@@ -1484,20 +1863,57 @@ async function sendMessage() {
 
   addBubble('user', text || '📁 파일 분석 요청', false);
   messages.push({ role: 'user', content: fullText });
-  const thinkingBubble = addBubble('ai', '<span class="thinking">생각하는 중</span>', false);
 
-  try {
-    const reply = await callAI(currentModel, messages);
-    thinkingBubble.innerHTML = renderMarkdown(reply);
-    messages.push({ role: 'assistant', content: reply });
-  } catch(e) {
-    thinkingBubble.innerHTML = `<span style="color:var(--danger)">오류: ${e.message}</span>`;
+  // Create streaming bubble manually
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+  const msgDiv = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.innerHTML = `<div class="msg-avatar ai-av">AI</div><div style="display:flex;flex-direction:column;max-width:600px;"><div class="bubble ai-bubble"><span class="thinking">생각하는 중</span></div></div>`;
+  msgDiv.appendChild(row);
+  msgDiv.scrollTop = msgDiv.scrollHeight;
+  const bubble = row.querySelector('.bubble');
+  const colDiv = row.querySelector('div[style]');
+
+  let systemPrompt = (lessons[currentLesson] || lessons[0]).system;
+  if (scaffoldingMode) {
+    systemPrompt += `\n\n[스캐폴딩 모드]\n학생의 메시지에 직접 답하지 마세요. 먼저 학생의 현재 생각을 물어보고, 그 답변에 따라 다음 질문으로 이끌어주세요. 힌트는 단계적으로, 항상 질문으로 마무리하세요.`;
   }
-  document.getElementById('messages').scrollTop = 99999;
+
+  let full = '';
+  try {
+    full = await callAIStream(currentModel, messages, systemPrompt, (token, accumulated) => {
+      bubble.innerHTML = renderMarkdown(accumulated);
+      msgDiv.scrollTop = msgDiv.scrollHeight;
+    });
+    messages.push({ role: 'assistant', content: full });
+  } catch(e) {
+    // Fallback to non-streaming
+    try {
+      const reply = await callAI(currentModel, messages);
+      bubble.innerHTML = renderMarkdown(reply);
+      messages.push({ role: 'assistant', content: reply });
+      full = reply;
+    } catch(e2) {
+      bubble.innerHTML = `<span style="color:var(--danger)">오류: ${e2.message}</span>`;
+      return;
+    }
+  }
+  // Add copy button
+  const copyBtn = document.createElement('button');
+  copyBtn.onclick = () => copyBubble(copyBtn);
+  copyBtn.style.cssText = 'margin-top:8px;font-size:11px;padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;display:block;';
+  copyBtn.textContent = '📋 복사';
+  colDiv.appendChild(copyBtn);
+  msgDiv.scrollTop = 99999;
 }
 
 async function callAI(model, msgs) {
-  const systemPrompt = lessons[currentLesson].system;
+  let systemPrompt = (lessons[currentLesson] || lessons[0]).system;
+  if (scaffoldingMode) {
+    systemPrompt += `\n\n[스캐폴딩 모드 - 추가 지침]\n학생의 메시지에 직접 답하지 마세요. 반드시 아래 순서로 응답하세요:\n1. 학생의 현재 생각/시도를 먼저 물어보세요 (아직 없으면 "어떻게 접근해봤어?")\n2. 학생이 이미 생각을 밝혔다면, 그 생각을 발전시키는 질문을 하세요\n3. 막혀있다면 작은 힌트 하나만 주고, 나머지는 스스로 생각하게 하세요\n4. 절대로 완성된 답이나 결론을 먼저 제시하지 마세요\n5. 끝에는 항상 "어떻게 생각해?" 또는 "이 부분에 대해 먼저 생각해봐" 같은 질문으로 마무리하세요`;
+  }
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1551,6 +1967,9 @@ function readFileWithEncoding(file) {
   });
 }
 
+// ── Lesson 4: state ──
+let l4Messages = [];
+
 async function handleLesson4File(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1558,7 +1977,6 @@ async function handleLesson4File(input) {
     let headers, rows;
     if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
       const buf = await file.arrayBuffer();
-      // ★ XLSX는 자체적으로 인코딩 처리됨 (codepage 자동 감지)
       const wb = XLSX.read(buf, { type: 'array', codepage: 949 });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const data = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false });
@@ -1569,20 +1987,27 @@ async function handleLesson4File(input) {
         return obj;
       });
     } else {
-      // ★ CSV: EUC-KR 우선 시도
       const text = await readFileWithEncoding(file);
       const parsed = parseCSV(text);
       headers = parsed.headers; rows = parsed.rows;
     }
     lesson4Data = { file, headers, rows, isXLSX: file.name.endsWith('.xlsx')||file.name.endsWith('.xls') };
-    renderLesson4Stats(file, headers, rows, lesson4Data.isXLSX);
+    renderLesson4Stats(headers, rows, lesson4Data.isXLSX);
+    // Show chat, hide welcome
+    document.getElementById('l4-welcome').style.display = 'none';
+    const msgDiv = document.getElementById('l4-messages');
+    msgDiv.style.display = 'flex';
+    document.getElementById('l4-input-wrap').style.display = 'block';
+    l4Messages = [];
+    msgDiv.innerHTML = '';
+    // Auto-trigger AI analysis
+    await triggerL4AutoAnalysis(file.name, headers, rows, lesson4Data.isXLSX);
   } catch(e) {
     alert('파일 읽기 오류: ' + e.message);
   }
 }
 
-function renderLesson4Stats(file, headers, rows, isXLSX) {
-  document.getElementById('lesson4-result').style.display = 'block';
+function renderLesson4Stats(headers, rows, isXLSX) {
   const numCols=[], strCols=[];
   headers.forEach(h => {
     const vals = rows.map(r=>r[h]).filter(v=>v!==''&&v!==null&&v!==undefined);
@@ -1591,134 +2016,160 @@ function renderLesson4Stats(file, headers, rows, isXLSX) {
   });
   let missing=0;
   rows.forEach(r=>headers.forEach(h=>{if(r[h]===''||r[h]===null||r[h]===undefined)missing++;}));
+  document.getElementById('l4-stats-area').style.display = 'block';
   document.getElementById('lesson4-stats').innerHTML = [
-    ['파일 형식',isXLSX?'XLSX':'CSV'],['행 (Row)',rows.length.toLocaleString()],
-    ['열 (Column)',headers.length],['결측치',missing],['숫자형 열',numCols.length],['문자형 열',strCols.length]
-  ].map(([label,val])=>`<div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${label}</div><div style="font-size:18px;font-weight:500;">${val}</div></div>`).join('');
-  document.getElementById('lesson4-columns').innerHTML = `
-    <div style="margin-bottom:8px;font-size:13px;font-weight:500;">컬럼 목록</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;">${headers.map(h=>`<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:${numCols.includes(h)?'rgba(16,185,129,0.15)':'rgba(108,99,255,0.15)'};color:${numCols.includes(h)?'#10b981':'var(--accent2)'};">${h}</span>`).join('')}</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:8px;">🟢 숫자형 &nbsp; 🟣 문자형</div>`;
+    ['형식', isXLSX?'XLSX':'CSV'], ['행', rows.length.toLocaleString()],
+    ['열', headers.length], ['결측치', missing]
+  ].map(([l,v])=>`<div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:10px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:15px;font-weight:600;">${v}</div></div>`).join('');
+  document.getElementById('lesson4-columns').innerHTML =
+    `<div style="font-size:10px;color:var(--muted);margin-bottom:5px;">컬럼</div>
+     <div style="display:flex;flex-wrap:wrap;gap:4px;">${headers.map(h=>`<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:${numCols.includes(h)?'rgba(16,185,129,0.15)':'rgba(108,99,255,0.15)'};color:${numCols.includes(h)?'#10b981':'var(--accent2)'};">${h}</span>`).join('')}</div>`;
   const preview = document.getElementById('lesson4-preview');
-  preview.innerHTML = `<thead><tr>${headers.map(h=>`<th style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border);font-size:11px;color:var(--accent2);white-space:nowrap;">${h}</th>`).join('')}</tr></thead>
-    <tbody>${rows.slice(0,10).map(r=>`<tr>${headers.map(h=>`<td style="padding:5px 10px;border:1px solid var(--border);font-size:11px;color:var(--muted);white-space:nowrap;">${r[h]??''}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  preview.innerHTML = `<thead><tr>${headers.map(h=>`<th style="padding:4px 8px;background:var(--surface2);border:1px solid var(--border);font-size:10px;color:var(--accent2);white-space:nowrap;">${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.slice(0,5).map(r=>`<tr>${headers.map(h=>`<td style="padding:3px 8px;border:1px solid var(--border);font-size:10px;color:var(--muted);white-space:nowrap;">${r[h]??''}</td>`).join('')}</tr>`).join('')}</tbody>`;
 }
 
-async function generateAIIdeas() {
-  if (!lesson4Data) return;
-  const btn = event.target;
-  btn.textContent = '🤖 분석 중...'; btn.disabled = true;
-  const { headers, rows, isXLSX } = lesson4Data;
-  const sample = rows.slice(0,5).map(r=>headers.map(h=>r[h]).join(', ')).join('\n');
-  const prompt = `다음 교육 공공데이터를 분석해서 AI 활용 아이디어를 제안해줘.\n\n파일 형식: ${isXLSX?'XLSX':'CSV'}\n컬럼명: ${headers.join(', ')}\n샘플 데이터 (5행):\n${sample}\n\n다음 카테고리별로 각 2개씩 아이디어를 제안해줘:\n1. 예측 아이디어\n2. 분류 아이디어\n3. 추천 아이디어\n4. 시각화 아이디어\n\n각 아이디어는 "서비스명: 설명" 형식으로, 고등학생 수준에서 실현 가능하게 제안해줘.`;
-  try {
-    const res = await fetch('/api/chat', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude', system:'교육 데이터 분석 전문가입니다. 고등학생이 이해할 수 있는 수준으로 친절하게 답변하세요.', messages:[{role:'user',content:prompt}] })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    const ideasDiv = document.getElementById('lesson4-ideas');
-    ideasDiv.style.display = 'block';
-    ideasDiv.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;"><div style="font-size:14px;font-weight:500;margin-bottom:12px;color:var(--accent2);">🤖 AI 분석 아이디어</div><div style="font-size:13px;line-height:1.8;">${renderMarkdown(data.reply)}</div></div>`;
-  } catch(e) { alert('오류: '+e.message); }
-  finally { btn.textContent='🤖 AI 분석 아이디어 생성'; btn.disabled=false; }
-}
-
-function lesson4Chart() {
-  if (!lesson4Data) return;
-  const numCols = lesson4Data.headers.filter(h => {
-    const vals = lesson4Data.rows.map(r=>r[h]).filter(v=>v!=='');
+async function triggerL4AutoAnalysis(filename, headers, rows, isXLSX) {
+  const numCols = headers.filter(h => {
+    const vals = rows.map(r=>r[h]).filter(v=>v!==''&&v!==null&&v!==undefined);
     return vals.length>0 && vals.every(v=>!isNaN(parseFloat(v)));
   });
-  const strCols = lesson4Data.headers.filter(h=>!numCols.includes(h));
-  const chartArea = document.getElementById('lesson4-chart-area');
-  chartArea.style.display = 'block';
-  chartArea.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;">
-    <div style="font-size:14px;font-weight:500;margin-bottom:12px;">📊 차트 설정</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-      <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">X축 (범주)</div>
-        <select id="l4-xcol" style="font-size:12px;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);">${strCols.concat(numCols).map(h=>`<option value="${h}">${h}</option>`).join('')}</select></div>
-      <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Y축 (수치)</div>
-        <select id="l4-ycol" style="font-size:12px;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);">${numCols.map(h=>`<option value="${h}">${h}</option>`).join('')}</select></div>
-      <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">차트 종류</div>
-        <select id="l4-type" style="font-size:12px;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);">
-          <option value="bar">막대 그래프</option><option value="line">꺾은선</option><option value="pie">원형</option>
-        </select></div>
-    </div>
-    <button onclick="drawLesson4Chart()" style="background:var(--accent);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:13px;margin-bottom:14px;">그리기</button>
-    <canvas id="lesson4-canvas" style="max-height:300px;"></canvas>
-  </div>`;
-}
-
-function drawLesson4Chart() {
-  if (!lesson4Data) return;
-  const xCol = document.getElementById('l4-xcol').value;
-  const yCol = document.getElementById('l4-ycol').value;
-  const type = document.getElementById('l4-type').value;
-  const labels = lesson4Data.rows.slice(0,20).map(r=>String(r[xCol]||''));
-  const values = lesson4Data.rows.slice(0,20).map(r=>parseFloat(r[yCol])||0);
-  const colors = ['rgba(108,99,255,0.8)','rgba(16,185,129,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.8)','rgba(59,130,246,0.8)','rgba(168,85,247,0.8)'];
-  const ctx = document.getElementById('lesson4-canvas');
-  if (window._l4chart) window._l4chart.destroy();
-  window._l4chart = new Chart(ctx, {
-    type, data: { labels, datasets: [{ label: yCol, data: values, backgroundColor: type==='pie'?colors:colors[0], borderColor: type==='pie'?colors:'rgba(108,99,255,1)', borderWidth:1, borderRadius: type==='bar'?6:0 }] },
-    options: { responsive:true, plugins:{ legend:{ labels:{ color:'#f0f0f5', font:{family:'Noto Sans KR',size:12} } } },
-      scales: type!=='pie' ? { x:{ticks:{color:'#8888a0',maxRotation:45},grid:{color:'rgba(255,255,255,0.05)'}}, y:{ticks:{color:'#8888a0'},grid:{color:'rgba(255,255,255,0.05)'}} } : {} }
-  });
-}
-
-async function getAIFeedback() {
-  const idea = document.getElementById('feedback-input').value.trim();
-  if (!idea) { alert('아이디어를 입력해주세요!'); return; }
-  const btn = event.target;
-  btn.textContent = '⭐ 평가 중...'; btn.disabled = true;
-  const prompt = `고등학생 AI 교육 데이터 프로젝트 아이디어입니다.\n\n[팀 아이디어]\n${idea}\n\n[평가 기준]\n1. 독창성 (1~5점)\n2. AI 활용도 (1~5점)\n3. 실현 가능성 (1~5점)\n\n각 기준에 대해 점수와 한 줄 이유, 개선 제안을 주세요. 마지막에 총평 한 줄도 부탁드립니다.`;
+  const strCols = headers.filter(h => !numCols.includes(h));
+  let missing=0;
+  rows.forEach(r=>headers.forEach(h=>{if(r[h]===''||r[h]===null||r[h]===undefined)missing++;}));
+  const sample = rows.slice(0,3).map(r=>headers.map(h=>String(r[h]??'').slice(0,20)).join(' | ')).join('\n');
+  const dataMsg = `[파일 업로드: ${filename}]\n형식: ${isXLSX?'XLSX':'CSV'}\n행 수: ${rows.length.toLocaleString()}행\n열 수: ${headers.length}개\n컬럼명: ${headers.join(', ')}\n숫자형 컬럼: ${numCols.join(', ')||'없음'}\n문자형 컬럼: ${strCols.join(', ')||'없음'}\n결측치 수: ${missing}\n샘플 데이터 (3행):\n${sample}`;
+  l4Messages.push({ role: 'user', content: dataMsg });
+  // Show thinking bubble
+  const thinkingRow = addL4Bubble('ai', '<span class="thinking">데이터 분석 중</span>', false);
+  const system = lessons[2].system;
+  let full = '';
   try {
-    const res = await fetch('/api/chat', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude', system:'교육 프로젝트 평가 전문가입니다. 고등학생 수준에 맞게 격려하면서도 구체적인 피드백을 주세요.', messages:[{role:'user',content:prompt}] })
+    full = await callAIStream(currentModel, l4Messages, system, (token, accumulated) => {
+      thinkingRow.innerHTML = renderMarkdown(accumulated);
+      document.getElementById('l4-messages').scrollTop = 99999;
     });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    const result = document.getElementById('feedback-result');
-    result.style.display = 'block';
-    result.innerHTML = `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:16px;"><div style="font-size:13px;font-weight:500;color:#fbbf24;margin-bottom:10px;">⭐ AI 피드백 결과</div><div style="font-size:13px;line-height:1.8;">${renderMarkdown(data.reply)}</div><button onclick="navigator.clipboard.writeText(this.previousElementSibling.innerText).then(()=>{this.textContent='✅ 복사됨!';setTimeout(()=>this.textContent='📋 피드백 복사',1500)})" style="margin-top:12px;font-size:11px;padding:5px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 피드백 복사</button></div>`;
-  } catch(e) { alert('오류: '+e.message); }
-  finally { btn.textContent='⭐ AI 피드백 받기'; btn.disabled=false; }
+  } catch(e) {
+    // Fallback to non-streaming
+    try {
+      const r = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model: currentModel, messages: l4Messages, system }) });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error);
+      full = d.reply;
+      thinkingRow.innerHTML = renderMarkdown(full);
+    } catch(e2) {
+      thinkingRow.innerHTML = `<span style="color:var(--danger)">오류: ${e2.message}</span>`;
+      return;
+    }
+  }
+  l4Messages.push({ role: 'assistant', content: full });
+  document.getElementById('l4-messages').scrollTop = 99999;
+  // Activate step 1
+  document.querySelectorAll('.l4-step-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('l4-s1').classList.add('active');
 }
+
+function addL4Bubble(type, text, isMarkdown=false) {
+  const msgDiv = document.getElementById('l4-messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row' + (type==='user' ? ' user' : '');
+  const initials = type==='user' ? (currentTeam?.slice(0,1) || '팀') : 'AI';
+  const content = isMarkdown ? renderMarkdown(text) : text;
+  row.innerHTML = `
+    <div class="msg-avatar ${type==='user'?'user-av':'ai-av'}">${initials}</div>
+    <div style="display:flex;flex-direction:column;max-width:560px;">
+      <div class="bubble ${type==='user'?'user-bubble':'ai-bubble'}">${content}</div>
+    </div>`;
+  msgDiv.appendChild(row);
+  msgDiv.scrollTop = msgDiv.scrollHeight;
+  return row.querySelector('.bubble');
+}
+
+function handleL4Key(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendL4Message(); }
+}
+
+async function sendL4Message() {
+  const input = document.getElementById('l4-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto';
+  addL4Bubble('user', text.replace(/\n/g,'<br>'), false);
+  l4Messages.push({ role: 'user', content: text });
+  // Advance step indicator heuristically
+  advanceL4Step(text);
+  const thinkingBubble = addL4Bubble('ai', '<span class="thinking">생각하는 중</span>', false);
+  const system = lessons[2].system;
+  let full = '';
+  try {
+    full = await callAIStream(currentModel, l4Messages, system, (token, accumulated) => {
+      thinkingBubble.innerHTML = renderMarkdown(accumulated);
+      document.getElementById('l4-messages').scrollTop = 99999;
+    });
+  } catch(e) {
+    try {
+      const r = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model: currentModel, messages: l4Messages, system }) });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error);
+      full = d.reply;
+      thinkingBubble.innerHTML = renderMarkdown(full);
+    } catch(e2) {
+      thinkingBubble.innerHTML = `<span style="color:var(--danger)">오류: ${e2.message}</span>`;
+      return;
+    }
+  }
+  l4Messages.push({ role: 'assistant', content: full });
+  document.getElementById('l4-messages').scrollTop = 99999;
+}
+
+function advanceL4Step(text) {
+  const lower = text + (l4Messages.map(m=>m.content).join(' '));
+  const steps = [
+    { id:'l4-s2', keywords:['수집','데이터 출처','공공데이터','다운로드','어디서'] },
+    { id:'l4-s3', keywords:['결측','빈 값','전처리','정리','이상값','중복'] },
+    { id:'l4-s4', keywords:['그래프','시각화','차트','막대','선그래프','산점도'] },
+    { id:'l4-s5', keywords:['패턴','분석','해석','의미','이유','왜'] },
+    { id:'l4-s6', keywords:['결론','제안','발표','완성','정리했','알게'] },
+  ];
+  for (const { id, keywords } of steps) {
+    if (keywords.some(k => lower.includes(k))) {
+      document.querySelectorAll('.l4-step-item').forEach(el => el.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+  }
+}
+
 
 async function showChartFromFile() {
   if (!uploadedFileContent) { alert('먼저 CSV 파일을 업로드해주세요!'); return; }
-  const analysisPrompt = `다음 CSV 데이터를 분석해서 차트 시각화할 JSON을 만들어줘.\n반드시 아래 형식으로만 답해줘 (다른 텍스트 없이):\n{"chartType":"bar","title":"차트 제목","labelColumn":"X축 컬럼명","valueColumn":"Y축 컬럼명","insight":"핵심 인사이트 2-3줄"}\n\nCSV 데이터:\n${uploadedFileContent.slice(0,2000)}`;
+  const prompt = `다음 CSV 데이터를 분석해서 차트 시각화할 JSON을 만들어줘.\n반드시 아래 형식으로만 답해줘 (다른 텍스트 없이):\n{"chartType":"bar","title":"차트 제목","labelColumn":"X축 컬럼명","valueColumn":"Y축 컬럼명","insight":"핵심 인사이트 2-3줄"}\n\nCSV 데이터:\n${uploadedFileContent.slice(0,2000)}`;
   addBubble('user', '📊 이 데이터를 차트로 시각화해줘', false);
-  messages.push({ role:'user', content:analysisPrompt });
-  const thinkingBubble = addBubble('ai', '<span class="thinking">데이터 분석 중</span>', false);
+  messages.push({ role:'user', content:prompt });
+  const msgDiv = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row';
+  row.innerHTML = `<div class="msg-avatar ai-av">AI</div><div style="max-width:600px;"><div class="bubble ai-bubble"><span class="thinking">데이터 분석 중</span></div></div>`;
+  msgDiv.appendChild(row); msgDiv.scrollTop = msgDiv.scrollHeight;
+  const bubble = row.querySelector('.bubble');
+  clearFile();
   try {
-    const res = await fetch('/api/chat', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude', system:'데이터 분석 전문가입니다. 요청한 JSON 형식으로만 답변하세요. 코드블록 없이 순수 JSON만 출력하세요.', messages:[{role:'user',content:analysisPrompt}] })
-    });
+    const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model:'claude', system:'데이터 분석 전문가입니다. JSON 형식으로만 답변하세요. 코드블록 없이 순수 JSON만 출력하세요.', messages:[{role:'user',content:prompt}] }) });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    let config;
-    try { config = JSON.parse(data.reply.replace(/```json|```/g,'').trim()); }
-    catch(e) { throw new Error('차트 설정 파싱 실패'); }
-    const { rows } = parseCSV(uploadedFileContent);
-    const labels = rows.map(r=>r[config.labelColumn]||'').filter(Boolean);
-    const values = rows.map(r=>parseFloat(r[config.valueColumn])||0);
+    const config = JSON.parse(data.reply.replace(/```json|```/g,'').trim());
+    const { rows } = parseCSV(uploadedFileContent || '');
+    const labels = rows.slice(0,20).map(r=>String(r[config.labelColumn]||''));
+    const values = rows.slice(0,20).map(r=>parseFloat(r[config.valueColumn])||0);
     const colors = ['rgba(108,99,255,0.8)','rgba(16,185,129,0.8)','rgba(245,158,11,0.8)','rgba(239,68,68,0.8)','rgba(59,130,246,0.8)'];
     const chartId = 'chart-'+Date.now();
-    thinkingBubble.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;max-width:560px;"><div style="font-size:13px;font-weight:500;margin-bottom:12px;">📊 ${config.title}</div><canvas id="${chartId}" style="max-height:280px;"></canvas><div style="margin-top:12px;font-size:12px;color:var(--muted);line-height:1.6;padding:10px;background:var(--surface2);border-radius:8px;">💡 ${config.insight}</div></div>`;
+    bubble.innerHTML = `<div style="font-size:13px;font-weight:500;margin-bottom:10px;">📊 ${config.title}</div><canvas id="${chartId}" style="max-height:260px;"></canvas><div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6;padding:8px;background:var(--surface2);border-radius:8px;">💡 ${config.insight}</div>`;
     messages.push({ role:'assistant', content:`차트: ${config.title}\n${config.insight}` });
     setTimeout(() => {
-      const ctx = document.getElementById(chartId);
-      if (!ctx) return;
-      new Chart(ctx, { type:config.chartType||'bar', data:{ labels, datasets:[{ label:config.valueColumn, data:values, backgroundColor:config.chartType==='pie'?colors:colors[0], borderColor:config.chartType==='pie'?colors:'rgba(108,99,255,1)', borderWidth:1, borderRadius:config.chartType==='bar'?6:0 }] }, options:{ responsive:true, plugins:{ legend:{ labels:{ color:'#f0f0f5', font:{family:'Noto Sans KR',size:12} } } }, scales:config.chartType!=='pie'?{ x:{ticks:{color:'#8888a0'},grid:{color:'rgba(255,255,255,0.05)'}}, y:{ticks:{color:'#8888a0'},grid:{color:'rgba(255,255,255,0.05)'}} }:{} } });
+      const ctx = document.getElementById(chartId); if (!ctx) return;
+      new Chart(ctx, { type:config.chartType||'bar', data:{ labels, datasets:[{ label:config.valueColumn, data:values, backgroundColor:config.chartType==='pie'?colors:colors[0], borderColor:'rgba(108,99,255,1)', borderWidth:1, borderRadius:config.chartType==='bar'?6:0 }] }, options:{ responsive:true, plugins:{ legend:{ labels:{ color:'#f0f0f5',font:{family:'Noto Sans KR',size:12} } } }, scales:config.chartType!=='pie'?{x:{ticks:{color:'#8888a0'},grid:{color:'rgba(255,255,255,0.05)'}},y:{ticks:{color:'#8888a0'},grid:{color:'rgba(255,255,255,0.05)'}}}:{} } });
     }, 100);
-    clearFile();
-  } catch(e) { thinkingBubble.innerHTML=`<span style="color:var(--danger)">오류: ${e.message}</span>`; }
-  document.getElementById('messages').scrollTop = 99999;
+  } catch(e) { bubble.innerHTML=`<span style="color:var(--danger)">오류: ${e.message}</span>`; }
+  msgDiv.scrollTop = 99999;
 }
 
 // ── Prompt Improve ──
@@ -1762,6 +2213,157 @@ function parseCSV(text) {
     return obj;
   });
   return { headers, rows };
+}
+
+// ── Model Tab ──
+function setModel(m, btn) {
+  currentModel = m;
+  document.querySelectorAll('.model-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Scaffolding Toggle ──
+function toggleScaffold() {
+  scaffoldingMode = !scaffoldingMode;
+  const bar = document.getElementById('scaffold-bar');
+  const label = bar.querySelector('.scaffold-label');
+  const btn = document.getElementById('scaffold-toggle-btn');
+  if (scaffoldingMode) {
+    bar.style.background = 'rgba(16,185,129,0.06)';
+    bar.style.borderColor = 'rgba(16,185,129,0.2)';
+    bar.querySelector('.scaffold-dot').style.background = '#10b981';
+    label.style.color = '#10b981';
+    label.textContent = '사고 돕기 모드 — AI가 답 대신 질문으로 생각을 이끌어드립니다';
+    btn.textContent = '자유 답변 전환';
+    btn.style.color = '#10b981';
+    btn.style.borderColor = 'rgba(16,185,129,0.3)';
+    document.getElementById('user-input').placeholder = 'AI가 생각을 돕는 질문을 드립니다... (Shift+Enter 줄바꿈)';
+  } else {
+    bar.style.background = 'rgba(245,158,11,0.06)';
+    bar.style.borderColor = 'rgba(245,158,11,0.2)';
+    bar.querySelector('.scaffold-dot').style.background = '#fbbf24';
+    label.style.color = '#fbbf24';
+    label.textContent = '자유 답변 모드 — AI가 질문에 직접 답변합니다';
+    btn.textContent = '사고 돕기 모드 전환';
+    btn.style.color = '#fbbf24';
+    btn.style.borderColor = 'rgba(245,158,11,0.3)';
+    document.getElementById('user-input').placeholder = '메시지를 입력하세요... (Shift+Enter 줄바꿈)';
+  }
+}
+
+// ── Writing Compare ──
+function updateCharCount(el) {
+  document.getElementById('student-char-count').textContent = el.value.length + '자';
+  autoResize(el);
+}
+
+async function generateAIWrite() {
+  const topic = document.getElementById('compare-topic').value.trim();
+  if (!topic) { alert('먼저 글쓰기 주제를 입력해주세요!'); return; }
+  const studentText = document.getElementById('student-write').value.trim();
+  if (!studentText) {
+    if (!confirm('내가 쓴 글이 없습니다.\nAI 글을 먼저 보면 학습 효과가 크게 줄어요.\n정말 계속할까요?')) return;
+  }
+  const btn = document.getElementById('ai-write-btn');
+  btn.textContent = '작성 중...'; btn.disabled = true;
+  const aiTa = document.getElementById('ai-write');
+  aiTa.value = '';
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: currentModel,
+        system: '당신은 글쓰기 전문가입니다. 주어진 주제로 글을 작성해주세요. 마크다운 기호 없이 일반 텍스트로만 작성하세요.',
+        messages: [{ role: 'user', content: `다음 주제로 글을 써주세요:\n\n${topic}` }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    aiTa.value = data.reply.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/#{1,6}\s/g,'').trim();
+    aiTa.style.height = 'auto';
+    aiTa.style.height = Math.min(aiTa.scrollHeight, 400) + 'px';
+  } catch(e) { alert('오류: ' + e.message); }
+  finally { btn.textContent = 'AI에게 써달라고 하기'; btn.disabled = false; }
+}
+
+async function analyzeWriteDiff() {
+  const topic = document.getElementById('compare-topic').value.trim();
+  const studentText = document.getElementById('student-write').value.trim();
+  const aiText = document.getElementById('ai-write').value.trim();
+  if (!studentText) { alert('내가 쓴 글을 먼저 작성해주세요!'); return; }
+  if (!aiText) { alert('AI 글을 먼저 생성해주세요!'); return; }
+  const btn = document.getElementById('analyze-btn');
+  btn.textContent = '🔍 분석 중...'; btn.disabled = true;
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: currentModel,
+        system: '당신은 글쓰기 교육 전문가입니다. 학생에게 따뜻하고 격려하는 톤으로 구체적인 피드백을 제공하세요.',
+        messages: [{ role: 'user', content: `두 글을 비교 분석해주세요.\n\n[주제]\n${topic || '(미입력)'}\n\n[학생 글]\n${studentText}\n\n[AI 글]\n${aiText}\n\n[분석 항목]\n1. 두 글의 주요 차이점 (내용·구조·표현 각각)\n2. 학생 글의 강점 (잘한 점)\n3. 학생 글이 발전시킬 수 있는 부분\n4. 다시 쓸 때 집중할 핵심 1가지\n\n학생이 의욕을 갖고 다시 쓸 수 있도록 격려해주세요.` }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    const box = document.getElementById('compare-analysis');
+    box.style.display = 'block';
+    box.innerHTML = `<div style="font-size:13px;font-weight:500;color:var(--accent2);margin-bottom:10px;">🔍 차이 분석 결과</div><div style="font-size:13px;line-height:1.8;">${renderMarkdown(data.reply)}</div>`;
+    box.scrollIntoView({ behavior: 'smooth' });
+  } catch(e) { alert('오류: ' + e.message); }
+  finally { btn.textContent = '🔍 차이 분석하기'; btn.disabled = false; }
+}
+
+function showRewriteArea() {
+  const area = document.getElementById('rewrite-area');
+  area.style.display = 'block';
+  area.scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('rewrite-ta').focus();
+}
+
+// ── Self Reflection ──
+function printReflection() {
+  const team = currentTeam || '팀';
+  const date = new Date().toLocaleDateString('ko-KR');
+  const usageLabels = { answer:'답을 바로 물어봄', partner:'AI와 대화하며 발전', teacher:'AI에게 가르쳐봄', hint:'힌트만 얻고 직접 해결', compare:'AI와 비교 분석', other:'기타' };
+  const usages = Array.from(document.querySelectorAll('input[name="ai-usage"]:checked')).map(el => usageLabels[el.value] || el.value);
+  const q2 = document.getElementById('reflect-q2').value || '(미작성)';
+  const q3 = document.getElementById('reflect-q3').value || '(미작성)';
+  const q4 = document.getElementById('reflect-q4').value || '(미작성)';
+  const q5 = document.getElementById('reflect-q5').value || '(미작성)';
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>AI 활용 자기 반성 기록</title>
+  <style>body{font-family:'Noto Sans KR',sans-serif;max-width:700px;margin:40px auto;font-size:14px;color:#1a1a1a;line-height:1.8;}
+  h1{font-size:20px;color:#6C63FF;border-bottom:2px solid #6C63FF;padding-bottom:10px;margin-bottom:6px;}
+  .meta{font-size:12px;color:#888;margin-bottom:24px;}
+  h2{font-size:14px;font-weight:600;color:#333;margin:20px 0 6px;}
+  .ans{background:#f9f9ff;border-left:3px solid #6C63FF;padding:10px 14px;border-radius:0 8px 8px 0;white-space:pre-wrap;font-size:13px;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+  .chip{background:#ede9ff;color:#6C63FF;padding:4px 12px;border-radius:20px;font-size:12px;}
+  .empty{color:#aaa;font-style:italic;}
+  @media print{.no-print{display:none;}}
+  </style></head><body>
+  <h1>AI 활용 자기 반성 기록</h1>
+  <div class="meta">${team} &nbsp;|&nbsp; ${date}</div>
+  <h2>Q1. 오늘 AI를 어떻게 활용했나요?</h2>
+  <div class="chips">${usages.length ? usages.map(u=>`<span class="chip">${u}</span>`).join('') : '<span class="empty">미선택</span>'}</div>
+  <h2>Q2. AI 없이 내가 직접 생각하고 한 부분</h2>
+  <div class="ans">${q2}</div>
+  <h2>Q3. 결과물 중 AI 도움을 받은 부분</h2>
+  <div class="ans">${q3}</div>
+  <h2>Q4. 내 글과 AI 글의 차이점</h2>
+  <div class="ans">${q4}</div>
+  <h2>Q5. 다음에 AI를 다르게 활용할 방법</h2>
+  <div class="ans">${q5}</div>
+  <br><button class="no-print" onclick="window.print()" style="padding:10px 20px;background:#6C63FF;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;">🖨️ 인쇄하기</button>
+  </body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 400);
+}
+
+function clearReflection() {
+  if (!confirm('자기 반성 내용을 모두 초기화하시겠습니까?')) return;
+  document.querySelectorAll('input[name="ai-usage"]').forEach(el => el.checked = false);
+  ['reflect-q2','reflect-q3','reflect-q4','reflect-q5'].forEach(id => document.getElementById(id).value = '');
 }
 
 function renderMarkdown(text) {
