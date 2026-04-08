@@ -9,7 +9,8 @@ export default async function handler(req) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 200, headers: corsHeaders });
   if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
 
-  const { model, messages, system } = await req.json();
+  const { model, messages, system, maxTokens } = await req.json();
+  const MAX = maxTokens || 1200;
   const systemPrompt = system || '당신은 한국 학생들을 돕는 교육용 AI 도우미입니다.';
   const encoder = new TextEncoder();
 
@@ -27,7 +28,7 @@ export default async function handler(req) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
             body: JSON.stringify({
-              model: 'gpt-4o', max_tokens: 600, stream: true,
+              model: 'gpt-4o', max_tokens: MAX, stream: true,
               messages: [
                 { role: 'system', content: systemPrompt },
                 ...messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
@@ -60,7 +61,7 @@ export default async function handler(req) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
             body: JSON.stringify({
-              model: 'claude-sonnet-4-20250514', max_tokens: 600, stream: true,
+              model: 'claude-sonnet-4-20250514', max_tokens: MAX, stream: true,
               system: systemPrompt,
               messages: messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
             })
@@ -92,7 +93,7 @@ export default async function handler(req) {
             body: JSON.stringify({
               system_instruction: { parts: [{ text: systemPrompt }] },
               contents: messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-              generationConfig: { maxOutputTokens: 600 }
+              generationConfig: { maxOutputTokens: MAX }
             })
           });
           const reader = r.body.getReader();
