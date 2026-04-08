@@ -5,7 +5,8 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { model, messages, system } = req.body;
+  const { model, messages, system, maxTokens } = req.body;
+  const MAX = maxTokens || 2048;
   const systemPrompt = system || '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다.';
 
   try {
@@ -17,7 +18,7 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 2048,
+          max_tokens: MAX,
           system: systemPrompt,
           messages: messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
         })
@@ -33,7 +34,7 @@ export default async function handler(req, res) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
         body: JSON.stringify({
-          model: 'gpt-4o', max_tokens: 2048,
+          model: 'gpt-4o', max_tokens: MAX,
           messages: [{ role: 'system', content: systemPrompt }, ...messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))]
         })
       });

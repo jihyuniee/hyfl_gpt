@@ -23,6 +23,17 @@
     --claude: #f59e0b;
     --danger: #ef4444;
   }
+  body.light-mode {
+    --bg: #f4f4f8;
+    --surface: #ffffff;
+    --surface2: #eeeef5;
+    --border: rgba(0,0,0,0.09);
+    --border2: rgba(0,0,0,0.15);
+    --text: #1a1a2e;
+    --muted: #6666888;
+    --accent: #6C63FF;
+    --accent2: #5b52e0;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Noto Sans KR', sans-serif;
@@ -602,6 +613,7 @@
     <div class="top-right">
       <div class="team-chip" id="team-chip">팀명</div>
       <div class="contest-chip">2026 공공교육데이터 AI활용대회</div>
+      <button id="theme-btn" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:15px;line-height:1;" title="라이트/다크 모드">🌙</button>
       <button class="logout-btn" onclick="doLogout()">나가기</button>
     </div>
   </div>
@@ -928,10 +940,10 @@
           <!-- 파일 업로드 -->
           <div id="l4-upload-box" style="border:2px dashed var(--border2);border-radius:10px;padding:14px;text-align:center;">
             <div style="font-size:22px;margin-bottom:6px;">📁</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5;">CSV 또는 XLSX 파일<br>업로드하면 AI가 분석해요</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5;">CSV / XLSX 파일<br>여러 파일 동시 업로드 가능</div>
             <label style="background:var(--accent);color:white;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'Noto Sans KR',sans-serif;display:inline-block;">
               파일 선택
-              <input type="file" id="lesson4-file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleLesson4File(this)">
+              <input type="file" id="lesson4-file" accept=".csv,.xlsx,.xls" multiple style="display:none" onchange="handleLesson4File(this)">
             </label>
           </div>
 
@@ -1323,20 +1335,15 @@ STEP12 최종 문제 정의문 확정
     title: '4차시 · 데이터 탐색 및 검증',
     bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
     activityUrl: null,
-    system: `당신은 한영외고 2학년 데이터 과학 수업 AI 도우미입니다.
-데이터 분석 결과가 이미 시각화로 보여진 상태입니다.
+    system: `당신은 한영외고 2학년 데이터 과학 수업 AI 전문 분석 도우미입니다.
 
-[응답 방식]
-- 파일 업로드 직후: 데이터의 핵심 특징 2~3줄 설명 + 상관계수/결측치에서 눈에 띄는 점 1가지 언급 + 마지막에 질문 1개만
-- 학생 질문에는 먼저 핵심만 2~3문장으로 답하고, 마지막에 생각을 발전시키는 질문 1개
-- 결측치 처리법, 상관관계 해석, AI 서비스 아이디어 등은 구체적 내용으로 바로 답해줘도 됨
-- 단, 아이디어 도출(STEP 4, 5)에서는 스스로 생각하게 유도
-
-[데이터 분석 흐름 안내]
-STEP 1→ 결측치 확인 및 처리 방향 토의
-STEP 2→ 상관계수에서 의미있는 변수 쌍 찾기
-STEP 3→ 발견한 패턴으로 AI 서비스 아이디어 도출
-STEP 4→ 입력→처리→출력→사용자 구조 설계`,
+[응답 원칙]
+- 학생 질문에 먼저 직접적으로 답하세요. 질문으로 돌려보내지 마세요.
+- 교차분석, 상관분석 요청 시: 데이터 수치를 기반으로 구체적 결과를 바로 제시
+- 시각화 요청 시: 어떤 그래프가 적합한지 설명하고 해석까지 제공
+- 발표자료 문장 요청 시: 바로 초안을 작성해줌
+- 추가 분석 제안은 항상 마지막에 옵션으로 붙여주세요
+- 긴 분석은 번호를 붙여 구조화해서 읽기 쉽게 작성`,
     welcome: `안녕하세요! 4차시 **"데이터 탐색 및 검증"** 수업이에요 🔍\n\n오늘 목표:\n① 공공데이터 포털에서 데이터 다운로드\n② CSV/XLSX 파일 업로드 및 구조 파악\n③ AI 활용 아이디어 도출\n\n왼쪽 패널에서 파일을 업로드해보세요!`,
     isDataLesson: true
   }
@@ -1491,6 +1498,20 @@ function doLogout() {
 function showError(el, msg) {
   el.textContent = msg; el.style.display = 'block';
 }
+
+// ── Theme ──
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('hyfl_theme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isLight ? '☀️' : '🌙';
+}
+(function initTheme() {
+  if (localStorage.getItem('hyfl_theme') === 'light') {
+    document.body.classList.add('light-mode');
+    const btn = document.getElementById('theme-btn');
+    if (btn) btn.textContent = '☀️';
+  }
+})();
 
 // ── Admin ──
 function showAdminLogin() {
@@ -1854,11 +1875,11 @@ function copyBubble(btn) {
 }
 
 // ── Streaming ──
-async function callAIStream(model, msgs, systemPrompt, onToken) {
+async function callAIStream(model, msgs, systemPrompt, onToken, maxTokens) {
   const res = await fetch('/api/stream', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages: msgs, system: systemPrompt })
+    body: JSON.stringify({ model, messages: msgs, system: systemPrompt, maxTokens: maxTokens || 1200 })
   });
   if (!res.ok || !res.body) throw new Error('스트리밍 연결 실패');
   const reader = res.body.getReader();
@@ -2006,38 +2027,39 @@ function readFileWithEncoding(file) {
 // ── Lesson 4: state ──
 let l4Messages = [];
 
+async function parseOneFile(file) {
+  let headers, rows;
+  if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', codepage: 949 });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false });
+    headers = data[0].map(h => String(h||'').trim()).filter(h => h);
+    rows = data.slice(1).filter(r => r.some(v => v !== undefined && v !== '')).map(r => {
+      const obj = {}; headers.forEach((h,i) => obj[h] = r[i] !== undefined ? r[i] : ''); return obj;
+    });
+  } else {
+    const text = await readFileWithEncoding(file);
+    const parsed = parseCSV(text);
+    headers = parsed.headers; rows = parsed.rows;
+  }
+  return { filename: file.name, headers, rows };
+}
+
 async function handleLesson4File(input) {
-  const file = input.files[0];
-  if (!file) return;
+  const files = Array.from(input.files);
+  if (!files.length) return;
   try {
-    let headers, rows;
-    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array', codepage: 949 });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false });
-      headers = data[0].map(h => String(h||'').trim()).filter(h => h);
-      rows = data.slice(1).filter(r => r.some(v => v !== undefined && v !== '')).map(r => {
-        const obj = {};
-        headers.forEach((h,i) => obj[h] = r[i] !== undefined ? r[i] : '');
-        return obj;
-      });
-    } else {
-      const text = await readFileWithEncoding(file);
-      const parsed = parseCSV(text);
-      headers = parsed.headers; rows = parsed.rows;
-    }
-    lesson4Data = { file, headers, rows, isXLSX: file.name.endsWith('.xlsx')||file.name.endsWith('.xls') };
-    renderLesson4Stats(headers, rows, lesson4Data.isXLSX);
-    // Show chat, hide welcome
+    const allData = [];
+    for (const f of files) allData.push(await parseOneFile(f));
+    lesson4Data = allData[0];
+    renderLesson4Stats(allData[0].headers, allData[0].rows, allData[0].filename.endsWith('.xlsx')||allData[0].filename.endsWith('.xls'));
     document.getElementById('l4-welcome').style.display = 'none';
     const msgDiv = document.getElementById('l4-messages');
     msgDiv.style.display = 'flex';
     document.getElementById('l4-input-wrap').style.display = 'block';
-    l4Messages = [];
-    msgDiv.innerHTML = '';
-    // Auto-trigger AI analysis
-    await triggerL4AutoAnalysis(file.name, headers, rows, lesson4Data.isXLSX);
+    l4Messages = []; msgDiv.innerHTML = '';
+    await triggerL4AutoAnalysis(allData);
   } catch(e) {
     alert('파일 읽기 오류: ' + e.message);
   }
@@ -2117,59 +2139,99 @@ function renderCorrMatrix(numCols, rows) {
   </div>`;
 }
 
-async function triggerL4AutoAnalysis(filename, headers, rows, isXLSX) {
+// ── 컬럼별 상세 통계 요약 생성 ──
+function buildDataSummary(allData) {
+  return allData.map(({ filename, headers, rows }) => {
+    const total = rows.length;
+    const colStats = headers.map(h => {
+      const vals = rows.map(r=>r[h]).filter(v=>v!==''&&v!==null&&v!==undefined);
+      const missing = total - vals.length;
+      const isNum = vals.length>0 && vals.every(v=>!isNaN(parseFloat(v)));
+      if (isNum) {
+        const nums = vals.map(v=>parseFloat(v));
+        const mean = (nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(2);
+        const sorted = [...nums].sort((a,b)=>a-b);
+        return `${h}(수치): 평균=${mean}, 최소=${sorted[0]}, 최대=${sorted[sorted.length-1]}, 결측=${missing}건`;
+      } else {
+        const freq = {};
+        vals.forEach(v => { const k=String(v).slice(0,20); freq[k]=(freq[k]||0)+1; });
+        const top5 = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5)
+          .map(([v,c])=>`"${v}"=${c}(${(c/total*100).toFixed(1)}%)`).join(', ');
+        return `${h}(범주): [${top5}]${missing>0?`, 결측=${missing}건`:''}`;
+      }
+    });
+    return `[파일: ${filename}] ${total}행 × ${headers.length}열\n${colStats.join('\n')}`;
+  }).join('\n\n');
+}
+
+async function triggerL4AutoAnalysis(allData) {
+  const { filename, headers, rows } = allData[0];
   const numCols = headers.filter(h => {
     const vals = rows.map(r=>r[h]).filter(v=>v!==''&&v!==null&&v!==undefined);
     return vals.length>2 && vals.every(v=>!isNaN(parseFloat(v)));
   });
-  const strCols = headers.filter(h => !numCols.includes(h));
   let totalMissing=0;
   rows.forEach(r=>headers.forEach(h=>{if(r[h]===''||r[h]===null||r[h]===undefined)totalMissing++;}));
+  const fileLabel = allData.map(d=>d.filename).join(', ');
 
-  // ── 1. 즉시 시각화 카드 렌더링 ──
+  // ── 1. 즉시 시각화 카드 ──
   const vizBubble = addL4Bubble('ai', '', false);
   vizBubble.innerHTML = `
-    <div style="font-size:13px;font-weight:600;margin-bottom:12px;">📁 ${filename} 분석 완료</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px;">📁 ${fileLabel} — 업로드 완료 (${allData.length}개 파일)</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
       <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
         <div style="font-size:18px;font-weight:700;">${rows.length.toLocaleString()}</div>
-        <div style="font-size:10px;color:var(--muted);">행</div>
+        <div style="font-size:10px;color:var(--muted);">행(응답수)</div>
       </div>
       <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
         <div style="font-size:18px;font-weight:700;">${headers.length}</div>
-        <div style="font-size:10px;color:var(--muted);">열(컬럼)</div>
+        <div style="font-size:10px;color:var(--muted);">변수(컬럼)</div>
       </div>
       <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
         <div style="font-size:18px;font-weight:700;">${numCols.length}</div>
-        <div style="font-size:10px;color:var(--muted);">수치형</div>
+        <div style="font-size:10px;color:var(--muted);">수치형 변수</div>
       </div>
       <div style="background:${totalMissing>0?'rgba(239,68,68,0.1)':'rgba(16,185,129,0.1)'};border-radius:8px;padding:10px;text-align:center;">
         <div style="font-size:18px;font-weight:700;color:${totalMissing>0?'#f87171':'#10b981'};">${totalMissing}</div>
         <div style="font-size:10px;color:var(--muted);">결측치</div>
       </div>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;"><b style="color:var(--text);">컬럼:</b> ${headers.map(h=>`<span style="padding:2px 7px;border-radius:20px;background:${numCols.includes(h)?'rgba(16,185,129,0.15)':'rgba(108,99,255,0.15)'};color:${numCols.includes(h)?'#10b981':'var(--accent2)'};margin:2px;display:inline-block;">${h}</span>`).join('')}</div>
+    <div style="margin-bottom:10px;line-height:1.9;">
+      ${headers.map(h=>`<span style="padding:2px 8px;border-radius:20px;background:${numCols.includes(h)?'rgba(16,185,129,0.15)':'rgba(108,99,255,0.15)'};color:${numCols.includes(h)?'#10b981':'var(--accent2)'};margin:2px;display:inline-block;font-size:11px;">${h}</span>`).join('')}
+    </div>
     ${renderMissingChart(headers, rows)}
     ${renderCorrMatrix(numCols, rows)}
   `;
   document.getElementById('l4-messages').scrollTop = 99999;
 
-  // ── 2. AI 한줄 인사이트 + 하나의 질문 ──
-  const sample = rows.slice(0,3).map(r=>headers.map(h=>String(r[h]??'').slice(0,15)).join(' | ')).join('\n');
-  const dataMsg = `[데이터: ${filename}] ${rows.length}행 × ${headers.length}열. 수치형: ${numCols.join(',')||'없음'}. 결측치: ${totalMissing}건. 샘플:\n${sample}`;
+  // ── 2. AI 종합 분석 보고서 ──
+  const dataSummary = buildDataSummary(allData);
+  const analysisSystem = `당신은 데이터 분석 전문가입니다. 아래 데이터 통계를 바탕으로 번호가 붙은 구조화된 분석 보고서를 한국어로 작성하세요.
+
+보고서 구조 (실제 수치를 포함해서 작성):
+1. 데이터 구성 (응답 건수, 변수 수, 주요 컬럼 특징)
+2. 주요 변수별 분포 및 비율 (상위 응답 위주)
+3. 핵심 패턴 및 인사이트 (3~5가지, 구체적 수치 포함)
+4. 집단 간 차이 (성별·연령대·학교급 등 관련 변수 있으면 비교)
+5. 교육 문제와의 연결점 및 AI 서비스 가능성
+
+마지막 한 줄: "다음으로 ①교차분석 ②상관분석 ③시각화 그래프 ④발표자료 문장 작성 중 원하는 것을 말씀해주세요."
+
+데이터에 없는 내용은 만들지 마세요. 실제 데이터 수치만 사용하세요.`;
+
+  const dataMsg = `다음 데이터를 분석해주세요:\n\n${dataSummary}`;
   l4Messages.push({ role: 'user', content: dataMsg });
 
-  const thinkingRow = addL4Bubble('ai', '<span class="thinking">인사이트 분석 중</span>', false);
-  const system = lessons[2].system;
+  const thinkingRow = addL4Bubble('ai', '<span class="thinking">종합 분석 보고서 작성 중...</span>', false);
   let full = '';
   try {
-    full = await callAIStream(currentModel, l4Messages, system, (token, acc) => {
+    full = await callAIStream(currentModel, l4Messages, analysisSystem, (token, acc) => {
       thinkingRow.innerHTML = renderMarkdown(acc);
       document.getElementById('l4-messages').scrollTop = 99999;
-    });
+    }, 2500);
   } catch(e) {
     try {
-      const r = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model: currentModel, messages: l4Messages, system }) });
+      const r = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model: currentModel, messages: l4Messages, system: analysisSystem, maxTokens: 2500 }) });
       const d = await r.json();
       full = d.reply || '';
       thinkingRow.innerHTML = renderMarkdown(full);
@@ -2178,7 +2240,7 @@ async function triggerL4AutoAnalysis(filename, headers, rows, isXLSX) {
   l4Messages.push({ role: 'assistant', content: full });
   document.getElementById('l4-messages').scrollTop = 99999;
   document.querySelectorAll('.l4-step-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('l4-s1').classList.add('active');
+  document.getElementById('l4-s2').classList.add('active');
 }
 
 function addL4Bubble(type, text, isMarkdown=false) {
