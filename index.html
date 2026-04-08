@@ -505,16 +505,26 @@
   }
   .l4-step-item {
     display: flex; align-items: center; gap: 8px;
-    font-size: 11px; color: var(--muted); padding: 5px 8px;
-    border-radius: 6px; transition: background 0.2s;
+    font-size: 11px; color: var(--muted); padding: 6px 8px;
+    border-radius: 6px; transition: background 0.15s; cursor: pointer;
   }
-  .l4-step-item.active { background: rgba(108,99,255,0.12); color: var(--accent2); }
+  .l4-step-item:hover { background: var(--surface2); }
+  .l4-step-item.active { background: rgba(108,99,255,0.12); color: var(--accent2); font-weight: 500; }
+  .l4-step-item.done { color: #10b981; }
   .l4-step-num {
-    width: 17px; height: 17px; border-radius: 50%;
+    width: 18px; height: 18px; border-radius: 50%;
     background: var(--surface2); font-size: 10px; font-weight: 600;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   }
   .l4-step-item.active .l4-step-num { background: rgba(108,99,255,0.3); color: var(--accent2); }
+  .l4-step-item.done .l4-step-num { background: rgba(16,185,129,0.2); color: #10b981; }
+  .l4-next-btn {
+    display:block; width:100%; margin-top:20px; padding:10px;
+    background:var(--accent); color:white; border:none; border-radius:10px;
+    font-size:13px; font-weight:500; cursor:pointer;
+    font-family:'Noto Sans KR',sans-serif; transition:opacity 0.2s;
+  }
+  .l4-next-btn:hover { opacity:0.85; }
   .l4-data-link {
     display: flex; align-items: center; gap: 7px;
     font-size: 11px; color: var(--muted); padding: 6px 8px;
@@ -922,124 +932,176 @@
 
       <!-- 4차시 데이터 탐색 패널 -->
       <div id="lesson4-panel" style="display:none;flex:1;overflow:hidden;flex-direction:row;">
-        <!-- 왼쪽: 데이터 사이드바 -->
-        <div class="l4-sidebar">
-          <!-- 6단계 진행 -->
-          <div>
-            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:7px;">데이터 분석 6단계</div>
-            <div id="l4-steps" style="display:flex;flex-direction:column;gap:2px;">
-              <div class="l4-step-item active" id="l4-s1"><span class="l4-step-num">1</span>데이터 수집·업로드</div>
-              <div class="l4-step-item" id="l4-s2"><span class="l4-step-num">2</span>전처리 (결측·이상)</div>
-              <div class="l4-step-item" id="l4-s3"><span class="l4-step-num">3</span>시각화 (막대/선/원/산점)</div>
-              <div class="l4-step-item" id="l4-s4"><span class="l4-step-num">4</span>AI 분석·해석</div>
-              <div class="l4-step-item" id="l4-s5"><span class="l4-step-num">5</span>AI서비스 설계</div>
-              <div class="l4-step-item" id="l4-s6"><span class="l4-step-num">6</span>자기반성 기록</div>
-            </div>
+        <!-- 왼쪽: 단계 네비게이션 (좁은 사이드바) -->
+        <div class="l4-sidebar" style="width:200px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">데이터 분석 6단계</div>
+          <div id="l4-steps" style="display:flex;flex-direction:column;gap:1px;">
+            <div class="l4-step-item active" id="l4-s1" onclick="setL4Step(1)"><span class="l4-step-num">1</span>데이터 수집·업로드</div>
+            <div class="l4-step-item" id="l4-s2" onclick="setL4Step(2)"><span class="l4-step-num">2</span>전처리 (결측·이상)</div>
+            <div class="l4-step-item" id="l4-s3" onclick="setL4Step(3)"><span class="l4-step-num">3</span>시각화</div>
+            <div class="l4-step-item" id="l4-s4" onclick="setL4Step(4)"><span class="l4-step-num">4</span>AI 분석·해석</div>
+            <div class="l4-step-item" id="l4-s5" onclick="setL4Step(5)"><span class="l4-step-num">5</span>AI서비스 설계</div>
+            <div class="l4-step-item" id="l4-s6" onclick="setL4Step(6)"><span class="l4-step-num">6</span>자기반성 기록</div>
           </div>
-
-          <!-- 파일 업로드 -->
-          <div id="l4-upload-box" style="border:2px dashed var(--border2);border-radius:10px;padding:14px;text-align:center;">
-            <div style="font-size:22px;margin-bottom:6px;">📁</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5;">CSV / XLSX 파일<br>여러 파일 동시 업로드 가능</div>
-            <label style="background:var(--accent);color:white;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:'Noto Sans KR',sans-serif;display:inline-block;">
+          <div style="height:1px;background:var(--border);"></div>
+          <!-- 파일 업로드 (항상 표시) -->
+          <div id="l4-upload-box" style="border:2px dashed var(--border2);border-radius:10px;padding:12px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:5px;">📁</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5;">CSV / XLSX<br>여러 파일 동시 가능</div>
+            <label style="background:var(--accent);color:white;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:11px;font-family:'Noto Sans KR',sans-serif;display:inline-block;">
               파일 선택
               <input type="file" id="lesson4-file" accept=".csv,.xlsx,.xls" multiple style="display:none" onchange="handleLesson4File(this)">
             </label>
           </div>
-
           <!-- 데이터 통계 (업로드 후) -->
           <div id="l4-stats-area" style="display:none;">
-            <div style="font-size:11px;color:var(--accent2);font-weight:500;margin-bottom:6px;">📋 데이터 통계</div>
-            <div id="lesson4-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;"></div>
-            <div id="lesson4-columns" style="font-size:11px;margin-bottom:8px;"></div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <button onclick="showL4Preview()" style="width:100%;background:rgba(16,185,129,0.12);color:#10b981;border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;">🔍 데이터 전체 보기</button>
-              <button onclick="lesson4Chart()" style="width:100%;background:rgba(59,130,246,0.12);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);border-radius:8px;padding:7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;">📊 차트 그리기</button>
-            </div>
-          </div>
-
-          <!-- 공공데이터 링크 -->
-          <div>
-            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">데이터 찾기</div>
-            <a href="https://schoolinfo.go.kr" target="_blank" class="l4-data-link">🏫 학교알리미</a>
-            <a href="https://kess.kedi.re.kr" target="_blank" class="l4-data-link">📊 교육통계서비스</a>
-            <a href="https://data.go.kr" target="_blank" class="l4-data-link">🗂️ 공공데이터포털</a>
-            <a href="https://open.neis.go.kr" target="_blank" class="l4-data-link">📅 NEIS 개방포털</a>
+            <div id="lesson4-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;"></div>
+            <div id="lesson4-columns" style="font-size:10px;margin-bottom:6px;"></div>
+            <button onclick="showL4Preview()" style="width:100%;background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);border-radius:7px;padding:5px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:10px;">🔍 데이터 전체 보기</button>
           </div>
         </div>
 
-        <!-- 오른쪽: AI 대화 -->
+        <!-- 오른쪽: 단계별 뷰 -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-          <!-- 파일 업로드 전 웰컴 -->
-          <div id="l4-welcome" style="flex:1;overflow-y:auto;padding:28px 28px;">
-            <div style="max-width:560px;margin:0 auto;">
-              <div style="text-align:center;margin-bottom:22px;">
-                <div style="font-size:30px;margin-bottom:8px;">🔍</div>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;margin-bottom:6px;color:var(--text);">4차시 · 데이터 탐색 & 검증</h3>
-                <p style="font-size:12px;color:var(--muted);">왼쪽에서 CSV/XLSX 파일을 업로드하면 AI가 분석을 시작해요</p>
-              </div>
 
-              <!-- 오늘 수업 핵심 규칙 -->
-              <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
-                <div style="font-size:12px;font-weight:600;color:#f87171;margin-bottom:8px;">⚠ 오늘 수업 핵심 규칙</div>
-                <div style="font-size:12px;color:var(--muted);line-height:1.9;">
-                  ❌ AI에게 <b style="color:var(--text);">'찾아줘 / 써줘 / 알려줘'</b> — 금지<br>
-                  ✅ <b style="color:#10b981;">내가 먼저 생각</b> → AI에게 보여준다 → 질문 받기 → 수정<br>
-                  ✅ AI가 쓴 것 vs 내가 쓴 것 <b style="color:#10b981;">차이 분석</b>하면 점수 올라감
+          <!-- ① STEP 1: 데이터 수집·업로드 -->
+          <div id="l4-view-1" style="flex:1;overflow-y:auto;padding:28px 32px;">
+            <div style="max-width:580px;margin:0 auto;">
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:600;margin-bottom:4px;">① 데이터 수집 · 업로드 <span style="font-size:12px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-weight:400;">(Ch.05~07)</span></h3>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">데이터를 찾아서 업로드하면 자동으로 다음 단계로 안내해드려요</p>
+              <div id="l4-view-1-uploaded" style="display:none;margin-bottom:20px;"></div>
+              <div style="background:rgba(108,99,255,0.06);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="font-size:12px;font-weight:600;color:var(--accent2);margin-bottom:10px;">📥 어디서 데이터를 받나요?</div>
+                <div style="display:flex;flex-direction:column;gap:7px;">
+                  <a href="https://schoolinfo.go.kr" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:12px;">🏫 <span><b>학교알리미</b> <span style="color:var(--muted);font-size:11px;">schoolinfo.go.kr — 급식·성적·진로 데이터</span></span></a>
+                  <a href="https://data.go.kr" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:12px;">🗂️ <span><b>공공데이터포털</b> <span style="color:var(--muted);font-size:11px;">data.go.kr — 가장 방대한 공개 데이터</span></span></a>
+                  <a href="https://kess.kedi.re.kr" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:12px;">📊 <span><b>교육통계서비스</b> <span style="color:var(--muted);font-size:11px;">kess.kedi.re.kr — 교육 전문 통계</span></span></a>
+                  <a href="https://open.neis.go.kr" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:12px;">📅 <span><b>NEIS 개방포털</b> <span style="color:var(--muted);font-size:11px;">open.neis.go.kr — 학교 급식·학사 데이터</span></span></a>
                 </div>
               </div>
-
-              <!-- 데이터 분석 흐름 -->
-              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
-                <div style="font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;">오늘 수업 흐름 (Ch.05 ~ Part 6)</div>
-
-                <div style="background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:11px 14px;">
-                  <div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:3px;">① 데이터 수집 (Ch.05~07)</div>
-                  <div style="font-size:11px;color:var(--muted);line-height:1.7;">공공데이터 포털에서 CSV/XLSX 다운로드 → 왼쪽 <b style="color:var(--text);">파일 선택</b> 버튼으로 업로드<br>📌 업로드 전에 "어떤 컬럼이 있을까?" 먼저 예측하세요</div>
-                </div>
-
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;">
-                  <div style="font-size:12px;font-weight:600;color:#f59e0b;margin-bottom:3px;">② 데이터 전처리 (Ch.08)</div>
-                  <div style="font-size:11px;color:var(--muted);line-height:1.7;">업로드하면 <b style="color:var(--text);">결측치 분포</b>와 <b style="color:var(--text);">상관계수</b>가 자동으로 표시돼요<br>빈 값이 왜 생겼는지, 어떻게 처리할지 AI와 함께 고민하세요</div>
-                </div>
-
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;">
-                  <div style="font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:3px;">③ 데이터 시각화 (Ch.09~13)</div>
-                  <div style="font-size:11px;color:var(--muted);line-height:1.7;">왼쪽 <b style="color:var(--text);">📊 차트 그리기</b> 버튼 → 막대/선/원/산점도 선택<br>X축·Y축 컬럼을 바꿔가며 패턴을 찾아보세요</div>
-                </div>
-
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px;">
-                  <div style="font-size:12px;font-weight:600;color:#10b981;margin-bottom:3px;">④ AI 분석·해석 (Part 6) — AI가 도와드려요</div>
-                  <div style="font-size:11px;color:var(--muted);line-height:1.7;">파일 업로드 후 AI가 <b style="color:var(--text);">종합 분석 보고서</b>를 자동 생성해요<br>이어서 교차분석 · 상관분석 · 발표자료 · AI서비스 아이디어를 요청하세요</div>
-                </div>
-              </div>
-
-              <!-- 파일 업로드 전 예측 메모 -->
               <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:14px 16px;">
-                <div style="font-size:12px;font-weight:600;color:#10b981;margin-bottom:8px;">📝 STEP 1 시작 전 — 파일 열기 전에 먼저 예측하세요</div>
-                <div style="font-size:12px;color:var(--muted);line-height:1.9;">
+                <div style="font-size:12px;font-weight:600;color:#10b981;margin-bottom:8px;">📝 업로드 전 먼저 예측하세요 (활동지에 기록)</div>
+                <div style="font-size:12px;color:var(--muted);line-height:2;">
                   이 데이터에 몇 행(건수)이 있을 것 같나요?<br>
-                  어떤 컬럼(항목)이 있을 것 같나요? (3개 이상)<br>
-                  결측값이 있을 것 같나요? 어떤 항목에?<br>
-                  <span style="color:#10b981;font-weight:500;">→ 위 내용을 활동지에 먼저 쓴 후 파일을 업로드하세요!</span>
+                  어떤 컬럼(항목)이 있을 것 같나요? 3개 이상<br>
+                  결측값(빈 칸)이 있을 것 같은 컬럼은?
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 대화 메시지 (파일 업로드 후) -->
-          <div id="l4-messages" style="display:none;flex:1;overflow-y:auto;padding:20px;gap:16px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;flex-direction:column;"></div>
+          <!-- ② STEP 2: 전처리 -->
+          <div id="l4-view-2" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
+            <div style="max-width:640px;margin:0 auto;">
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin-bottom:4px;">② 데이터 전처리 <span style="font-size:12px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-weight:400;">(Ch.08)</span></h3>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">결측치(빈 값)와 변수 간 관계를 파악하는 단계예요</p>
+              <div id="l4-preprocess-content"></div>
+              <button class="l4-next-btn" onclick="setL4Step(3)">다음 단계: 시각화 →</button>
+            </div>
+          </div>
 
-          <!-- 대화 입력 (파일 업로드 후) -->
-          <div id="l4-input-wrap" style="display:none;padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;">
-            <div id="l4-input-inner" style="display:flex;gap:8px;align-items:flex-end;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:8px 12px;transition:border-color 0.2s;">
-              <textarea id="l4-input" placeholder="AI의 질문에 내 생각을 적어보세요... (Shift+Enter 줄바꿈)" rows="1" style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;resize:none;line-height:1.6;max-height:100px;min-height:24px;" onkeydown="handleL4Key(event)" oninput="autoResize(this)"></textarea>
-              <button onclick="sendL4Message()" style="width:32px;height:32px;border-radius:8px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
+          <!-- ③ STEP 3: 시각화 -->
+          <div id="l4-view-3" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
+            <div style="max-width:680px;margin:0 auto;">
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin-bottom:4px;">③ 데이터 시각화 <span style="font-size:12px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;font-weight:400;">(Ch.09~13)</span></h3>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">막대·선·원·산점도로 데이터 패턴을 시각적으로 확인하세요</p>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;">
+                <div>
+                  <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">X축 (범주 · 가로)</div>
+                  <select id="v3-x-col" onchange="renderV3Chart()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:160px;"></select>
+                </div>
+                <div>
+                  <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Y축 (수치 · 세로)</div>
+                  <select id="v3-y-col" onchange="renderV3Chart()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:160px;"></select>
+                </div>
+                <div>
+                  <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">차트 종류</div>
+                  <div style="display:flex;gap:5px;">
+                    <button id="v3-btn-bar" onclick="setV3Type('bar')" style="font-size:11px;padding:5px 10px;background:var(--accent);color:white;border:none;border-radius:7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">막대</button>
+                    <button id="v3-btn-line" onclick="setV3Type('line')" style="font-size:11px;padding:5px 10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);border-radius:7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">선</button>
+                    <button id="v3-btn-pie" onclick="setV3Type('pie')" style="font-size:11px;padding:5px 10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);border-radius:7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">원</button>
+                    <button id="v3-btn-scatter" onclick="setV3Type('scatter')" style="font-size:11px;padding:5px 10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);border-radius:7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">산점도</button>
+                  </div>
+                </div>
+              </div>
+              <div id="v3-chart-hint" style="font-size:11px;color:var(--muted);margin-bottom:10px;"></div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;min-height:300px;">
+                <canvas id="l4-chart-canvas-v3"></canvas>
+              </div>
+              <button class="l4-next-btn" onclick="setL4Step(4)">다음 단계: AI 분석·해석 →</button>
+            </div>
+          </div>
+
+          <!-- ④ STEP 4: AI 분석·해석 -->
+          <div id="l4-view-4" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+            <div style="padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+              <div style="font-size:13px;font-weight:600;">④ AI 분석·해석 <span style="font-size:11px;color:var(--muted);font-weight:400;">(Part 6) — 교차분석 · 상관분석 · 발표자료 · AI서비스 아이디어</span></div>
+            </div>
+            <div id="l4-messages" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;"></div>
+            <div id="l4-input-wrap" style="padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;">
+              <div id="l4-input-inner" style="display:flex;gap:8px;align-items:flex-end;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:8px 12px;">
+                <textarea id="l4-input" placeholder="교차분석·상관분석·시각화·발표자료·AI서비스 아이디어 — 무엇이든 물어보세요 (Shift+Enter 줄바꿈)" rows="1" style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;resize:none;line-height:1.6;max-height:100px;min-height:24px;" onkeydown="handleL4Key(event)" oninput="autoResize(this)"></textarea>
+                <button onclick="sendL4Message()" style="width:32px;height:32px;border-radius:8px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
+                </button>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+                <button onclick="l4QuickSend('교차분석해줘')" style="font-size:11px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">교차분석</button>
+                <button onclick="l4QuickSend('상관분석해줘')" style="font-size:11px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">상관분석</button>
+                <button onclick="l4QuickSend('발표자료 문장 작성해줘')" style="font-size:11px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">발표자료</button>
+                <button onclick="l4QuickSend('AI 서비스 아이디어 도출해줘')" style="font-size:11px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">AI 서비스 아이디어</button>
+                <button onclick="setL4Step(5)" style="font-size:11px;padding:4px 10px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">→ 서비스 설계</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ⑤ STEP 5: AI서비스 설계 -->
+          <div id="l4-view-5" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
+            <div style="max-width:580px;margin:0 auto;">
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin-bottom:4px;">⑤ AI 서비스 설계</h3>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:18px;">데이터 분석에서 발견한 패턴을 바탕으로 AI 서비스 구조를 설계하세요</p>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+                  <div style="font-size:11px;color:var(--accent2);margin-bottom:5px;">📥 입력 데이터 — AI가 무엇을 받나요?</div>
+                  <textarea id="l4-svc-input" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;min-height:48px;line-height:1.7;" placeholder="예) 학교 급식 영양정보 CSV, 학생 건강 설문 데이터" oninput="autoResize(this)"></textarea>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+                  <div style="font-size:11px;color:#f59e0b;margin-bottom:5px;">🔍 AI 처리 — AI가 무엇을 하나요?</div>
+                  <textarea id="l4-svc-process" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;min-height:48px;line-height:1.7;" placeholder="예) 칼로리-나트륨 상관관계 분석 → 개인 맞춤 식단 패턴 추천" oninput="autoResize(this)"></textarea>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+                  <div style="font-size:11px;color:#10b981;margin-bottom:5px;">📤 출력 결과 — 무엇을 주나요?</div>
+                  <textarea id="l4-svc-output" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;min-height:48px;line-height:1.7;" placeholder="예) 오늘의 건강 점수 + 내일 추천 메뉴" oninput="autoResize(this)"></textarea>
+                </div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+                  <div style="font-size:11px;color:#60a5fa;margin-bottom:5px;">👤 사용자 — 누가 쓰나요?</div>
+                  <textarea id="l4-svc-user" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;min-height:36px;line-height:1.7;" placeholder="예) 건강을 신경 쓰는 고등학생" oninput="autoResize(this)"></textarea>
+                </div>
+              </div>
+              <button onclick="l4ValidateService()" style="width:100%;padding:10px;background:rgba(108,99,255,0.15);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:10px;">🤖 AI에게 이 설계 검증 받기</button>
+              <button class="l4-next-btn" onclick="setL4Step(6)">다음 단계: 자기반성 기록 →</button>
+            </div>
+          </div>
+
+          <!-- ⑥ STEP 6: 자기반성 -->
+          <div id="l4-view-6" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
+            <div style="max-width:540px;margin:0 auto;text-align:center;">
+              <div style="font-size:36px;margin-bottom:12px;">🪞</div>
+              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin-bottom:8px;">⑥ 자기반성 기록</h3>
+              <p style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.8;">오늘 AI를 어떻게 활용했는지 기록하는 단계예요<br>이 기록이 수업 평가의 20%를 차지합니다</p>
+              <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:20px;margin-bottom:20px;text-align:left;">
+                <div style="font-size:12px;color:var(--muted);line-height:2.1;">
+                  ✅ 오늘 완료한 단계를 체크하세요<br>
+                  📋 AI가 쓴 것 vs 내가 직접 쓴 것을 구분해서 기록<br>
+                  💡 AI 질문 중 내 생각을 바꿔준 순간을 적어두면 점수가 올라가요
+                </div>
+              </div>
+              <button onclick="setLesson(7, document.querySelector('.lesson-btn:nth-child(9)'))" style="display:block;width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+                🪞 자기 반성 기록 탭으로 이동
               </button>
             </div>
-            <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center;">교차분석 · 상관분석 · 시각화 · 발표자료 · AI서비스 아이디어 — 무엇이든 물어보세요</div>
           </div>
+
         </div>
       </div>
 
@@ -1330,6 +1392,9 @@ let currentLesson = 0;
 const lessonMsgStore = {}; // 차시별 대화 기록 보존
 let uploadedFileContent = null;
 let lesson4Data = null;
+let currentL4Step = 1;
+let v3ChartType = 'bar';
+let v3ChartInst = null;
 let scaffoldingMode = false;
 
 // ── Lessons ──
@@ -1696,10 +1761,9 @@ function restoreLessonState(idx) {
   if (idx === 2) {
     l4Messages = [...(store.l4msgs || [])];
     if (store.active) {
-      document.getElementById('l4-welcome').style.display = 'none';
       const md = document.getElementById('l4-messages');
-      md.style.display = 'flex'; md.innerHTML = store.l4html || '';
-      document.getElementById('l4-input-wrap').style.display = 'block';
+      if (md) md.innerHTML = store.l4html || '';
+      setL4Step(4);
     }
     return !!store.active;
   } else {
@@ -2099,12 +2163,15 @@ async function handleLesson4File(input) {
     for (const f of files) allData.push(await parseOneFile(f));
     lesson4Data = allData[0];
     renderLesson4Stats(allData[0].headers, allData[0].rows, allData[0].filename.endsWith('.xlsx')||allData[0].filename.endsWith('.xls'));
-    document.getElementById('l4-welcome').style.display = 'none';
-    const msgDiv = document.getElementById('l4-messages');
-    msgDiv.style.display = 'flex';
-    document.getElementById('l4-input-wrap').style.display = 'block';
-    l4Messages = []; msgDiv.innerHTML = '';
-    await triggerL4AutoAnalysis(allData);
+    // Show uploaded file name in view-1
+    const uploadedBox = document.getElementById('l4-view-1-uploaded');
+    if (uploadedBox) {
+      uploadedBox.style.display = 'block';
+      uploadedBox.innerHTML = `<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 14px;font-size:12px;color:#10b981;">✅ ${allData.map(d=>`<b>${d.filename}</b> (${d.rows.length}행 × ${d.headers.length}열)`).join(', ')} 업로드 완료</div>`;
+    }
+    l4Messages = [];
+    document.getElementById('l4-messages').innerHTML = '';
+    setL4Step(2);
   } catch(e) {
     alert('파일 읽기 오류: ' + e.message);
   }
@@ -2355,8 +2422,6 @@ async function triggerL4AutoAnalysis(allData) {
   }
   l4Messages.push({ role: 'assistant', content: full });
   document.getElementById('l4-messages').scrollTop = 99999;
-  document.querySelectorAll('.l4-step-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('l4-s2').classList.add('active');
 }
 
 function addL4Bubble(type, text, isMarkdown=false) {
@@ -2413,20 +2478,131 @@ async function sendL4Message() {
 }
 
 function advanceL4Step(text) {
-  const lower = text + (l4Messages.map(m=>m.content).join(' '));
-  const steps = [
-    { id:'l4-s2', keywords:['수집','데이터 출처','공공데이터','다운로드','어디서'] },
-    { id:'l4-s3', keywords:['결측','빈 값','전처리','정리','이상값','중복'] },
-    { id:'l4-s4', keywords:['그래프','시각화','차트','막대','선그래프','산점도'] },
-    { id:'l4-s5', keywords:['패턴','분석','해석','의미','이유','왜'] },
-    { id:'l4-s6', keywords:['결론','제안','발표','완성','정리했','알게'] },
-  ];
-  for (const { id, keywords } of steps) {
-    if (keywords.some(k => lower.includes(k))) {
-      document.querySelectorAll('.l4-step-item').forEach(el => el.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+  // Kept for compatibility but step nav is now handled by setL4Step
+}
+
+// ── Step Navigation ──
+function setL4Step(n) {
+  currentL4Step = n;
+  // Update step indicators
+  for (let i = 1; i <= 6; i++) {
+    const el = document.getElementById('l4-s' + i);
+    if (!el) continue;
+    el.classList.remove('active', 'done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+  // Show the right view, hide others
+  for (let i = 1; i <= 6; i++) {
+    const view = document.getElementById('l4-view-' + i);
+    if (!view) continue;
+    if (i === n) {
+      view.style.display = (i === 4) ? 'flex' : 'block';
+      view.style.flexDirection = (i === 4) ? 'column' : '';
+    } else {
+      view.style.display = 'none';
     }
   }
+  // Step-specific side effects
+  if (n === 2 && lesson4Data) renderL4Preprocessing();
+  if (n === 3 && lesson4Data) {
+    const { headers, rows } = lesson4Data;
+    const numCols = headers.filter(h => {
+      const vals = rows.slice(0,20).map(r=>r[h]).filter(v=>v!==''&&v!==null&&v!==undefined);
+      return vals.length>0 && vals.some(v=>!isNaN(parseFloat(v)));
+    });
+    const xSel = document.getElementById('v3-x-col');
+    const ySel = document.getElementById('v3-y-col');
+    if (xSel) xSel.innerHTML = headers.map(h=>`<option value="${h}">${h}</option>`).join('');
+    if (ySel) ySel.innerHTML = (numCols.length ? numCols : headers).map(h=>`<option value="${h}">${h}</option>`).join('');
+    if (xSel && headers.length) xSel.value = headers[0];
+    if (ySel && numCols.length) ySel.value = numCols[0];
+    renderV3Chart();
+  }
+  if (n === 4 && lesson4Data && l4Messages.length === 0) {
+    triggerL4AutoAnalysis([lesson4Data]);
+  }
+}
+
+function renderL4Preprocessing() {
+  if (!lesson4Data) return;
+  const { headers, rows } = lesson4Data;
+  const numCols = headers.filter(h => {
+    const vals = rows.map(r=>r[h]).filter(v=>v!==''&&v!==null&&v!==undefined);
+    return vals.length>2 && vals.every(v=>!isNaN(parseFloat(v)));
+  });
+  const el = document.getElementById('l4-preprocess-content');
+  if (!el) return;
+  el.innerHTML = renderMissingChart(headers, rows) + renderCorrMatrix(numCols, rows);
+}
+
+function setV3Type(type) {
+  v3ChartType = type;
+  ['bar','line','pie','scatter'].forEach(t => {
+    const btn = document.getElementById('v3-btn-' + t);
+    if (!btn) return;
+    if (t === type) {
+      btn.style.background = 'var(--accent)'; btn.style.color = 'white'; btn.style.border = 'none';
+    } else {
+      btn.style.background = 'var(--surface2)'; btn.style.color = 'var(--muted)'; btn.style.border = '1px solid var(--border2)';
+    }
+  });
+  renderV3Chart();
+}
+
+function renderV3Chart() {
+  if (!lesson4Data) return;
+  const { rows } = lesson4Data;
+  const xCol = document.getElementById('v3-x-col')?.value;
+  const yCol = document.getElementById('v3-y-col')?.value;
+  if (!xCol || !yCol) return;
+  const hint = document.getElementById('v3-chart-hint');
+  const canvas = document.getElementById('l4-chart-canvas-v3');
+  if (!canvas) return;
+  if (v3ChartInst) { v3ChartInst.destroy(); v3ChartInst = null; }
+  const isDark = !document.body.classList.contains('light-mode');
+  const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+  const textColor = isDark ? '#aaaacc' : '#444466';
+  const palette = ['#6C63FF','#10b981','#f59e0b','#ef4444','#60a5fa','#f87171','#34d399','#fbbf24','#a78bfa','#fb7185'];
+  const type = v3ChartType;
+  if (type === 'scatter') {
+    const pts = rows.slice(0,300).map(r=>({x:parseFloat(r[xCol]),y:parseFloat(r[yCol])})).filter(p=>!isNaN(p.x)&&!isNaN(p.y));
+    if (hint) hint.textContent = `산점도: ${xCol} vs ${yCol}  (${pts.length}점)`;
+    v3ChartInst = new Chart(canvas, { type:'scatter', data:{ datasets:[{ label:`${xCol} vs ${yCol}`, data:pts, backgroundColor:'rgba(108,99,255,0.45)', pointRadius:3 }] }, options:{ plugins:{ legend:{labels:{color:textColor}} }, scales:{ x:{grid:{color:gridColor},ticks:{color:textColor}}, y:{grid:{color:gridColor},ticks:{color:textColor}} } } });
+  } else if (type === 'pie') {
+    const freq={};
+    rows.forEach(r=>{ const k=String(r[xCol]).slice(0,25); freq[k]=(freq[k]||0)+1; });
+    const top10=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    if (hint) hint.textContent = `원그래프: ${xCol} 분포 (상위 10개 값)`;
+    v3ChartInst = new Chart(canvas, { type:'pie', data:{ labels:top10.map(e=>e[0]), datasets:[{ data:top10.map(e=>e[1]), backgroundColor:palette }] }, options:{ plugins:{ legend:{labels:{color:textColor}} } } });
+  } else {
+    const agg={};
+    rows.forEach(r=>{ const k=String(r[xCol]).slice(0,25), v=parseFloat(r[yCol]); if(!isNaN(v)){ if(!agg[k]) agg[k]=[]; agg[k].push(v); } });
+    const sorted=Object.entries(agg).sort((a,b)=>b[1].length-a[1].length).slice(0,20);
+    const labels=sorted.map(e=>e[0]);
+    const data=sorted.map(e=>+(e[1].reduce((a,b)=>a+b)/e[1].length).toFixed(2));
+    if (hint) hint.textContent = `${type==='bar'?'막대':'선'} 그래프: ${xCol} 별 ${yCol} 평균`;
+    v3ChartInst = new Chart(canvas, { type, data:{ labels, datasets:[{ label:`${yCol} 평균`, data, backgroundColor:'rgba(108,99,255,0.7)', borderColor:'rgba(108,99,255,1)', borderWidth:2, tension:0.3 }] }, options:{ plugins:{ legend:{labels:{color:textColor}} }, scales:{ x:{grid:{color:gridColor},ticks:{color:textColor,maxRotation:45}}, y:{grid:{color:gridColor},ticks:{color:textColor},beginAtZero:false} } } });
+  }
+}
+
+function l4QuickSend(text) {
+  const input = document.getElementById('l4-input');
+  if (input) { input.value = text; input.style.height = 'auto'; }
+  sendL4Message();
+}
+
+async function l4ValidateService() {
+  const inp = document.getElementById('l4-svc-input')?.value?.trim();
+  const proc = document.getElementById('l4-svc-process')?.value?.trim();
+  const out = document.getElementById('l4-svc-output')?.value?.trim();
+  const usr = document.getElementById('l4-svc-user')?.value?.trim();
+  if (!inp && !proc && !out) { alert('AI 서비스 설계를 먼저 작성하세요.'); return; }
+  const design = `내 AI 서비스 설계를 검토해줘:\n[입력 데이터] ${inp||'(미작성)'}\n[AI 처리] ${proc||'(미작성)'}\n[출력 결과] ${out||'(미작성)'}\n[사용자] ${usr||'(미작성)'}`;
+  setL4Step(4);
+  const input = document.getElementById('l4-input');
+  if (input) { input.value = design; input.style.height = 'auto'; }
+  sendL4Message();
 }
 
 
