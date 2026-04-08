@@ -321,7 +321,7 @@
     transition: all 0.15s;
   }
   .close-admin:hover { background: var(--surface2); }
-  .admin-body { flex: 1; overflow-y: auto; padding: 28px; }
+  .admin-body { flex: 1; min-height: 0; overflow-y: auto; padding: 28px; }
   .admin-section { margin-bottom: 32px; }
   .admin-section h3 { font-size: 14px; font-weight: 500; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
@@ -647,7 +647,7 @@
     <div class="sidebar">
       <div style="height:1px;background:var(--border);margin:12px 0;"></div>
       <div class="sidebar-label">📚 수업 차시</div>
-      <button class="lesson-btn active" onclick="setLesson(0,this)">🏠 자유 대화</button>
+      <button class="lesson-btn" onclick="setLesson(0,this)" id="btn-free">🏠 자유 대화</button>
 
       <div style="height:1px;background:var(--border);margin:8px 0;"></div>
       <div class="sidebar-label">✏️ 수업 진행</div>
@@ -662,7 +662,7 @@
 
       <div style="height:1px;background:var(--border);margin:10px 0;"></div>
       <div class="sidebar-label">🏆 대회 정보</div>
-      <button class="lesson-btn" onclick="setLesson(3,this)">📋 대회 개요 · 일정</button>
+      <button class="lesson-btn active" onclick="setLesson(3,this)" id="btn-contest">📋 대회 개요 · 일정</button>
       <button class="lesson-btn" onclick="setLesson(4,this)">⭐ 심사 기준</button>
       <button class="lesson-btn" onclick="setLesson(5,this)">🗂️ 데이터 목록</button>
 
@@ -697,101 +697,135 @@
 
     <div class="chat-area">
       <!-- 대회 개요 패널 -->
-      <div id="contest-panel" style="display:none;flex:1;overflow-y:auto;padding:20px 24px;">
-        <div style="font-size:18px;font-weight:600;margin-bottom:4px;">제8회 교육 공공데이터 AI활용대회</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">주최: 교육부·17개 시도교육청 &nbsp;|&nbsp; 주관: 한국교육학술정보원(KERIS)</div>
+      <div id="contest-panel" style="display:none;flex:1;overflow-y:auto;">
 
-        <!-- 핵심 목표 -->
-        <div style="background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.3);border-radius:12px;padding:16px;margin-bottom:16px;">
-          <div style="font-size:13px;font-weight:500;color:var(--accent2);margin-bottom:10px;">🎯 우리 팀이 만들어야 할 것</div>
-          <div style="font-size:13px;color:var(--text);line-height:1.8;">
-            <b>교육 공공데이터</b>를 1개 이상 활용한 <b>AI 서비스 아이디어 기획서</b><br>
-            → PPT/PDF 최대 15장 + 데이터 출처·AI 활용 과정 명시
-          </div>
-        </div>
+        <!-- ▶ 포스터 헤더 (파란 배경) -->
+        <div style="background:linear-gradient(135deg,#1a56db 0%,#1e40af 60%,#1e3a8a 100%);padding:28px 28px 24px;position:relative;overflow:hidden;">
+          <!-- 배경 장식 원 -->
+          <div style="position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.06);"></div>
+          <div style="position:absolute;right:40px;bottom:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
 
-        <!-- 일정 타임라인 -->
-        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">📅 대회 일정</div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px;">
-          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid rgba(245,158,11,0.4);border-radius:10px;padding:12px 14px;">
-            <div style="font-size:18px;">🔑</div>
-            <div>
-              <div style="font-size:12px;font-weight:500;color:#fbbf24;">AI 이용권 신청</div>
-              <div style="font-size:12px;color:var(--muted);">3.16(월) ~ 4.15(수) · 2026edudataaicontest.com</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);font-weight:500;letter-spacing:1px;margin-bottom:6px;">제 8 회</div>
+          <div style="font-size:26px;font-weight:800;color:white;line-height:1.2;margin-bottom:4px;font-family:'Space Grotesk',sans-serif;">교육 공공데이터<br>AI 활용대회</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:8px;line-height:1.6;">AI와 교육 데이터의 만남, 당신의 창의적인 아이디어를 기다립니다!<br>주최: 교육부·17개 시도교육청 &nbsp;|&nbsp; 주관: KERIS 한국교육학술정보원</div>
+
+          <!-- 핵심 수치 -->
+          <div style="display:flex;gap:16px;margin-top:16px;">
+            <div style="background:rgba(255,255,255,0.12);border-radius:10px;padding:10px 16px;text-align:center;">
+              <div style="font-size:20px;font-weight:700;color:white;">154팀</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.65);">총 시상 팀 수</div>
             </div>
-            <div style="margin-left:auto;font-size:11px;padding:3px 8px;background:rgba(239,68,68,0.15);color:#f87171;border-radius:6px;">마감!</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid rgba(108,99,255,0.35);border-radius:10px;padding:12px 14px;">
-            <div style="font-size:18px;">📤</div>
-            <div>
-              <div style="font-size:12px;font-weight:500;color:var(--accent2);">작품 접수 및 제출</div>
-              <div style="font-size:12px;color:var(--muted);">5.1(금) ~ 5.31(일)</div>
+            <div style="background:rgba(255,255,255,0.12);border-radius:10px;padding:10px 16px;text-align:center;">
+              <div style="font-size:20px;font-weight:700;color:#fbbf24;">5,050만원</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.65);">총 상금</div>
             </div>
-            <div style="margin-left:auto;font-size:11px;padding:3px 8px;background:rgba(108,99,255,0.2);color:var(--accent2);border-radius:6px;">D-DAY!</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
-            <div style="font-size:18px;">📝</div>
-            <div>
-              <div style="font-size:12px;font-weight:500;color:var(--text);">1차 심사 (서면)</div>
-              <div style="font-size:12px;color:var(--muted);">6.1(월) ~ 6.14(일)</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
-            <div style="font-size:18px;">🎤</div>
-            <div>
-              <div style="font-size:12px;font-weight:500;color:var(--text);">2차 심사 (발표)</div>
-              <div style="font-size:12px;color:var(--muted);">7.18(토) ~ 7.19(일)</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:12px 14px;">
-            <div style="font-size:18px;">🏆</div>
-            <div>
-              <div style="font-size:12px;font-weight:500;color:#10b981;">시상식</div>
-              <div style="font-size:12px;color:var(--muted);">8.11(화) · 최종발표 7.29(수)</div>
+            <div style="background:rgba(255,255,255,0.12);border-radius:10px;padding:10px 16px;text-align:center;">
+              <div style="font-size:20px;font-weight:700;color:white;">300만원</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.65);">대상 상금</div>
             </div>
           </div>
         </div>
 
-        <!-- 시상 내역 -->
-        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">🎁 시상 내역 (학생 · AI 아이디어 기획 부문)</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;">
-          <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:4px;">🥇</div>
-            <div style="font-size:12px;font-weight:500;color:#fbbf24;">대상</div>
-            <div style="font-size:11px;color:var(--muted);">교육부장관상</div>
-            <div style="font-size:15px;font-weight:600;color:var(--text);margin-top:4px;">300만원</div>
-            <div style="font-size:11px;color:var(--muted);">+ 태블릿</div>
-          </div>
-          <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:4px;">🥈</div>
-            <div style="font-size:12px;font-weight:500;color:var(--accent2);">최우수상</div>
-            <div style="font-size:11px;color:var(--muted);">시도교육감상 17팀</div>
-            <div style="font-size:15px;font-weight:600;color:var(--text);margin-top:4px;">60만원</div>
-            <div style="font-size:11px;color:var(--muted);">+ 무선이어폰</div>
-          </div>
-          <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:10px;padding:12px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:4px;">🥉</div>
-            <div style="font-size:12px;font-weight:500;color:#10b981;">우수상</div>
-            <div style="font-size:11px;color:var(--muted);">시도교육감상 51팀</div>
-            <div style="font-size:15px;font-weight:600;color:var(--text);margin-top:4px;">30만원</div>
-            <div style="font-size:11px;color:var(--muted);">+ 무선이어폰</div>
-          </div>
-        </div>
+        <div style="padding:20px 24px;">
 
-        <!-- 제출물 규격 -->
-        <div style="font-size:14px;font-weight:500;margin-bottom:10px;">📄 제출물 규격 체크리스트</div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;">
-          <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
-            <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:500;">✓</span><span>PPT 또는 PDF · 최대 <b>15장</b> (표지 제외)</span></div>
-            <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:500;">✓</span><span>교육 공공데이터 <b>1개 이상</b> 필수 활용 (출처·라이선스 명시)</span></div>
-            <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:500;">✓</span><span>AI 활용 과정 기재 (사용 모델명·프롬프트·분석 절차)</span></div>
-            <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:500;">✓</span><span>첫 페이지에 <b>활용 데이터 정보</b> 작성</span></div>
-            <div style="display:flex;gap:8px;"><span style="color:#ef4444;font-weight:500;">✗</span><span style="color:var(--muted);">팀명 외 학교명·개인명·지역명 기재 금지</span></div>
-            <div style="display:flex;gap:8px;"><span style="color:#ef4444;font-weight:500;">✗</span><span style="color:var(--muted);">과도한 애니메이션·동영상 삽입 금지 (감점)</span></div>
+          <!-- 우리 팀 목표 -->
+          <div style="background:rgba(108,99,255,0.08);border:2px solid rgba(108,99,255,0.3);border-radius:14px;padding:16px 18px;margin-bottom:18px;">
+            <div style="font-size:13px;font-weight:600;color:var(--accent2);margin-bottom:8px;">🎯 우리 팀이 만들어야 할 것</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.9;">
+              <b>교육 공공데이터</b> 1개 이상 활용한 <b>AI 서비스 아이디어 기획서</b><br>
+              <span style="color:var(--muted);">PPT/PDF 최대 15장 &nbsp;+&nbsp; 데이터 출처·AI 활용 과정 반드시 명시</span>
+            </div>
           </div>
-        </div>
 
-        <a href="https://www.2026edudataaicontest.com/" target="_blank" style="display:block;text-align:center;padding:12px;background:var(--accent);color:white;border-radius:10px;text-decoration:none;font-size:13px;font-weight:500;">🔗 대회 공식 홈페이지 바로가기</a>
+          <!-- 타임라인 -->
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;">📅 대회 일정</div>
+          <div style="position:relative;margin-bottom:22px;">
+            <!-- 연결선 -->
+            <div style="position:absolute;left:20px;top:32px;bottom:32px;width:2px;background:linear-gradient(to bottom,rgba(239,68,68,0.3),var(--accent),#10b981);z-index:0;"></div>
+            <div style="display:flex;flex-direction:column;gap:8px;position:relative;z-index:1;">
+              <div style="display:flex;gap:12px;align-items:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:rgba(239,68,68,0.15);border:2px solid #f87171;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🔑</div>
+                <div style="flex:1;background:var(--surface);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+                  <div><div style="font-size:12px;font-weight:600;color:#f87171;">AI 이용권 신청</div><div style="font-size:11px;color:var(--muted);">3.16(화) ~ 4.15(수)</div></div>
+                  <div style="font-size:10px;padding:3px 8px;background:rgba(239,68,68,0.15);color:#f87171;border-radius:6px;white-space:nowrap;">마감</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:rgba(108,99,255,0.15);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📤</div>
+                <div style="flex:1;background:var(--surface);border:2px solid var(--accent);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+                  <div><div style="font-size:12px;font-weight:600;color:var(--accent2);">작품 접수 및 제출</div><div style="font-size:11px;color:var(--muted);">5.1(화) ~ 5.31(금)</div></div>
+                  <div style="font-size:10px;padding:3px 8px;background:var(--accent);color:white;border-radius:6px;white-space:nowrap;font-weight:600;">★ 현재 진행</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📝</div>
+                <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+                  <div style="font-size:12px;font-weight:600;">1차 심사 (서면)</div><div style="font-size:11px;color:var(--muted);">6.1(월) ~ 6.14(일)</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🎤</div>
+                <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+                  <div style="font-size:12px;font-weight:600;">2차 심사 (발표)</div><div style="font-size:11px;color:var(--muted);">7.18(토) ~ 7.19(일)</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,185,129,0.12);border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📢</div>
+                <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+                  <div style="font-size:12px;font-weight:600;">최종 발표</div><div style="font-size:11px;color:var(--muted);">7.29(수)</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:center;">
+                <div style="width:40px;height:40px;border-radius:50%;background:rgba(16,185,129,0.12);border:2px solid #10b981;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🏆</div>
+                <div style="flex:1;background:var(--surface);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:10px 14px;">
+                  <div style="font-size:12px;font-weight:600;color:#10b981;">시상식</div><div style="font-size:11px;color:var(--muted);">8.11(화)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 시상 내역 -->
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px;">🎁 시상 내역 — 학생 부문 · AI 아이디어 기획</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;">
+            <div style="background:linear-gradient(135deg,rgba(251,191,36,0.12),rgba(245,158,11,0.06));border:1px solid rgba(251,191,36,0.35);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:24px;margin-bottom:4px;">🥇</div>
+              <div style="font-size:11px;font-weight:600;color:#fbbf24;">대상</div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">교육부장관상 · 1팀</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text);">300만원</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px;">+ 태블릿</div>
+            </div>
+            <div style="background:rgba(108,99,255,0.06);border:1px solid rgba(108,99,255,0.25);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:24px;margin-bottom:4px;">🥈</div>
+              <div style="font-size:11px;font-weight:600;color:var(--accent2);">최우수상</div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">시도교육감상 · 17팀</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text);">60만원</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px;">+ 무선이어폰</div>
+            </div>
+            <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:24px;margin-bottom:4px;">🥉</div>
+              <div style="font-size:11px;font-weight:600;color:#10b981;">우수상</div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">시도교육감상 · 51팀</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text);">30만원</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px;">+ 무선이어폰</div>
+            </div>
+          </div>
+
+          <!-- 제출 체크리스트 -->
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px;">📄 제출물 체크리스트</div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+            <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;">
+              <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:700;font-size:14px;">✓</span><span>PPT 또는 PDF · 최대 <b>15장</b></span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:700;font-size:14px;">✓</span><span>교육 공공데이터 <b>1개 이상</b> 활용 (출처·라이선스 명시)</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:700;font-size:14px;">✓</span><span>AI 활용 과정 기재 (모델명·프롬프트·분석 절차)</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#10b981;font-weight:700;font-size:14px;">✓</span><span>첫 페이지에 <b>활용 데이터 정보</b> 작성</span></div>
+              <div style="height:1px;background:var(--border);"></div>
+              <div style="display:flex;gap:8px;"><span style="color:#f87171;font-weight:700;font-size:14px;">✗</span><span style="color:var(--muted);">팀명 외 학교명·개인명·지역명 기재 금지</span></div>
+              <div style="display:flex;gap:8px;"><span style="color:#f87171;font-weight:700;font-size:14px;">✗</span><span style="color:var(--muted);">과도한 애니메이션·동영상 삽입 금지</span></div>
+            </div>
+          </div>
+
+          <a href="https://www.2026edudataaicontest.com/" target="_blank" style="display:block;text-align:center;padding:13px;background:linear-gradient(135deg,#1a56db,#6C63FF);color:white;border-radius:12px;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:0.3px;">🔗 대회 공식 홈페이지 바로가기</a>
+        </div>
       </div>
 
       <!-- 심사 기준 패널 -->
@@ -2756,15 +2790,15 @@ function renderCorrMatrix(numCols, rows) {
     return r>0 ? `rgba(59,130,246,${(a*0.8+0.1).toFixed(2)})` : `rgba(239,68,68,${(a*0.8+0.1).toFixed(2)})`;
   };
   const cols = numCols.slice(0,8); // max 8 cols for readability
-  const header = `<tr><td style="width:80px;"></td>${cols.map(h=>`<th style="font-size:9px;padding:3px 2px;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);height:50px;text-overflow:ellipsis;overflow:hidden;max-width:36px;vertical-align:bottom;" title="${h}">${short(h)}</th>`).join('')}</tr>`;
+  const header = `<tr><td style="min-width:110px;"></td>${cols.map(h=>`<th style="font-size:11px;padding:4px 6px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;text-align:center;vertical-align:bottom;border-bottom:1px solid var(--border2);" title="${h}">${short(h)}</th>`).join('')}</tr>`;
   const body = cols.map(h1=>`<tr>
-    <td style="font-size:9px;color:var(--muted);padding:3px 6px 3px 0;text-align:right;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${h1}">${short(h1)}</td>
-    ${cols.map(h2=>{const r=pearsonR(h1,h2,rows);const bg=color(r);const tc=r!==null&&Math.abs(r)>0.55?'white':'var(--text)';return `<td style="background:${bg};width:34px;height:26px;font-size:9px;text-align:center;border:1px solid var(--border);color:${tc};">${r!==null?r:'-'}</td>`;}).join('')}
+    <td style="font-size:11px;color:var(--muted);padding:4px 8px 4px 0;text-align:right;min-width:110px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-right:1px solid var(--border2);" title="${h1}">${short(h1)}</td>
+    ${cols.map(h2=>{const r=pearsonR(h1,h2,rows);const bg=color(r);const tc=r!==null&&Math.abs(r)>0.55?'white':'var(--text)';return `<td style="background:${bg};min-width:54px;height:38px;font-size:12px;font-weight:600;text-align:center;border:1px solid var(--border);color:${tc};">${r!==null?r:'-'}</td>`;}).join('')}
   </tr>`).join('');
   return `<div style="margin-top:14px;">
     <div style="font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:4px;">🔵 상관계수 행렬 (수치형 ${cols.length}개 컬럼)</div>
     <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">파란색=양의 상관관계, 빨간색=음의 상관관계 (진할수록 강함)</div>
-    <div style="overflow-x:auto;"><table style="border-collapse:collapse;">${header}${body}</table></div>
+    <div style="overflow-x:auto;"><table style="border-collapse:collapse;min-width:max-content;">${header}${body}</table></div>
   </div>`;
 }
 
