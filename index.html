@@ -1270,6 +1270,7 @@ let currentModel = 'gpt';
 let messages = [];
 let histories = [];
 let currentLesson = 0;
+const lessonMsgStore = {}; // 차시별 대화 기록 보존
 let uploadedFileContent = null;
 let lesson4Data = null;
 let scaffoldingMode = false;
@@ -1322,33 +1323,20 @@ STEP12 최종 문제 정의문 확정
     title: '4차시 · 데이터 탐색 및 검증',
     bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
     activityUrl: null,
-    system: `당신은 한영외고 2학년 공공교육데이터 AI활용대회 4차시 수업을 돕는 AI 튜터입니다.
-오늘 수업은 경기여고 데이터 과학 워크북 기반으로 STEP 1~6을 진행합니다.
+    system: `당신은 한영외고 2학년 데이터 과학 수업 AI 도우미입니다.
+데이터 분석 결과가 이미 시각화로 보여진 상태입니다.
 
-[핵심 규칙 - 절대 준수]
-- '찾아줘/써줘/알려줘' 요청에는 바로 답하지 말고 "어떻게 생각해?" 로 돌려보내세요
-- 한 번에 질문 하나만, 항상 질문으로 마무리하세요
-- 틀려도 바로 정정 금지 — "왜 그렇게 생각했어?" 로 사고 유도
-- 답변은 2~3문장 이내로 간결하게, 반드시 질문으로 마무리
+[응답 방식]
+- 파일 업로드 직후: 데이터의 핵심 특징 2~3줄 설명 + 상관계수/결측치에서 눈에 띄는 점 1가지 언급 + 마지막에 질문 1개만
+- 학생 질문에는 먼저 핵심만 2~3문장으로 답하고, 마지막에 생각을 발전시키는 질문 1개
+- 결측치 처리법, 상관관계 해석, AI 서비스 아이디어 등은 구체적 내용으로 바로 답해줘도 됨
+- 단, 아이디어 도출(STEP 4, 5)에서는 스스로 생각하게 유도
 
-[파일 업로드 직후 - STEP 1]
-데이터의 기본 정보(행수·컬럼명·결측치 여부) 2문장으로만 소개 후 즉시 질문:
-"업로드 전에 예측했던 것과 비교하면 어떤 점이 달랐어? 가장 놀란 점은?"
-
-[STEP 2 - 결측치]
-"어떤 컬럼에 빈 값이 있어? 왜 이 값이 비어있을 것 같아? 어떻게 처리하면 좋을까?"
-
-[STEP 3 - 상관관계]
-"A 컬럼이 높을 때 B 컬럼은 어떻게 변해? 차트 그리기 전에 먼저 예측해봐"
-
-[STEP 4 - 아이디어]
-"이 패턴을 발견했다면, 누가 가장 도움받을 것 같아? 어떤 AI 서비스가 이 문제를 해결할 수 있을까?"
-
-[STEP 5 - 서비스 설계]
-입력→AI처리→출력→사용자 구조로 안내: "AI가 어떤 데이터를 받아서 무엇을 하고 누구에게 결과를 주는지 한 문장으로 말해봐"
-
-[STEP 6 - 자기반성]
-"오늘 AI 없이 내가 직접 한 것은 무엇이야? AI가 어떤 질문으로 생각을 바꿔줬어?"`,
+[데이터 분석 흐름 안내]
+STEP 1→ 결측치 확인 및 처리 방향 토의
+STEP 2→ 상관계수에서 의미있는 변수 쌍 찾기
+STEP 3→ 발견한 패턴으로 AI 서비스 아이디어 도출
+STEP 4→ 입력→처리→출력→사용자 구조 설계`,
     welcome: `안녕하세요! 4차시 **"데이터 탐색 및 검증"** 수업이에요 🔍\n\n오늘 목표:\n① 공공데이터 포털에서 데이터 다운로드\n② CSV/XLSX 파일 업로드 및 구조 파악\n③ AI 활용 아이디어 도출\n\n왼쪽 패널에서 파일을 업로드해보세요!`,
     isDataLesson: true
   }
@@ -1617,7 +1605,50 @@ async function renderTeamGrid() {
 }
 
 // ── Lesson ──
+// ── Lesson state save/restore ──
+function saveLessonState(idx) {
+  if (!currentTeam) return;
+  if (idx === 2) {
+    const l4html = document.getElementById('l4-messages')?.innerHTML || '';
+    const active = document.getElementById('l4-input-wrap')?.style.display !== 'none';
+    lessonMsgStore[2] = { l4msgs: [...l4Messages], l4html, active };
+  } else if (idx === 0 || idx === 1) {
+    lessonMsgStore[idx] = { msgs: [...messages] };
+    try { sessionStorage.setItem(`lmsgs_${currentTeam}_${idx}`, JSON.stringify(messages)); } catch(e) {}
+  }
+}
+
+function restoreLessonState(idx) {
+  let store = lessonMsgStore[idx];
+  if (!store && currentTeam) {
+    try {
+      const s = sessionStorage.getItem(`lmsgs_${currentTeam}_${idx}`);
+      if (s) store = { msgs: JSON.parse(s) };
+    } catch(e) {}
+  }
+  if (!store) return false;
+  if (idx === 2) {
+    l4Messages = [...(store.l4msgs || [])];
+    if (store.active) {
+      document.getElementById('l4-welcome').style.display = 'none';
+      const md = document.getElementById('l4-messages');
+      md.style.display = 'flex'; md.innerHTML = store.l4html || '';
+      document.getElementById('l4-input-wrap').style.display = 'block';
+    }
+    return !!store.active;
+  } else {
+    const msgs = store.msgs || [];
+    if (!msgs.length) return false;
+    messages = [...msgs];
+    const msgDiv = document.getElementById('messages');
+    msgDiv.innerHTML = '';
+    messages.forEach(m => addBubble(m.role === 'user' ? 'user' : 'ai', m.content, m.role === 'assistant'));
+    return true;
+  }
+}
+
 function setLesson(idx, btn) {
+  saveLessonState(currentLesson);
   currentLesson = Math.min(idx, lessons.length - 1);
   document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -1682,6 +1713,7 @@ function setLesson(idx, btn) {
     msgArea.style.display = 'none';
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
+    restoreLessonState(2);
   } else {
     msgArea.style.display = 'flex';
     if (inputWrap) inputWrap.style.display = 'block';
@@ -1703,11 +1735,13 @@ function setLesson(idx, btn) {
     messages = [];
     const msgDiv = document.getElementById('messages');
     msgDiv.innerHTML = '';
-    const welcome = document.createElement('div');
-    welcome.className = 'welcome';
-    welcome.innerHTML = `<h2>${idx===0?'무엇을 도와드릴까요?':lesson.title}</h2>
-      <p style="white-space:pre-line;text-align:left;max-width:500px;margin:0 auto;">${lesson.welcome}</p>`;
-    msgDiv.appendChild(welcome);
+    if (!restoreLessonState(idx)) {
+      const welcome = document.createElement('div');
+      welcome.className = 'welcome';
+      welcome.innerHTML = `<h2>${idx===0?'무엇을 도와드릴까요?':lesson.title}</h2>
+        <p style="white-space:pre-line;text-align:left;max-width:500px;margin:0 auto;">${lesson.welcome}</p>`;
+      msgDiv.appendChild(welcome);
+    }
 
     // 스캐폴딩 모드: 수업 차시(1,2)는 기본 ON, 자유 대화(0)는 OFF
     if (idx === 0) {
@@ -1907,6 +1941,8 @@ async function sendMessage() {
   copyBtn.textContent = '📋 복사';
   colDiv.appendChild(copyBtn);
   msgDiv.scrollTop = 99999;
+  // 차시별 대화 세션 저장
+  try { sessionStorage.setItem(`lmsgs_${currentTeam}_${currentLesson}`, JSON.stringify(messages)); } catch(e) {}
 }
 
 async function callAI(model, msgs) {
@@ -2029,42 +2065,118 @@ function renderLesson4Stats(headers, rows, isXLSX) {
     <tbody>${rows.slice(0,5).map(r=>`<tr>${headers.map(h=>`<td style="padding:3px 8px;border:1px solid var(--border);font-size:10px;color:var(--muted);white-space:nowrap;">${r[h]??''}</td>`).join('')}</tr>`).join('')}</tbody>`;
 }
 
+// ── 상관계수 계산 ──
+function pearsonR(h1, h2, rows) {
+  const pairs = rows.map(r=>[parseFloat(r[h1]),parseFloat(r[h2])]).filter(([a,b])=>!isNaN(a)&&!isNaN(b));
+  if (pairs.length < 3) return null;
+  const n=pairs.length, xs=pairs.map(p=>p[0]), ys=pairs.map(p=>p[1]);
+  const mx=xs.reduce((a,b)=>a+b)/n, my=ys.reduce((a,b)=>a+b)/n;
+  const num=pairs.reduce((a,[x,y])=>a+(x-mx)*(y-my),0);
+  const den=Math.sqrt(xs.reduce((a,x)=>a+(x-mx)**2,0))*Math.sqrt(ys.reduce((a,y)=>a+(y-my)**2,0));
+  return den===0 ? null : +(num/den).toFixed(2);
+}
+
+function renderMissingChart(headers, rows) {
+  const total = rows.length;
+  const missingData = headers.map(h => {
+    const m = rows.filter(r=>r[h]===''||r[h]===null||r[h]===undefined).length;
+    return { h, m, pct: total>0 ? m/total*100 : 0 };
+  }).filter(d=>d.m>0);
+  if (!missingData.length) return '<div style="font-size:12px;color:#10b981;padding:8px 0;">✅ 결측치 없음 — 모든 컬럼 완전한 데이터</div>';
+  const maxPct = Math.max(...missingData.map(d=>d.pct));
+  return `<div style="margin-top:10px;">
+    <div style="font-size:11px;font-weight:600;color:#f87171;margin-bottom:8px;">📊 결측치 분포 (${missingData.length}개 컬럼에 빈 값 있음)</div>
+    ${missingData.map(d=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+      <div style="width:90px;font-size:10px;color:var(--muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${d.h}">${d.h}</div>
+      <div style="flex:1;background:var(--surface2);border-radius:3px;height:14px;">
+        <div style="width:${(d.pct/maxPct*100).toFixed(1)}%;height:100%;background:rgba(239,68,68,0.65);border-radius:3px;"></div>
+      </div>
+      <div style="font-size:10px;color:#f87171;width:38px;">${d.pct.toFixed(1)}% (${d.m}건)</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderCorrMatrix(numCols, rows) {
+  if (numCols.length < 2) return '';
+  const short = h => h.length>7 ? h.slice(0,7)+'…' : h;
+  const color = r => {
+    if (r===null) return 'var(--surface2)';
+    const a=Math.abs(r);
+    return r>0 ? `rgba(59,130,246,${(a*0.8+0.1).toFixed(2)})` : `rgba(239,68,68,${(a*0.8+0.1).toFixed(2)})`;
+  };
+  const cols = numCols.slice(0,8); // max 8 cols for readability
+  const header = `<tr><td style="width:80px;"></td>${cols.map(h=>`<th style="font-size:9px;padding:3px 2px;color:var(--muted);writing-mode:vertical-rl;transform:rotate(180deg);height:50px;text-overflow:ellipsis;overflow:hidden;max-width:36px;vertical-align:bottom;" title="${h}">${short(h)}</th>`).join('')}</tr>`;
+  const body = cols.map(h1=>`<tr>
+    <td style="font-size:9px;color:var(--muted);padding:3px 6px 3px 0;text-align:right;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${h1}">${short(h1)}</td>
+    ${cols.map(h2=>{const r=pearsonR(h1,h2,rows);const bg=color(r);const tc=r!==null&&Math.abs(r)>0.55?'white':'var(--text)';return `<td style="background:${bg};width:34px;height:26px;font-size:9px;text-align:center;border:1px solid var(--border);color:${tc};">${r!==null?r:'-'}</td>`;}).join('')}
+  </tr>`).join('');
+  return `<div style="margin-top:14px;">
+    <div style="font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:4px;">🔵 상관계수 행렬 (수치형 ${cols.length}개 컬럼)</div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">파란색=양의 상관관계, 빨간색=음의 상관관계 (진할수록 강함)</div>
+    <div style="overflow-x:auto;"><table style="border-collapse:collapse;">${header}${body}</table></div>
+  </div>`;
+}
+
 async function triggerL4AutoAnalysis(filename, headers, rows, isXLSX) {
   const numCols = headers.filter(h => {
     const vals = rows.map(r=>r[h]).filter(v=>v!==''&&v!==null&&v!==undefined);
-    return vals.length>0 && vals.every(v=>!isNaN(parseFloat(v)));
+    return vals.length>2 && vals.every(v=>!isNaN(parseFloat(v)));
   });
   const strCols = headers.filter(h => !numCols.includes(h));
-  let missing=0;
-  rows.forEach(r=>headers.forEach(h=>{if(r[h]===''||r[h]===null||r[h]===undefined)missing++;}));
-  const sample = rows.slice(0,3).map(r=>headers.map(h=>String(r[h]??'').slice(0,20)).join(' | ')).join('\n');
-  const dataMsg = `[파일 업로드: ${filename}]\n형식: ${isXLSX?'XLSX':'CSV'}\n행 수: ${rows.length.toLocaleString()}행\n열 수: ${headers.length}개\n컬럼명: ${headers.join(', ')}\n숫자형 컬럼: ${numCols.join(', ')||'없음'}\n문자형 컬럼: ${strCols.join(', ')||'없음'}\n결측치 수: ${missing}\n샘플 데이터 (3행):\n${sample}`;
+  let totalMissing=0;
+  rows.forEach(r=>headers.forEach(h=>{if(r[h]===''||r[h]===null||r[h]===undefined)totalMissing++;}));
+
+  // ── 1. 즉시 시각화 카드 렌더링 ──
+  const vizBubble = addL4Bubble('ai', '', false);
+  vizBubble.innerHTML = `
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px;">📁 ${filename} 분석 완료</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;">${rows.length.toLocaleString()}</div>
+        <div style="font-size:10px;color:var(--muted);">행</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;">${headers.length}</div>
+        <div style="font-size:10px;color:var(--muted);">열(컬럼)</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;">${numCols.length}</div>
+        <div style="font-size:10px;color:var(--muted);">수치형</div>
+      </div>
+      <div style="background:${totalMissing>0?'rgba(239,68,68,0.1)':'rgba(16,185,129,0.1)'};border-radius:8px;padding:10px;text-align:center;">
+        <div style="font-size:18px;font-weight:700;color:${totalMissing>0?'#f87171':'#10b981'};">${totalMissing}</div>
+        <div style="font-size:10px;color:var(--muted);">결측치</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;"><b style="color:var(--text);">컬럼:</b> ${headers.map(h=>`<span style="padding:2px 7px;border-radius:20px;background:${numCols.includes(h)?'rgba(16,185,129,0.15)':'rgba(108,99,255,0.15)'};color:${numCols.includes(h)?'#10b981':'var(--accent2)'};margin:2px;display:inline-block;">${h}</span>`).join('')}</div>
+    ${renderMissingChart(headers, rows)}
+    ${renderCorrMatrix(numCols, rows)}
+  `;
+  document.getElementById('l4-messages').scrollTop = 99999;
+
+  // ── 2. AI 한줄 인사이트 + 하나의 질문 ──
+  const sample = rows.slice(0,3).map(r=>headers.map(h=>String(r[h]??'').slice(0,15)).join(' | ')).join('\n');
+  const dataMsg = `[데이터: ${filename}] ${rows.length}행 × ${headers.length}열. 수치형: ${numCols.join(',')||'없음'}. 결측치: ${totalMissing}건. 샘플:\n${sample}`;
   l4Messages.push({ role: 'user', content: dataMsg });
-  // Show thinking bubble
-  const thinkingRow = addL4Bubble('ai', '<span class="thinking">데이터 분석 중</span>', false);
+
+  const thinkingRow = addL4Bubble('ai', '<span class="thinking">인사이트 분석 중</span>', false);
   const system = lessons[2].system;
   let full = '';
   try {
-    full = await callAIStream(currentModel, l4Messages, system, (token, accumulated) => {
-      thinkingRow.innerHTML = renderMarkdown(accumulated);
+    full = await callAIStream(currentModel, l4Messages, system, (token, acc) => {
+      thinkingRow.innerHTML = renderMarkdown(acc);
       document.getElementById('l4-messages').scrollTop = 99999;
     });
   } catch(e) {
-    // Fallback to non-streaming
     try {
       const r = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model: currentModel, messages: l4Messages, system }) });
       const d = await r.json();
-      if (d.error) throw new Error(d.error);
-      full = d.reply;
+      full = d.reply || '';
       thinkingRow.innerHTML = renderMarkdown(full);
-    } catch(e2) {
-      thinkingRow.innerHTML = `<span style="color:var(--danger)">오류: ${e2.message}</span>`;
-      return;
-    }
+    } catch(e2) { thinkingRow.innerHTML = `<span style="color:var(--danger)">오류: ${e2.message}</span>`; return; }
   }
   l4Messages.push({ role: 'assistant', content: full });
   document.getElementById('l4-messages').scrollTop = 99999;
-  // Activate step 1
   document.querySelectorAll('.l4-step-item').forEach(el => el.classList.remove('active'));
   document.getElementById('l4-s1').classList.add('active');
 }
