@@ -1392,6 +1392,7 @@ let currentLesson = 0;
 const lessonMsgStore = {}; // 차시별 대화 기록 보존
 let uploadedFileContent = null;
 let lesson4Data = null;
+let lesson4AllData = null;
 let currentL4Step = 1;
 let v3ChartType = 'bar';
 let v3ChartInst = null;
@@ -2161,8 +2162,10 @@ async function handleLesson4File(input) {
   try {
     const allData = [];
     for (const f of files) allData.push(await parseOneFile(f));
+    lesson4AllData = allData;
     lesson4Data = allData[0];
-    renderLesson4Stats(allData[0].headers, allData[0].rows, allData[0].filename.endsWith('.xlsx')||allData[0].filename.endsWith('.xls'));
+    const f0 = allData[0];
+    renderLesson4Stats(f0.headers, f0.rows, f0.filename.endsWith('.xlsx')||f0.filename.endsWith('.xls'));
     // Show uploaded file name in view-1
     const uploadedBox = document.getElementById('l4-view-1-uploaded');
     if (uploadedBox) {
@@ -2265,9 +2268,7 @@ function renderLesson4Stats(headers, rows, isXLSX) {
   document.getElementById('lesson4-columns').innerHTML =
     `<div style="font-size:10px;color:var(--muted);margin-bottom:5px;">컬럼</div>
      <div style="display:flex;flex-wrap:wrap;gap:4px;">${headers.map(h=>`<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:${numCols.includes(h)?'rgba(16,185,129,0.15)':'rgba(108,99,255,0.15)'};color:${numCols.includes(h)?'#10b981':'var(--accent2)'};">${h}</span>`).join('')}</div>`;
-  const preview = document.getElementById('lesson4-preview');
-  preview.innerHTML = `<thead><tr>${headers.map(h=>`<th style="padding:4px 8px;background:var(--surface2);border:1px solid var(--border);font-size:10px;color:var(--accent2);white-space:nowrap;">${h}</th>`).join('')}</tr></thead>
-    <tbody>${rows.slice(0,5).map(r=>`<tr>${headers.map(h=>`<td style="padding:3px 8px;border:1px solid var(--border);font-size:10px;color:var(--muted);white-space:nowrap;">${r[h]??''}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  // preview table lives in modal (showL4Preview), not sidebar
 }
 
 // ── 상관계수 계산 ──
@@ -2520,7 +2521,7 @@ function setL4Step(n) {
     renderV3Chart();
   }
   if (n === 4 && lesson4Data && l4Messages.length === 0) {
-    triggerL4AutoAnalysis([lesson4Data]);
+    triggerL4AutoAnalysis(lesson4AllData || [lesson4Data]);
   }
 }
 
