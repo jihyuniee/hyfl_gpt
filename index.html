@@ -994,20 +994,24 @@
       <div id="lesson4-panel" style="display:none;flex:1;overflow:hidden;flex-direction:row;">
         <!-- 왼쪽: 단계 네비게이션 (좁은 사이드바) -->
         <div class="l4-sidebar" style="width:200px;">
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">데이터 분석 6단계</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">데이터 탐구 6단계</div>
           <div id="l4-steps" style="display:flex;flex-direction:column;gap:1px;">
-            <div class="l4-step-item active" id="l4-s1" onclick="setL4Step(1)"><span class="l4-step-num">1</span>데이터 수집·업로드</div>
-            <div class="l4-step-item" id="l4-s2" onclick="setL4Step(2)"><span class="l4-step-num">2</span>전처리 (결측·이상)</div>
-            <div class="l4-step-item" id="l4-s3" onclick="setL4Step(3)"><span class="l4-step-num">3</span>시각화</div>
-            <div class="l4-step-item" id="l4-s4" onclick="setL4Step(4)"><span class="l4-step-num">4</span>AI 분석·해석</div>
-            <div class="l4-step-item" id="l4-s5" onclick="setL4Step(5)"><span class="l4-step-num">5</span>AI서비스 설계</div>
-            <div class="l4-step-item" id="l4-s6" onclick="setL4Step(6)"><span class="l4-step-num">6</span>자기반성 기록</div>
+            <div class="l4-step-item active" id="l4-s1" onclick="setL4Step(1)"><span class="l4-step-num">1</span>🔍 데이터 찾기</div>
+            <div class="l4-step-item" id="l4-s2" onclick="setL4Step(2)"><span class="l4-step-num">2</span>👀 데이터 이해하기</div>
+            <div class="l4-step-item" id="l4-s3" onclick="setL4Step(3)"><span class="l4-step-num">3</span>📊 데이터 분석하기</div>
+            <div class="l4-step-item" id="l4-s4" onclick="setL4Step(4)"><span class="l4-step-num">4</span>💡 인사이트 찾기</div>
+            <div class="l4-step-item" id="l4-s5" onclick="setL4Step(5)"><span class="l4-step-num">5</span>🚀 서비스 아이디어</div>
+            <div class="l4-step-item" id="l4-s6" onclick="setL4Step(6)"><span class="l4-step-num">6</span>📝 자기 성찰 기록</div>
           </div>
           <div style="height:1px;background:var(--border);"></div>
           <!-- 파일 업로드 (항상 표시) -->
           <div id="l4-upload-box" style="border:2px dashed var(--border2);border-radius:10px;padding:12px;text-align:center;">
             <div style="font-size:20px;margin-bottom:5px;">📁</div>
-            <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5;">CSV / XLSX<br>여러 파일 동시 가능</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:6px;line-height:1.6;">공공데이터 파일 업로드<br><span style="color:var(--accent2);">CSV</span> · <span style="color:#10b981;">XLSX</span> · 여러 파일 가능</div>
+            <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;text-align:left;">
+              <div style="font-size:9px;color:var(--muted);">📄 CSV — 공공데이터포털 기본 형식</div>
+              <div style="font-size:9px;color:var(--muted);">📗 XLSX — 엑셀 파일 (학교알리미 등)</div>
+            </div>
             <label style="background:var(--accent);color:white;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:11px;font-family:'Noto Sans KR',sans-serif;display:inline-block;">
               파일 선택
               <input type="file" id="lesson4-file" accept=".csv,.xlsx,.xls" multiple style="display:none" onchange="handleLesson4File(this)">
@@ -1024,14 +1028,38 @@
         <!-- 오른쪽: 단계별 뷰 -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
 
-          <!-- ① STEP 1: 데이터 수집·업로드 (Ch.05~07) -->
+          <!-- ① STEP 1: 데이터 찾기 -->
           <div id="l4-view-1" style="flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:620px;margin:0 auto;">
-              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px;">
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;">① 데이터 수집 · 업로드</h3>
-                <span style="font-size:11px;color:var(--muted);">Part 3 · Ch.05~07</span>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                <span style="font-size:22px;">🔍</span>
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 찾기</h3>
+                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 1</span>
               </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:18px;">파일을 업로드하면 자동으로 다음 단계로 안내해드려요</p>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">우리 팀의 연구 주제에 맞는 공공데이터를 찾아 업로드해요<br>파일을 올리면 자동으로 다음 단계로 안내해드려요 ✨</p>
+
+              <!-- 탐구 질문 카드 -->
+              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(96,165,250,0.07));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+                <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;display:flex;align-items:center;gap:6px;">🧐 이 단계에서 생각해볼 질문</div>
+                <div style="display:flex;flex-direction:column;gap:7px;">
+                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                    <span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q1</span>
+                    <span>우리 팀이 탐구하려는 <b>교육 문제</b>와 가장 관련 있는 데이터는 무엇인가요?</span>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                    <span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q2</span>
+                    <span>아래 포털 중 <b>어디서</b> 데이터를 찾을 수 있나요? 직접 접속해서 검색해보세요.</span>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                    <span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q3</span>
+                    <span>다운로드한 파일이 <b>CSV</b>인가요, <b>XLSX</b>인가요? 파일을 열면 어떤 항목이 있나요?</span>
+                  </div>
+                </div>
+                <div style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(108,99,255,0.2);">
+                  <button onclick="l4QuickSend('우리 팀 주제에 맞는 공공데이터를 어디서 어떻게 찾으면 될까요? 단계별로 알려주세요.')" style="font-size:11px;padding:5px 12px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI에게 데이터 찾는 방법 물어보기 →</button>
+                </div>
+              </div>
+
               <div id="l4-view-1-uploaded" style="display:none;margin-bottom:16px;"></div>
 
               <!-- 개념 카드 -->
@@ -1098,15 +1126,39 @@
             </div>
           </div>
 
-          <!-- ② STEP 2: 전처리 -->
-          <!-- ② STEP 2: 전처리 (Ch.08) -->
+          <!-- ② STEP 2: 데이터 이해하기 -->
           <div id="l4-view-2" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:640px;margin:0 auto;">
-              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px;">
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;">② 데이터 전처리</h3>
-                <span style="font-size:11px;color:var(--muted);">Part 4 · Ch.08</span>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                <span style="font-size:22px;">👀</span>
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 이해하기</h3>
+                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 2</span>
               </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">데이터를 분석하기 좋게 정리하는 과정이에요</p>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">데이터가 어떻게 구성되어 있는지 파악하는 단계예요<br>어떤 항목이 있고, 빠진 값은 없는지 확인해봐요</p>
+
+              <!-- 탐구 질문 카드 -->
+              <div style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(96,165,250,0.06));border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+                <div style="font-size:11px;font-weight:700;color:#10b981;margin-bottom:10px;">🧐 이 단계에서 생각해볼 질문</div>
+                <div style="display:flex;flex-direction:column;gap:7px;">
+                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;">
+                    <span style="color:#10b981;font-weight:600;flex-shrink:0;">Q1</span>
+                    <span>이 데이터는 <b>무엇을 측정</b>한 것인가요? 어느 지역, 어느 기간의 데이터인가요?</span>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;">
+                    <span style="color:#10b981;font-weight:600;flex-shrink:0;">Q2</span>
+                    <span>어떤 <b>항목(열)</b>이 있나요? 수치형·범주형 중 어느 쪽인가요?</span>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;">
+                    <span style="color:#10b981;font-weight:600;flex-shrink:0;">Q3</span>
+                    <span><b>빈 칸(결측치)</b>이 많은 항목은 무엇인가요? 왜 비어있을까요?</span>
+                  </div>
+                </div>
+                <div style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(16,185,129,0.2);display:flex;gap:6px;flex-wrap:wrap;">
+                  <button onclick="l4QuickSend('업로드한 데이터의 각 열(컬럼)이 무엇을 의미하는지 쉽게 설명해줘')" style="font-size:11px;padding:5px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">열 설명 보기</button>
+                  <button onclick="l4QuickSend('이 데이터에서 비교하면 의미 있는 기준(컬럼)은 무엇인지 추천해줘')" style="font-size:11px;padding:5px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">비교 기준 추천</button>
+                  <button onclick="l4QuickSend('이 데이터에 이상한 값이나 주의해야 할 점이 있으면 알려줘')" style="font-size:11px;padding:5px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">이상값 확인</button>
+                </div>
+              </div>
 
               <!-- 개념 카드 -->
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
@@ -1148,18 +1200,29 @@ df.describe()            # 기본 통계 (이상값 확인용)</code>
 
               <!-- 자동 분석 결과 -->
               <div id="l4-preprocess-content"></div>
-              <button class="l4-next-btn" onclick="setL4Step(3)">다음 단계: 시각화 →</button>
+              <button class="l4-next-btn" onclick="setL4Step(3)">다음 단계: 📊 데이터 분석하기 →</button>
             </div>
           </div>
 
           <!-- ③ STEP 3: 시각화 (Ch.09~13) -->
           <div id="l4-view-3" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:720px;margin:0 auto;">
-              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px;">
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;">③ 데이터 시각화</h3>
-                <span style="font-size:11px;color:var(--muted);">Part 5 · Ch.09~13</span>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                <span style="font-size:22px;">📊</span>
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 분석하기</h3>
+                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 3</span>
               </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">숫자를 그래프로 바꾸면 패턴이 눈에 바로 보여요</p>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.7;">그래프로 그려보면 숫자에서 안 보이던 패턴이 눈에 보여요</p>
+
+              <!-- 탐구 질문 카드 -->
+              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.06),rgba(108,99,255,0.06));border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:12px 16px;margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:8px;">🧐 그래프를 보며 생각해볼 질문</div>
+                <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                  <div style="font-size:11px;color:var(--text);"><span style="color:#f59e0b;font-weight:600;">Q1</span> 어떤 <b>차이</b>가 보이나요?</div>
+                  <div style="font-size:11px;color:var(--text);"><span style="color:#f59e0b;font-weight:600;">Q2</span> 어떤 <b>변화·경향</b>이 있나요?</div>
+                  <div style="font-size:11px;color:var(--text);"><span style="color:#f59e0b;font-weight:600;">Q3</span> 가장 <b>눈에 띄는</b> 부분은?</div>
+                </div>
+              </div>
 
               <!-- 탭 네비게이션 -->
               <div style="display:flex;gap:2px;margin-bottom:16px;background:var(--surface2);border-radius:10px;padding:3px;">
@@ -1278,49 +1341,67 @@ df.describe()            # 기본 통계 (이상값 확인용)</code>
                 <div id="v3-desc-stats"></div>
               </div>
 
-              <button class="l4-next-btn" onclick="setL4Step(4)" style="margin-top:16px;">다음 단계: AI 분석·해석 →</button>
+              <button class="l4-next-btn" onclick="setL4Step(4)" style="margin-top:16px;">다음 단계: 💡 인사이트 찾기 →</button>
             </div>
           </div>
 
-          <!-- ④ STEP 4: AI 분석·해석 (Ch.14~15) -->
+          <!-- ④ STEP 4: 인사이트 찾기 -->
           <div id="l4-view-4" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
-            <div style="padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
-              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px;">
-                <div style="font-size:13px;font-weight:600;">④ 분석 · 해석 · 결론 작성</div>
-                <span style="font-size:10px;color:var(--muted);">Part 6 · Ch.14~15</span>
+            <div style="padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span style="font-size:18px;">💡</span>
+                <div style="font-size:14px;font-weight:700;">인사이트 찾기</div>
+                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 4</span>
               </div>
-              <!-- 해석 체크리스트 -->
-              <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <span style="font-size:10px;padding:3px 9px;background:rgba(108,99,255,0.1);border-radius:20px;color:var(--accent2);">📌 Ch.14 가장 높은/낮은 값은?</span>
-                <span style="font-size:10px;padding:3px 9px;background:rgba(16,185,129,0.1);border-radius:20px;color:#10b981;">📌 뚜렷한 패턴·경향은?</span>
-                <span style="font-size:10px;padding:3px 9px;background:rgba(245,158,11,0.1);border-radius:20px;color:#f59e0b;">📌 집단 간 차이가 있다면?</span>
+              <!-- 탐구 질문 + 빠른 실행 -->
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                <span style="font-size:10px;color:var(--muted);margin-right:2px;">생각해볼 것:</span>
+                <span style="font-size:10px;padding:3px 9px;background:rgba(108,99,255,0.1);border-radius:20px;color:var(--accent2);">이 데이터의 핵심 메시지는?</span>
+                <span style="font-size:10px;padding:3px 9px;background:rgba(16,185,129,0.1);border-radius:20px;color:#10b981;">어떤 교육 문제가 드러나나?</span>
+                <span style="font-size:10px;padding:3px 9px;background:rgba(245,158,11,0.1);border-radius:20px;color:#f59e0b;">왜 이런 결과가 나왔을까?</span>
                 <span style="font-size:10px;padding:3px 9px;background:rgba(239,68,68,0.1);border-radius:20px;color:#f87171;">⚠️ 상관관계 ≠ 인과관계</span>
-                <span style="font-size:10px;padding:3px 9px;background:rgba(96,165,250,0.1);border-radius:20px;color:#60a5fa;">📌 Ch.15 한계점은?</span>
               </div>
             </div>
             <div id="l4-messages" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;"></div>
             <div id="l4-input-wrap" style="padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;">
               <div id="l4-input-inner" style="display:flex;gap:8px;align-items:flex-end;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:8px 12px;">
-                <textarea id="l4-input" placeholder="교차분석·상관분석·시각화·발표자료·AI서비스 아이디어 — 무엇이든 물어보세요 (Shift+Enter 줄바꿈)" rows="1" style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;resize:none;line-height:1.6;max-height:100px;min-height:24px;" onkeydown="handleL4Key(event)" oninput="autoResize(this)"></textarea>
+                <textarea id="l4-input" placeholder="데이터에서 뭘 발견했는지, 어떤 게 궁금한지 물어보세요 — AI가 같이 생각해드려요 (Shift+Enter 줄바꿈)" rows="1" style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;resize:none;line-height:1.6;max-height:100px;min-height:24px;" onkeydown="handleL4Key(event)" oninput="autoResize(this)"></textarea>
                 <button onclick="sendL4Message()" style="width:32px;height:32px;border-radius:8px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
                 </button>
               </div>
               <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-                <button onclick="l4QuickSend('교차분석해줘')" style="font-size:11px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">교차분석</button>
-                <button onclick="l4QuickSend('상관분석해줘')" style="font-size:11px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">상관분석</button>
-                <button onclick="l4QuickSend('발표자료 문장 작성해줘')" style="font-size:11px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">발표자료</button>
-                <button onclick="l4QuickSend('AI 서비스 아이디어 도출해줘')" style="font-size:11px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">AI 서비스 아이디어</button>
-                <button onclick="setL4Step(5)" style="font-size:11px;padding:4px 10px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">→ 서비스 설계</button>
+                <button onclick="l4QuickSend('이 데이터의 핵심 인사이트를 3가지로 요약해줘. 각각 한 문장으로 써줘.')" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 인사이트 요약</button>
+                <button onclick="l4QuickSend('데이터에서 집단 간 차이가 있는지 비교 분석해줘')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">집단 비교 분석</button>
+                <button onclick="l4QuickSend('두 항목 사이에 관련성(상관관계)이 있는지 분석해줘')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">연관성 분석</button>
+                <button onclick="l4QuickSend('이 데이터를 바탕으로 발표에 쓸 수 있는 문장을 초안으로 작성해줘. 번호를 붙여서 써줘.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">발표문 초안</button>
+                <button onclick="setL4Step(5)" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚀 서비스 아이디어 연결 →</button>
               </div>
             </div>
           </div>
 
-          <!-- ⑤ STEP 5: AI서비스 설계 -->
+          <!-- ⑤ STEP 5: 서비스 아이디어 연결 -->
           <div id="l4-view-5" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
-            <div style="max-width:580px;margin:0 auto;">
-              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin-bottom:4px;">⑤ AI 서비스 설계</h3>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:18px;">데이터 분석에서 발견한 패턴을 바탕으로 AI 서비스 구조를 설계하세요</p>
+            <div style="max-width:600px;margin:0 auto;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                <span style="font-size:22px;">🚀</span>
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">서비스 아이디어 연결</h3>
+                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 5</span>
+              </div>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">데이터에서 발견한 문제를 해결할 AI 서비스를 구상해볼게요</p>
+
+              <!-- 탐구 질문 카드 -->
+              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.07),rgba(96,165,250,0.07));border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:12px 16px;margin-bottom:16px;">
+                <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:8px;">🧐 이 단계에서 생각해볼 질문</div>
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:#f59e0b;font-weight:600;flex-shrink:0;">Q1</span><span>데이터가 보여준 <b>문제</b>를 해결하려면 어떤 서비스가 필요할까요?</span></div>
+                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:#f59e0b;font-weight:600;flex-shrink:0;">Q2</span><span>누가, 언제, 어떻게 사용할까요? <b>사용자</b>를 구체적으로 그려보세요.</span></div>
+                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:#f59e0b;font-weight:600;flex-shrink:0;">Q3</span><span>이 서비스가 실제로 만들어지면 <b>어떤 변화</b>가 생길까요?</span></div>
+                </div>
+                <div style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(245,158,11,0.25);">
+                  <button onclick="l4QuickSend('우리가 발견한 교육 문제를 해결하는 AI 서비스 아이디어를 3가지 제안해줘. 각각 서비스명, 대상, 기능을 포함해서.')" style="font-size:11px;padding:5px 12px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:20px;color:#f59e0b;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💡 AI가 서비스 아이디어 제안해줘</button>
+                </div>
+              </div>
               <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
                 <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
                   <div style="font-size:11px;color:var(--accent2);margin-bottom:5px;">📥 입력 데이터 — AI가 무엇을 받나요?</div>
@@ -1339,26 +1420,55 @@ df.describe()            # 기본 통계 (이상값 확인용)</code>
                   <textarea id="l4-svc-user" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;min-height:36px;line-height:1.7;" placeholder="예) 건강을 신경 쓰는 고등학생" oninput="autoResize(this)"></textarea>
                 </div>
               </div>
-              <button onclick="l4ValidateService()" style="width:100%;padding:10px;background:rgba(108,99,255,0.15);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:10px;">🤖 AI에게 이 설계 검증 받기</button>
-              <button class="l4-next-btn" onclick="setL4Step(6)">다음 단계: 자기반성 기록 →</button>
+              <button onclick="l4ValidateService()" style="width:100%;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:10px;">🤖 AI에게 우리 아이디어 피드백 받기</button>
+              <button class="l4-next-btn" onclick="setL4Step(6)">다음 단계: 📝 자기 성찰 기록 →</button>
             </div>
           </div>
 
-          <!-- ⑥ STEP 6: 자기반성 -->
+          <!-- ⑥ STEP 6: 자기 성찰 기록 -->
           <div id="l4-view-6" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
-            <div style="max-width:540px;margin:0 auto;text-align:center;">
-              <div style="font-size:36px;margin-bottom:12px;">🪞</div>
-              <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin-bottom:8px;">⑥ 자기반성 기록</h3>
-              <p style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.8;">오늘 AI를 어떻게 활용했는지 기록하는 단계예요<br>이 기록이 수업 평가의 20%를 차지합니다</p>
-              <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:20px;margin-bottom:20px;text-align:left;">
-                <div style="font-size:12px;color:var(--muted);line-height:2.1;">
-                  ✅ 오늘 완료한 단계를 체크하세요<br>
-                  📋 AI가 쓴 것 vs 내가 직접 쓴 것을 구분해서 기록<br>
-                  💡 AI 질문 중 내 생각을 바꿔준 순간을 적어두면 점수가 올라가요
+            <div style="max-width:560px;margin:0 auto;">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+                <span style="font-size:22px;">📝</span>
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">자기 성찰 기록</h3>
+                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 6</span>
+              </div>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.7;">오늘 우리 팀이 발견한 것들을 정리하고 솔직하게 돌아볼게요<br>이 기록은 수업 평가에 반영됩니다</p>
+
+              <!-- 탐구 질문 카드 -->
+              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(96,165,250,0.07));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+                <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;">🧐 오늘 수업을 돌아보며</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q1</span><span>오늘 우리 팀이 데이터에서 찾은 <b>핵심 발견</b>은 무엇인가요?</span></div>
+                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q2</span><span>오늘 <b>부족했던 점</b>이나 더 알고 싶은 것은 무엇인가요?</span></div>
+                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q3</span><span>다음 시간에 <b>무엇을 보완</b>해야 할까요?</span></div>
                 </div>
               </div>
-              <button onclick="setLesson(7, document.querySelector('.lesson-btn:nth-child(9)'))" style="display:block;width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
-                🪞 자기 반성 기록 탭으로 이동
+
+              <!-- 오늘의 성과 체크 -->
+              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;">
+                <div style="font-size:11px;font-weight:600;color:#10b981;margin-bottom:8px;">✅ 오늘 완료한 단계를 체크하세요</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 🔍 데이터 찾기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 👀 데이터 이해하기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 📊 데이터 분석하기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 💡 인사이트 찾기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 🚀 서비스 아이디어</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 📝 자기 성찰 기록</label>
+                </div>
+              </div>
+
+              <!-- AI 기록 구분 안내 -->
+              <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.8;">
+                📋 <b style="color:var(--text);">AI가 쓴 것 vs 내가 직접 쓴 것</b>을 구분해서 기록해두세요<br>
+                💡 AI 대화 중 <b style="color:var(--text);">내 생각이 바뀌거나 새로운 것을 발견한 순간</b>을 기억해두면 좋아요
+              </div>
+
+              <button onclick="setLesson(7, document.querySelector('.lesson-btn:nth-child(9)'))" style="display:block;width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:10px;">
+                📝 자기 성찰 기록 탭으로 이동 →
+              </button>
+              <button onclick="l4QuickSend('오늘 우리 팀의 데이터 분석 과정을 짧게 정리해줘. 우리가 발견한 것과 앞으로 보완할 점을 포함해서.')" style="display:block;width:100%;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+                💬 AI와 오늘 수업 회고 정리하기
               </button>
             </div>
           </div>
