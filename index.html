@@ -1008,13 +1008,14 @@
           <div id="l4-upload-box" style="border:2px dashed var(--border2);border-radius:10px;padding:12px;text-align:center;">
             <div style="font-size:20px;margin-bottom:5px;">📁</div>
             <div style="font-size:10px;color:var(--muted);margin-bottom:6px;line-height:1.6;">공공데이터 파일 업로드<br><span style="color:var(--accent2);">CSV</span> · <span style="color:#10b981;">XLSX</span> · 여러 파일 가능</div>
-            <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;text-align:left;">
-              <div style="font-size:9px;color:var(--muted);">📄 CSV — 공공데이터포털 기본 형식</div>
-              <div style="font-size:9px;color:var(--muted);">📗 XLSX — 엑셀 파일 (학교알리미 등)</div>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;text-align:left;">
+              <div style="font-size:9px;color:var(--muted);">📄 <b style="color:#60a5fa;">CSV</b> — 분석 추천 (공공데이터포털)</div>
+              <div style="font-size:9px;color:var(--muted);">📗 <b style="color:#10b981;">XLSX</b> — 엑셀 파일 (학교알리미)</div>
+              <div style="font-size:9px;color:var(--muted);">📋 <b style="color:#f59e0b;">JSON</b> — 고급 데이터</div>
             </div>
             <label style="background:var(--accent);color:white;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:11px;font-family:'Noto Sans KR',sans-serif;display:inline-block;">
               파일 선택
-              <input type="file" id="lesson4-file" accept=".csv,.xlsx,.xls" multiple style="display:none" onchange="handleLesson4File(this)">
+              <input type="file" id="lesson4-file" accept=".csv,.xlsx,.xls,.json" multiple style="display:none" onchange="handleLesson4File(this)">
             </label>
           </div>
           <!-- 데이터 통계 (업로드 후) -->
@@ -1061,6 +1062,43 @@
               </div>
 
               <div id="l4-view-1-uploaded" style="display:none;margin-bottom:16px;"></div>
+
+              <!-- 예시 분석 카드 (바로 시작 가능) -->
+              <div style="margin-bottom:20px;">
+                <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:5px;">
+                  ⚡ 바로 시작할 수 있는 분석 예시
+                  <span style="font-size:10px;font-weight:400;">(클릭하면 AI가 방법을 알려줘요)</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                  <div onclick="l4SampleCard('school_count')" style="cursor:pointer;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="font-size:22px;margin-bottom:6px;">🏫</div>
+                    <div style="font-size:12px;font-weight:600;margin-bottom:4px;">학교별 학생 수</div>
+                    <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">지역·학교급별 규모 비교</div>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <span style="font-size:9px;padding:2px 7px;background:rgba(108,99,255,0.1);color:var(--accent2);border-radius:20px;">막대 그래프</span>
+                      <span style="font-size:9px;padding:2px 7px;background:rgba(108,99,255,0.1);color:var(--accent2);border-radius:20px;">지역 비교</span>
+                    </div>
+                  </div>
+                  <div onclick="l4SampleCard('participation')" style="cursor:pointer;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="font-size:22px;margin-bottom:6px;">📈</div>
+                    <div style="font-size:12px;font-weight:600;margin-bottom:4px;">학년별 참여율</div>
+                    <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">연도별 변화 추이 분석</div>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <span style="font-size:9px;padding:2px 7px;background:rgba(16,185,129,0.1);color:#10b981;border-radius:20px;">선 그래프</span>
+                      <span style="font-size:9px;padding:2px 7px;background:rgba(16,185,129,0.1);color:#10b981;border-radius:20px;">시계열</span>
+                    </div>
+                  </div>
+                  <div onclick="l4SampleCard('regional')" style="cursor:pointer;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='var(--border)'">
+                    <div style="font-size:22px;margin-bottom:6px;">🗺️</div>
+                    <div style="font-size:12px;font-weight:600;margin-bottom:4px;">지역별 차이 분석</div>
+                    <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">교육 기회 격차 탐구</div>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                      <span style="font-size:9px;padding:2px 7px;background:rgba(245,158,11,0.1);color:#f59e0b;border-radius:20px;">가로막대</span>
+                      <span style="font-size:9px;padding:2px 7px;background:rgba(245,158,11,0.1);color:#f59e0b;border-radius:20px;">격차 분석</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <!-- 개념 카드 -->
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
@@ -1370,12 +1408,13 @@ df.describe()            # 기본 통계 (이상값 확인용)</code>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
                 </button>
               </div>
-              <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-                <button onclick="l4QuickSend('이 데이터의 핵심 인사이트를 3가지로 요약해줘. 각각 한 문장으로 써줘.')" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 인사이트 요약</button>
-                <button onclick="l4QuickSend('데이터에서 집단 간 차이가 있는지 비교 분석해줘')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">집단 비교 분석</button>
-                <button onclick="l4QuickSend('두 항목 사이에 관련성(상관관계)이 있는지 분석해줘')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">연관성 분석</button>
-                <button onclick="l4QuickSend('이 데이터를 바탕으로 발표에 쓸 수 있는 문장을 초안으로 작성해줘. 번호를 붙여서 써줘.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">발표문 초안</button>
-                <button onclick="setL4Step(5)" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚀 서비스 아이디어 연결 →</button>
+              <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
+                <button onclick="l4QuickSend('업로드한 데이터의 각 열(항목)이 무엇을 의미하는지 초보자도 이해할 수 있게 설명해줘')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">열 설명 보기</button>
+                <button onclick="l4QuickSend('이 데이터에서 집단 간 차이나 지역 간 격차를 비교 분석해줘. 가장 차이가 큰 항목 중심으로.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">데이터 비교하기</button>
+                <button onclick="l4QuickSend('이 데이터의 핵심 인사이트를 3가지로 요약해줘. 각각 한 문장으로 쓰고 왜 중요한지도 써줘.')" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 인사이트 찾기</button>
+                <button onclick="l4QuickSend('이 데이터가 보여주는 교육 문제를 해결할 AI 서비스 아이디어를 3가지 제안해줘. 서비스명, 대상, 주요 기능 포함.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">서비스 아이디어</button>
+                <button onclick="l4QuickSend('이 데이터 분석 결과를 발표자료에 쓸 수 있는 문장으로 작성해줘. ① 문제 제기 ② 데이터 근거 ③ 결론 순서로.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">발표자료 생성</button>
+                <button onclick="setL4Step(5)" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚀 서비스 아이디어 →</button>
               </div>
             </div>
           </div>
@@ -2822,6 +2861,14 @@ async function parseOneFile(file) {
     rows = data.slice(1).filter(r => r.some(v => v !== undefined && v !== '')).map(r => {
       const obj = {}; headers.forEach((h,i) => obj[h] = r[i] !== undefined ? r[i] : ''); return obj;
     });
+  } else if (file.name.endsWith('.json')) {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    // Support array of objects or {data:[...]} or {records:[...]}
+    const arr = Array.isArray(parsed) ? parsed : (parsed.data || parsed.records || parsed.rows || Object.values(parsed)[0] || []);
+    if (!arr.length) throw new Error('JSON에서 데이터를 찾을 수 없습니다');
+    headers = Object.keys(arr[0]);
+    rows = arr.map(r => { const obj = {}; headers.forEach(h => obj[h] = r[h] ?? ''); return obj; });
   } else {
     const text = await readFileWithEncoding(file);
     const parsed = parseCSV(text);
@@ -3507,6 +3554,31 @@ ${chartSummary}
   } catch(e) {
     box.innerHTML=`<span style="color:#f87171;">분석 오류: ${e.message}</span>`;
   }
+}
+
+// ── Step 1 예시 분석 카드 ──
+function l4SampleCard(key) {
+  const cards = {
+    school_count: {
+      prompt: '학교 기본 정보 공공데이터를 활용해서 학교별·지역별 학생 수를 비교 분석하고 싶어. 어떤 데이터를 어디서 찾아야 하고, 업로드하면 어떤 분석을 할 수 있는지 단계별로 친절하게 알려줘. 막대 그래프나 가로막대 그래프로 시각화하는 방법도 포함해줘.',
+      step: 4
+    },
+    participation: {
+      prompt: '학교별 또는 학년별 학생 참여율(동아리·방과후·체험활동 등) 데이터를 분석하고 싶어. 연도별 변화 추이와 학교 간 차이를 보려면 어떤 공공데이터를 찾아야 하고, 어떻게 분석하면 좋을지 알려줘. 선 그래프와 비교 분석 방법도 포함해줘.',
+      step: 4
+    },
+    regional: {
+      prompt: '지역별 교육 기회 격차(학교 수, 학생 수, 교원 수, 시설 수준 등)를 데이터로 분석하고 싶어. 어떤 공공데이터를 활용할 수 있고, 도시와 농촌 간 차이를 어떻게 시각화하면 좋을지 알려줘. 가로막대 그래프로 격차를 보여주는 방법도 설명해줘.',
+      step: 4
+    }
+  };
+  const c = cards[key];
+  if (!c) return;
+  setL4Step(c.step);
+  setTimeout(() => {
+    const input = document.getElementById('l4-input');
+    if (input) { input.value = c.prompt; autoResize(input); input.focus(); }
+  }, 100);
 }
 
 function l4QuickSend(text) {
