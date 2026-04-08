@@ -115,6 +115,45 @@ export default async function handler(req) {
               }
             }
           }
+        } else if (model === 'grok' || model === 'perplexity') {
+          const isGrok = model === 'grok';
+          const key = isGrok ? process.env.XAI_KEY : process.env.PERPLEXITY_KEY;
+          const baseUrl = isGrok
+            ? 'https://api.x.ai/v1/chat/completions'
+            : 'https://api.perplexity.ai/chat/completions';
+          const modelId = isGrok ? 'grok-3-mini' : 'sonar-pro';
+          const label = isGrok ? 'Grok(xAI)' : 'Perplexity';
+          if (!key) { send(`[${label} API 키가 없습니다 — Vercel 환경변수에 ${isGrok?'XAI_KEY':'PERPLEXITY_KEY'} 를 추가해주세요]`); controller.close(); return; }
+          const r = await fetch(baseUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+            body: JSON.stringify({
+              model: modelId, max_tokens: MAX, stream: true,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                ...messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content }))
+              ]
+            })
+          });
+          const reader = r.body.getReader();
+          const dec = new TextDecoder();
+          let buf = '';
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            const lines = buf.split('\n');
+            buf = lines.pop() || '';
+            for (const line of lines) {
+              if (line.startsWith('data: ') && !line.includes('[DONE]')) {
+                try {
+                  const d = JSON.parse(line.slice(6));
+                  const t = d.choices?.[0]?.delta?.content;
+                  if (t) send(t);
+                } catch {}
+              }
+            }
+          }
         } else {
           send('[지원하지 않는 모델입니다]');
         }

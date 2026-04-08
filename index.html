@@ -399,18 +399,34 @@
     font-size: 11px; flex-shrink: 0;
   }
 
-  /* ── Model Tab Buttons ── */
-  .model-tab {
-    font-size: 11px; padding: 4px 10px;
+  /* ── Model Dropdown ── */
+  .model-drop-btn {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; padding: 5px 10px 5px 9px;
     background: var(--surface2); border: 1px solid var(--border2);
-    border-radius: 7px; color: var(--muted);
+    border-radius: 9px; color: var(--text);
     cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
-    transition: all 0.15s; white-space: nowrap;
+    transition: border-color 0.15s; white-space: nowrap;
   }
-  .model-tab.active {
-    background: var(--accent); border-color: var(--accent);
-    color: white; font-weight: 500;
+  .model-drop-btn:hover { border-color: var(--accent); }
+  .model-drop-menu {
+    display: none; position: absolute; bottom: calc(100% + 6px); right: 0;
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 6px;
+    min-width: 210px; z-index: 200;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
+  .model-drop-menu.open { display: block; }
+  .model-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px;
+    cursor: pointer; transition: background 0.1s;
+  }
+  .model-option:hover { background: var(--surface2); }
+  .model-option.active { background: rgba(108,99,255,0.12); }
+  .model-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .model-option-name { font-size: 12px; font-weight: 500; flex: 1; }
+  .model-option-sub { font-size: 10px; color: var(--muted); }
 
   /* ── Scaffolding Bar ── */
   .scaffold-bar {
@@ -1466,10 +1482,35 @@
               <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="handleFileUpload(this)">
             </label>
           </div>
-          <div style="display:flex;align-items:center;gap:4px;">
-            <button onclick="setModel('gpt',this)" class="model-tab active" id="tab-gpt">GPT-4o</button>
-            <button onclick="setModel('gemini',this)" class="model-tab" id="tab-gemini">Gemini</button>
-            <button onclick="setModel('claude',this)" class="model-tab" id="tab-claude">Claude</button>
+          <div style="position:relative;" id="model-dropdown-wrap">
+            <button class="model-drop-btn" onclick="toggleModelMenu()" id="model-drop-btn">
+              <span id="model-dot-indicator" style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0;display:inline-block;"></span>
+              <span id="model-label-display">GPT-4o</span>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style="opacity:0.5;"><path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+            <div class="model-drop-menu" id="model-drop-menu">
+              <div style="font-size:10px;color:var(--muted);padding:4px 10px 6px;letter-spacing:0.3px;font-weight:600;border-bottom:1px solid var(--border);margin-bottom:4px;">AI 모델 선택</div>
+              <div class="model-option active" id="mopt-gpt" onclick="selectModel('gpt')">
+                <div class="model-dot" style="background:#10b981;"></div>
+                <div><div class="model-option-name">GPT-4o</div><div class="model-option-sub">OpenAI · 가장 범용적</div></div>
+              </div>
+              <div class="model-option" id="mopt-gemini" onclick="selectModel('gemini')">
+                <div class="model-dot" style="background:#4285F4;"></div>
+                <div><div class="model-option-name">Gemini 2.0 Flash</div><div class="model-option-sub">Google · 빠른 응답</div></div>
+              </div>
+              <div class="model-option" id="mopt-claude" onclick="selectModel('claude')">
+                <div class="model-dot" style="background:#f59e0b;"></div>
+                <div><div class="model-option-name">Claude Sonnet 4</div><div class="model-option-sub">Anthropic · 긴 문서 분석</div></div>
+              </div>
+              <div class="model-option" id="mopt-grok" onclick="selectModel('grok')">
+                <div class="model-dot" style="background:#e5e7eb;"></div>
+                <div><div class="model-option-name">Grok 3 Mini</div><div class="model-option-sub">xAI · 추론 특화</div></div>
+              </div>
+              <div class="model-option" id="mopt-perplexity" onclick="selectModel('perplexity')">
+                <div class="model-dot" style="background:#60a5fa;"></div>
+                <div><div class="model-option-name">Sonar Pro</div><div class="model-option-sub">Perplexity · 웹 검색 포함</div></div>
+              </div>
+            </div>
           </div>
         </div>
         <div id="improved-preview" style="display:none;margin-top:8px;padding:10px 14px;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:10px;font-size:13px;line-height:1.6;">
@@ -3188,11 +3229,35 @@ function parseCSV(text) {
 }
 
 // ── Model Tab ──
-function setModel(m, btn) {
+const modelMeta = {
+  gpt:        { label: 'GPT-4o',           color: '#10b981' },
+  gemini:     { label: 'Gemini 2.0 Flash', color: '#4285F4' },
+  claude:     { label: 'Claude Sonnet 4',  color: '#f59e0b' },
+  grok:       { label: 'Grok 3 Mini',      color: '#e5e7eb' },
+  perplexity: { label: 'Sonar Pro',        color: '#60a5fa' },
+};
+
+function selectModel(m) {
   currentModel = m;
-  document.querySelectorAll('.model-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  const meta = modelMeta[m] || modelMeta.gpt;
+  document.getElementById('model-label-display').textContent = meta.label;
+  document.getElementById('model-dot-indicator').style.background = meta.color;
+  document.querySelectorAll('.model-option').forEach(el => el.classList.remove('active'));
+  const opt = document.getElementById('mopt-' + m);
+  if (opt) opt.classList.add('active');
+  document.getElementById('model-drop-menu').classList.remove('open');
 }
+
+function toggleModelMenu() {
+  document.getElementById('model-drop-menu').classList.toggle('open');
+}
+// 드롭다운 외부 클릭 시 닫기
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('model-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('model-drop-menu')?.classList.remove('open');
+  }
+});
 
 // ── Scaffolding Toggle ──
 function toggleScaffold() {
