@@ -211,6 +211,12 @@ Chart.register(piePercentPlugin);
   .l4-tab.active .l4-tab-num { background:var(--accent);color:#fff; }
   .l4-tab-num { width:16px;height:16px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0; }
   .sidebar-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
+  /* ── AI 모드 토글 ── */
+  .mode-toggle-wrap { margin-bottom: 10px; }
+  .mode-toggle-label { font-size:9px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:5px;padding:0 2px;font-weight:600; }
+  .mode-toggle { display:flex;background:var(--surface2);border-radius:8px;padding:2px;gap:2px; }
+  .mode-toggle button { flex:1;padding:5px 3px;border:none;background:transparent;color:var(--muted);font-size:10px;border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all 0.15s;white-space:nowrap; }
+  .mode-toggle button.mt-active { background:var(--accent);color:#fff;font-weight:700; }
   .lesson-btn {
     display: block; width: 100%;
     text-align: left; padding: 8px 10px;
@@ -740,6 +746,14 @@ Chart.register(piePercentPlugin);
   </div>
   <div class="body-wrap">
     <div class="sidebar">
+      <!-- AI 모드 토글 -->
+      <div class="mode-toggle-wrap">
+        <div class="mode-toggle-label">🧠 AI 모드</div>
+        <div class="mode-toggle">
+          <button id="mt-free" class="mt-active" onclick="setChatMode('free')">자유 대화</button>
+          <button id="mt-project" onclick="setChatMode('project')">프로젝트 도우미</button>
+        </div>
+      </div>
       <!-- 자유 대화 -->
       <button class="lesson-btn" onclick="setLesson(0,this)" id="btn-free" style="margin-bottom:4px;">🏠 자유 대화</button>
 
@@ -1115,6 +1129,8 @@ Chart.register(piePercentPlugin);
               <input type="file" id="lesson4-file" accept=".csv,.xlsx,.xls,.json" multiple style="display:none" onchange="handleLesson4File(this)">
             </label>
           </div>
+          <!-- 헤더 행 선택 (업로드 직후) -->
+          <div id="l4-header-selector" style="display:none;"></div>
           <!-- 데이터 통계 (업로드 후) -->
           <div id="l4-stats-area" style="display:none;">
             <div id="lesson4-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;"></div>
@@ -2215,6 +2231,8 @@ let v3ChartType = 'bar';
 let v3ChartInst = null;
 let scaffoldingMode = false;
 let columnTypeOverrides = {};
+let chatMode = 'free'; // 'free' | 'project'
+let rawPendingFiles = []; // 헤더 선택 전 원시 데이터
 
 // ── Lessons ──
 // ★ 버그 수정: lessons 배열을 올바르게 정의 (3차시와 4차시 순서 수정)
@@ -2895,9 +2913,12 @@ async function sendMessage() {
   const bubble = row.querySelector('.bubble');
   const colDiv = row.querySelector('div[style]');
 
-  let systemPrompt = (lessons[currentLesson] || lessons[0]).system;
-  if (scaffoldingMode) {
-    systemPrompt += `\n\n[스캐폴딩 모드]\n학생의 메시지에 직접 답하지 마세요. 먼저 학생의 현재 생각을 물어보고, 그 답변에 따라 다음 질문으로 이끌어주세요. 힌트는 단계적으로, 항상 질문으로 마무리하세요.`;
+  let systemPrompt;
+  if (chatMode === 'free') {
+    systemPrompt = '당신은 친근하고 도움이 되는 AI 도우미입니다. 학생의 질문에 직접적이고 명확하게 답변하세요. 불필요한 되묻는 질문은 피하고, 바로 유용한 정보를 제공하세요. 한국 고등학생 눈높이에 맞게 쉽고 간결하게 설명하세요.';
+  } else {
+    systemPrompt = (lessons[currentLesson] || lessons[0]).system;
+    systemPrompt += `\n\n[프로젝트 도우미 모드]\n학생의 메시지에 직접 답 대신 단계별 질문으로 이끌어주세요. 활동지 스타일로 응답하세요. 학생 스스로 생각을 정리하도록 돕고, 항상 다음 질문이나 안내로 마무리하세요.`;
   }
 
   let full = '';
@@ -2931,9 +2952,12 @@ async function sendMessage() {
 }
 
 async function callAI(model, msgs) {
-  let systemPrompt = (lessons[currentLesson] || lessons[0]).system;
-  if (scaffoldingMode) {
-    systemPrompt += `\n\n[스캐폴딩 모드 - 추가 지침]\n학생의 메시지에 직접 답하지 마세요. 반드시 아래 순서로 응답하세요:\n1. 학생의 현재 생각/시도를 먼저 물어보세요 (아직 없으면 "어떻게 접근해봤어?")\n2. 학생이 이미 생각을 밝혔다면, 그 생각을 발전시키는 질문을 하세요\n3. 막혀있다면 작은 힌트 하나만 주고, 나머지는 스스로 생각하게 하세요\n4. 절대로 완성된 답이나 결론을 먼저 제시하지 마세요\n5. 끝에는 항상 "어떻게 생각해?" 또는 "이 부분에 대해 먼저 생각해봐" 같은 질문으로 마무리하세요`;
+  let systemPrompt;
+  if (chatMode === 'free') {
+    systemPrompt = '당신은 친근하고 도움이 되는 AI 도우미입니다. 학생의 질문에 직접적이고 명확하게 답변하세요. 불필요한 되묻는 질문은 피하고, 바로 유용한 정보를 제공하세요. 한국 고등학생 눈높이에 맞게 쉽고 간결하게 설명하세요.';
+  } else {
+    systemPrompt = (lessons[currentLesson] || lessons[0]).system;
+    systemPrompt += `\n\n[프로젝트 도우미 모드]\n학생의 메시지에 직접 답 대신 단계별 질문으로 이끌어주세요. 활동지 스타일로 응답하세요. 학생 스스로 생각을 정리하도록 돕고, 항상 다음 질문이나 안내로 마무리하세요.`;
   }
   const res = await fetch('/api/chat', {
     method: 'POST',
@@ -3035,13 +3059,118 @@ async function handleLesson4File(input) {
   const files = Array.from(input.files);
   if (!files.length) return;
   try {
-    const allData = [];
-    for (const f of files) allData.push(await parseOneFile(f));
+    rawPendingFiles = [];
+    for (const f of files) rawPendingFiles.push(await parseFileRaw(f));
+    showHeaderSelector(rawPendingFiles[0]);
+  } catch(e) {
+    alert('파일 읽기 오류: ' + e.message);
+  }
+}
+
+// ── 원시 파일 파싱 (헤더 결정 전) ──
+async function parseFileRaw(file) {
+  let rawData;
+  if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', codepage: 949 });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    rawData = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false });
+    rawData = rawData.map(row => (Array.isArray(row) ? row : []).map(v => v !== undefined ? String(v) : ''));
+  } else if (file.name.endsWith('.json')) {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const arr = Array.isArray(parsed) ? parsed : (parsed.data || parsed.records || parsed.rows || Object.values(parsed)[0] || []);
+    if (!arr.length) throw new Error('JSON에서 데이터를 찾을 수 없습니다');
+    const ks = Object.keys(arr[0]);
+    rawData = [ks, ...arr.map(r => ks.map(k => r[k] !== undefined ? String(r[k]) : ''))];
+  } else {
+    const text = await readFileWithEncoding(file);
+    rawData = text.trim().split('\n').map(line => line.split(',').map(v => v.trim().replace(/"/g,'')));
+  }
+  return { filename: file.name, rawData };
+}
+
+// ── 자동 헤더 감지 ──
+function detectHeaderRow(rawData) {
+  if (!rawData || rawData.length < 2) return 0;
+  function textRatio(row) {
+    if (!row || !row.length) return 0;
+    const filled = row.filter(v => v !== '' && v !== null && v !== undefined);
+    if (!filled.length) return 0;
+    return filled.filter(v => isNaN(parseFloat(String(v)))).length / filled.length;
+  }
+  const r0 = textRatio(rawData[0]);
+  const r1 = rawData.length > 1 ? textRatio(rawData[1]) : 0;
+  if (r0 > 0.6 && r1 > 0.6) return 'double';
+  if (r0 > 0.6) return 0;
+  if (r1 > 0.6) return 1;
+  return 0;
+}
+
+// ── 헤더 선택 UI 표시 ──
+function showHeaderSelector(rawFileObj) {
+  const { filename, rawData } = rawFileObj;
+  const autoDetect = detectHeaderRow(rawData);
+  const selector = document.getElementById('l4-header-selector');
+  if (!selector) return;
+
+  const previewRows = rawData.slice(0, 3);
+  const numCols = Math.max(...previewRows.map(r => r.length), 1);
+  let tableHtml = '<table style="width:100%;border-collapse:collapse;font-size:9px;margin:6px 0;overflow:hidden;border-radius:4px;">';
+  previewRows.forEach((row, ri) => {
+    tableHtml += `<tr>`;
+    tableHtml += `<td style="padding:2px 4px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);font-size:8px;font-weight:600;">${ri+1}행</td>`;
+    for (let ci = 0; ci < Math.min(numCols, 4); ci++) {
+      const v = row[ci] ?? '';
+      tableHtml += `<td style="padding:2px 5px;border:1px solid var(--border);max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${v}">${v}</td>`;
+    }
+    if (numCols > 4) tableHtml += `<td style="padding:2px 4px;border:1px solid var(--border);color:var(--muted);">…</td>`;
+    tableHtml += '</tr>';
+  });
+  tableHtml += '</table>';
+
+  const autoLabel = autoDetect === 'double' ? '1+2행 병합 감지' : `${autoDetect + 1}행 감지됨`;
+
+  selector.style.display = 'block';
+  selector.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:10px;margin-top:8px;">
+      <div style="font-size:10px;font-weight:700;color:var(--text);margin-bottom:4px;">📋 헤더 행 선택</div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">${filename}</div>
+      ${tableHtml}
+      <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:9px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;">
+          <input type="radio" name="hdr-row" value="0" style="accent-color:var(--accent);"> 1행을 헤더로
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;">
+          <input type="radio" name="hdr-row" value="1" style="accent-color:var(--accent);"> 2행을 헤더로
+        </label>
+        <label style="display:flex;align-items:center;gap=6px;cursor:pointer;font-size:10px;">
+          <input type="radio" name="hdr-row" value="double" style="accent-color:var(--accent);" ${autoDetect === 'double' ? 'checked' : ''}> 1+2행 병합 <span style="font-size:8px;color:var(--muted);">(예: 학교명(2024))</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;">
+          <input type="radio" name="hdr-row" value="auto" style="accent-color:var(--accent);" ${autoDetect !== 'double' ? 'checked' : ''}> 자동 감지 <span style="font-size:8px;color:var(--muted);">(${autoLabel})</span>
+        </label>
+      </div>
+      <button onclick="applyHeaderSelection()" style="width:100%;background:var(--accent);color:white;border:none;border-radius:7px;padding:7px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:600;">데이터 불러오기 →</button>
+    </div>`;
+}
+
+// ── 헤더 선택 적용 ──
+function applyHeaderSelection() {
+  const sel = document.querySelector('input[name="hdr-row"]:checked');
+  const choice = sel ? sel.value : 'auto';
+  try {
+    const allData = rawPendingFiles.map(rf => {
+      const opt = choice === 'auto' ? detectHeaderRow(rf.rawData) : (choice === '0' ? 0 : choice === '1' ? 1 : choice);
+      const { headers, rows } = rawDataToStructured(rf.rawData, opt);
+      return { filename: rf.filename, headers, rows };
+    });
+    const selector = document.getElementById('l4-header-selector');
+    if (selector) selector.style.display = 'none';
     lesson4AllData = allData;
     lesson4Data = allData[0];
     const f0 = allData[0];
-    renderLesson4Stats(f0.headers, f0.rows, f0.filename.endsWith('.xlsx')||f0.filename.endsWith('.xls'));
-    // Show uploaded file name in view-1
+    renderLesson4Stats(f0.headers, f0.rows, rawPendingFiles[0].filename.endsWith('.xlsx')||rawPendingFiles[0].filename.endsWith('.xls'));
     const uploadedBox = document.getElementById('l4-view-1-uploaded');
     if (uploadedBox) {
       uploadedBox.style.display = 'block';
@@ -3051,8 +3180,32 @@ async function handleLesson4File(input) {
     document.getElementById('l4-messages').innerHTML = '';
     setL4Step(2);
   } catch(e) {
-    alert('파일 읽기 오류: ' + e.message);
+    alert('데이터 처리 오류: ' + e.message);
   }
+}
+
+// ── 원시 배열 → 구조화 데이터 ──
+function rawDataToStructured(rawData, headerOpt) {
+  if (!rawData || !rawData.length) return { headers: [], rows: [] };
+  let headers, dataStart;
+  if (headerOpt === 'double') {
+    const row0 = rawData[0] || [];
+    const row1 = rawData[1] || [];
+    headers = row0.map((h, i) => {
+      const h0 = String(h || '').trim();
+      const h1 = String(row1[i] || '').trim();
+      return (h1 && h1 !== h0) ? `${h0}(${h1})` : h0;
+    }).filter(h => h);
+    dataStart = 2;
+  } else {
+    const ri = (headerOpt === 1 || headerOpt === '1') ? 1 : 0;
+    headers = (rawData[ri] || []).map(h => String(h || '').trim()).filter(h => h);
+    dataStart = ri + 1;
+  }
+  const rows = rawData.slice(dataStart)
+    .filter(r => r.some(v => v !== undefined && v !== null && v !== ''))
+    .map(r => { const obj = {}; headers.forEach((h, i) => obj[h] = r[i] !== undefined ? r[i] : ''); return obj; });
+  return { headers, rows };
 }
 
 // ── 데이터 전체 보기 모달 ──
@@ -4215,6 +4368,15 @@ document.addEventListener('click', e => {
     document.getElementById('model-drop-menu')?.classList.remove('open');
   }
 });
+
+// ── Chat Mode Toggle ──
+function setChatMode(mode) {
+  chatMode = mode;
+  const freeBtn = document.getElementById('mt-free');
+  const projBtn = document.getElementById('mt-project');
+  if (freeBtn) freeBtn.classList.toggle('mt-active', mode === 'free');
+  if (projBtn) projBtn.classList.toggle('mt-active', mode === 'project');
+}
 
 // ── Scaffolding Toggle ──
 function toggleScaffold() {
