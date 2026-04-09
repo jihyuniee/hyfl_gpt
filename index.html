@@ -1513,8 +1513,15 @@ Chart.register(piePercentPlugin);
                       <select id="v3-x-col" onchange="renderV3Chart()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:155px;"></select>
                     </div>
                     <div id="v3-y-wrap">
-                      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Y축 (수치)</div>
-                      <select id="v3-y-col" onchange="renderV3Chart()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:155px;"></select>
+                      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">
+                        Y축 (수치)
+                        <span style="font-size:9px;color:var(--accent2);margin-left:3px;">← 숫자 데이터만</span>
+                      </div>
+                      <select id="v3-y-col" onchange="renderV3Chart();checkYAxisWarning(this.value,'v3-y-warn')" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:155px;"></select>
+                      <div id="v3-y-warn" style="display:none;margin-top:4px;padding:5px 8px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:7px;font-size:9px;color:#f59e0b;line-height:1.5;max-width:155px;"></div>
+                      <div style="margin-top:4px;font-size:9px;color:var(--muted);line-height:1.5;max-width:155px;">
+                        💡 학생 수, 점수, 비율 같은<br>숫자를 골라야 의미 있어요
+                      </div>
                     </div>
                     <div>
                       <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">시리즈/그룹 <span style="font-size:9px;opacity:0.7;">(색상 구분)</span></div>
@@ -2135,8 +2142,16 @@ Chart.register(piePercentPlugin);
         <select id="chart-x-col" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:180px;"></select>
       </div>
       <div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Y축 (수치 · 세로)</div>
-        <select id="chart-y-col" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:180px;"></select>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">
+          Y축 (수치 · 세로)
+          <span style="font-size:9px;color:var(--accent2);margin-left:4px;">← 비교할 숫자 데이터</span>
+        </div>
+        <select id="chart-y-col" onchange="checkYAxisWarning(this.value,'chart-y-warn')" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:180px;"></select>
+        <div id="chart-y-warn" style="display:none;margin-top:5px;padding:6px 9px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:7px;font-size:10px;color:#f59e0b;line-height:1.5;"></div>
+        <div style="margin-top:5px;font-size:9px;color:var(--muted);line-height:1.6;">
+          💡 Y축엔 <b style="color:var(--text);">의미 있는 숫자</b>를 넣어야 해요<br>
+          예) 학생 수, 점수, 비율(%) — 코드·번호 ❌
+        </div>
       </div>
       <div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">차트 종류</div>
@@ -3281,6 +3296,7 @@ function lesson4Chart() {
   if (numCols.length >= 2) { xSel.value = headers[0]; ySel.value = numCols[1] || numCols[0]; }
   document.getElementById('l4-chart-modal').style.display = 'flex';
   renderL4Chart('bar');
+  checkYAxisWarning(ySel.value, 'chart-y-warn');
 }
 
 function renderL4Chart(type) {
@@ -4435,6 +4451,19 @@ document.addEventListener('click', e => {
     });
   });
 })();
+
+// ── Y축 경고: 코드/번호 컬럼 선택 시 ──
+function checkYAxisWarning(colName, warnId) {
+  const el = document.getElementById(warnId);
+  if (!el) return;
+  const bad = /코드|번호|ID|아이디|식별|일련|serial|code|index|idx/i.test(colName);
+  if (bad) {
+    el.style.display = 'block';
+    el.innerHTML = `⚠️ <b>${colName}</b>는 식별 코드예요!<br>코드 번호를 평균내면 의미가 없어요.<br>학생 수·점수·비율 같은 컬럼을 골라보세요.`;
+  } else {
+    el.style.display = 'none';
+  }
+}
 
 // ── Chat Mode Toggle ──
 function setChatMode(mode) {
