@@ -2708,7 +2708,7 @@ function saveLessonState(idx) {
     lessonMsgStore[idx] = { html: msgDiv?.innerHTML || '', msgs: [...(specialChatMsgs[panelKey] || [])] };
   } else if (idx === 0 || idx === 1) {
     lessonMsgStore[idx] = { msgs: [...messages] };
-    try { sessionStorage.setItem(`lmsgs_${currentTeam}_${idx}`, JSON.stringify(messages)); } catch(e) {}
+    try { localStorage.setItem(`lmsgs_${currentTeam}_${idx}`, JSON.stringify(messages)); } catch(e) {}
   }
 }
 
@@ -2716,7 +2716,7 @@ function restoreLessonState(idx) {
   let store = lessonMsgStore[idx];
   if (!store && currentTeam) {
     try {
-      const s = sessionStorage.getItem(`lmsgs_${currentTeam}_${idx}`);
+      const s = localStorage.getItem(`lmsgs_${currentTeam}_${idx}`);
       if (s) store = { msgs: JSON.parse(s) };
     } catch(e) {}
   }
@@ -2906,8 +2906,9 @@ function createWelcome() {
 function newChat() {
   if (messages.length > 0) {
     histories.unshift({ model: currentModel, messages: [...messages], preview: messages[0]?.content?.slice(0,30) || '대화' });
-    if (histories.length > 10) histories.pop();
+    if (histories.length > 15) histories.pop();
     renderHistory();
+    scheduleAutosave();
   }
   messages = [];
   const msgDiv = document.getElementById('messages');
@@ -2917,7 +2918,7 @@ function newChat() {
 
 function loadHistory() {
   try {
-    histories = JSON.parse(sessionStorage.getItem('chat_history_' + currentTeam) || '[]');
+    histories = JSON.parse(localStorage.getItem('chat_history_' + currentTeam) || '[]');
   } catch { histories = []; }
   renderHistory();
 }
@@ -2926,7 +2927,7 @@ function renderHistory() {
   list.innerHTML = histories.map((h, i) =>
     `<div class="history-item" onclick="loadChat(${i})">${h.preview || '대화 '+(i+1)}</div>`
   ).join('');
-  sessionStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
+  localStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
 }
 function loadChat(idx) {
   const h = histories[idx];
@@ -3068,7 +3069,7 @@ async function sendMessage() {
   colDiv.appendChild(copyBtn);
   msgDiv.scrollTop = 99999;
   // 차시별 대화 세션 저장
-  try { sessionStorage.setItem(`lmsgs_${currentTeam}_${currentLesson}`, JSON.stringify(messages)); } catch(e) {}
+  try { localStorage.setItem(`lmsgs_${currentTeam}_${currentLesson}`, JSON.stringify(messages)); } catch(e) {}
 }
 
 async function callAI(model, msgs) {
@@ -4759,6 +4760,7 @@ function collectSaveData() {
     completedSteps: [...completedProjectStepNums],
     fields,
     checks,
+    histories: histories.slice(0, 15),
     updatedAt: new Date().toISOString()
   };
 }
@@ -4827,6 +4829,14 @@ function restoreSaveData(data) {
       const el = document.getElementById(id);
       if (el) el.checked = checked;
     });
+  }
+  if (data.histories && Array.isArray(data.histories) && data.histories.length > 0) {
+    // 서버에서 복원된 기록이 로컬보다 많으면 병합 (중복 제거 없이 서버 우선)
+    if (data.histories.length > histories.length) {
+      histories = data.histories;
+      localStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
+      renderHistory();
+    }
   }
 }
 
