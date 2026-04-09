@@ -565,6 +565,25 @@ Chart.register(piePercentPlugin);
   }
   .l4-step-item.active .l4-step-num { background: rgba(108,99,255,0.3); color: var(--accent2); }
   .l4-step-item.done .l4-step-num { background: rgba(16,185,129,0.2); color: #10b981; }
+
+  /* ── 프로젝트 전체 흐름 스테퍼 ── */
+  .pf-step { display:flex; align-items:center; gap:7px; padding:3px 0; }
+  .pf-circle {
+    width:18px; height:18px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:700; flex-shrink:0; transition:all 0.2s;
+  }
+  .pf-step.pf-done .pf-circle  { background:rgba(16,185,129,0.18); color:#10b981; border:1.5px solid rgba(16,185,129,0.45); }
+  .pf-step.pf-active .pf-circle { background:var(--accent); color:#fff; box-shadow:0 0 0 3px rgba(108,99,255,0.22); }
+  .pf-step.pf-upcoming .pf-circle { background:var(--surface2); color:var(--muted); border:1.5px solid var(--border2); }
+  .pf-label { font-size:10px; line-height:1.3; }
+  .pf-step.pf-done .pf-label    { color:#10b981; }
+  .pf-step.pf-active .pf-label  { color:var(--accent2); font-weight:600; }
+  .pf-step.pf-upcoming .pf-label{ color:var(--muted); }
+  .pf-connector { width:2px; height:7px; margin-left:7px; border-radius:1px; }
+  .pf-connector.pf-done     { background:rgba(16,185,129,0.4); }
+  .pf-connector.pf-upcoming { background:rgba(255,255,255,0.07); }
+
   .l4-next-btn {
     display:block; width:100%; margin-top:20px; padding:10px;
     background:var(--accent); color:white; border:none; border-radius:10px;
@@ -1024,6 +1043,16 @@ Chart.register(piePercentPlugin);
       <div id="lesson4-panel" style="display:none;flex:1;overflow:hidden;flex-direction:row;">
         <!-- 왼쪽: 단계 네비게이션 (좁은 사이드바) -->
         <div class="l4-sidebar" style="width:200px;">
+          <!-- ══ 프로젝트 전체 흐름 ══ -->
+          <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(16,185,129,0.04));border:1px solid rgba(108,99,255,0.16);border-radius:10px;padding:10px 9px;margin-bottom:4px;">
+            <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:9px;display:flex;align-items:center;gap:5px;">
+              <span style="width:14px;height:14px;border-radius:3px;background:rgba(108,99,255,0.25);display:inline-flex;align-items:center;justify-content:center;font-size:9px;">◈</span>
+              프로젝트 전체 흐름
+            </div>
+            <div id="proj-flow-steps"></div>
+          </div>
+          <div style="height:1px;background:var(--border);margin:2px 0 6px;"></div>
+          <!-- ══ 데이터 탐구 6단계 ══ -->
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">데이터 탐구 6단계</div>
           <div id="l4-steps" style="display:flex;flex-direction:column;gap:1px;">
             <div class="l4-step-item active" id="l4-s1" onclick="setL4Step(1)"><span class="l4-step-num">1</span>🔍 데이터 찾기</div>
@@ -2575,6 +2604,7 @@ function setLesson(idx, btn) {
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
     restoreLessonState(2);
+    updateProjFlow(L4_TO_PROJ[currentL4Step] || 2);
   } else {
     msgArea.style.display = 'flex';
     if (inputWrap) inputWrap.style.display = 'block';
@@ -3233,9 +3263,39 @@ function advanceL4Step(text) {
   // Kept for compatibility but step nav is now handled by setL4Step
 }
 
+// ── 프로젝트 전체 흐름 ──
+const PROJ_STEPS = [
+  {n:1, icon:'🎯', label:'문제 정의'},
+  {n:2, icon:'🔍', label:'데이터 수집'},
+  {n:3, icon:'🧹', label:'데이터 전처리'},
+  {n:4, icon:'📊', label:'데이터 분석'},
+  {n:5, icon:'🤖', label:'AI 모델 설계'},
+  {n:6, icon:'💡', label:'인사이트 도출'},
+  {n:7, icon:'📝', label:'기획서 작성'},
+];
+const L4_TO_PROJ = {1:2, 2:3, 3:4, 4:5, 5:6, 6:7};
+
+function updateProjFlow(activeProjStep) {
+  const container = document.getElementById('proj-flow-steps');
+  if (!container) return;
+  let html = '';
+  PROJ_STEPS.forEach((s, idx) => {
+    const isDone   = s.n < activeProjStep;
+    const isActive = s.n === activeProjStep;
+    const cls = isDone ? 'pf-done' : (isActive ? 'pf-active' : 'pf-upcoming');
+    const circle = isDone ? '✓' : s.n;
+    html += `<div class="pf-step ${cls}"><div class="pf-circle">${circle}</div><div class="pf-label">${s.icon} ${s.label}</div></div>`;
+    if (idx < PROJ_STEPS.length - 1) {
+      html += `<div class="pf-connector ${isDone ? 'pf-done' : 'pf-upcoming'}"></div>`;
+    }
+  });
+  container.innerHTML = html;
+}
+
 // ── Step Navigation ──
 function setL4Step(n) {
   currentL4Step = n;
+  updateProjFlow(L4_TO_PROJ[n] || 2);
   // Update step indicators
   for (let i = 1; i <= 6; i++) {
     const el = document.getElementById('l4-s' + i);
