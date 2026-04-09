@@ -6,6 +6,36 @@
 <title>HYFL eduAI — 2026 공공교육데이터 AI활용대회</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// Inline plugin: draw % labels on pie chart slices
+const piePercentPlugin = {
+  id: 'piePercent',
+  afterDraw(chart) {
+    if (chart.config.type !== 'pie') return;
+    const { ctx } = chart;
+    const meta = chart.getDatasetMeta(0);
+    const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+    if (!total) return;
+    ctx.save();
+    ctx.font = 'bold 12px "Noto Sans KR", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    meta.data.forEach((arc, i) => {
+      const val = chart.data.datasets[0].data[i];
+      const pct = val / total * 100;
+      if (pct < 3) return;
+      const angle = (arc.startAngle + arc.endAngle) / 2;
+      const r = (arc.innerRadius + arc.outerRadius) / 2;
+      const x = arc.x + Math.cos(angle) * r;
+      const y = arc.y + Math.sin(angle) * r;
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.fillText(pct.toFixed(1) + '%', x, y);
+    });
+    ctx.restore();
+  }
+};
+Chart.register(piePercentPlugin);
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
@@ -535,6 +565,28 @@
   }
   .l4-step-item.active .l4-step-num { background: rgba(108,99,255,0.3); color: var(--accent2); }
   .l4-step-item.done .l4-step-num { background: rgba(16,185,129,0.2); color: #10b981; }
+  .l4-step-desc { font-size:9px; color:var(--muted); line-height:1.4; margin-top:1px; }
+  .l4-step-item.active .l4-step-desc { color:rgba(159,151,255,0.7); }
+  .l4-step-item.done .l4-step-desc { color:rgba(16,185,129,0.6); }
+
+  /* ── 프로젝트 전체 흐름 스테퍼 ── */
+  .pf-step { display:flex; align-items:center; gap:7px; padding:3px 0; }
+  .pf-circle {
+    width:18px; height:18px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px; font-weight:700; flex-shrink:0; transition:all 0.2s;
+  }
+  .pf-step.pf-done .pf-circle  { background:rgba(16,185,129,0.18); color:#10b981; border:1.5px solid rgba(16,185,129,0.45); }
+  .pf-step.pf-active .pf-circle { background:var(--accent); color:#fff; box-shadow:0 0 0 3px rgba(108,99,255,0.22); }
+  .pf-step.pf-upcoming .pf-circle { background:var(--surface2); color:var(--muted); border:1.5px solid var(--border2); }
+  .pf-label { font-size:10px; line-height:1.3; }
+  .pf-step.pf-done .pf-label    { color:#10b981; }
+  .pf-step.pf-active .pf-label  { color:var(--accent2); font-weight:600; }
+  .pf-step.pf-upcoming .pf-label{ color:var(--muted); }
+  .pf-connector { width:2px; height:7px; margin-left:7px; border-radius:1px; }
+  .pf-connector.pf-done     { background:rgba(16,185,129,0.4); }
+  .pf-connector.pf-upcoming { background:rgba(255,255,255,0.07); }
+
   .l4-next-btn {
     display:block; width:100%; margin-top:20px; padding:10px;
     background:var(--accent); color:white; border:none; border-radius:10px;
@@ -994,14 +1046,24 @@
       <div id="lesson4-panel" style="display:none;flex:1;overflow:hidden;flex-direction:row;">
         <!-- 왼쪽: 단계 네비게이션 (좁은 사이드바) -->
         <div class="l4-sidebar" style="width:200px;">
+          <!-- ══ 프로젝트 전체 흐름 ══ -->
+          <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(16,185,129,0.04));border:1px solid rgba(108,99,255,0.16);border-radius:10px;padding:10px 9px;margin-bottom:4px;">
+            <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:9px;display:flex;align-items:center;gap:5px;">
+              <span style="width:14px;height:14px;border-radius:3px;background:rgba(108,99,255,0.25);display:inline-flex;align-items:center;justify-content:center;font-size:9px;">◈</span>
+              프로젝트 전체 흐름
+            </div>
+            <div id="proj-flow-steps"></div>
+          </div>
+          <div style="height:1px;background:var(--border);margin:2px 0 6px;"></div>
+          <!-- ══ 데이터 탐구 6단계 ══ -->
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">데이터 탐구 6단계</div>
           <div id="l4-steps" style="display:flex;flex-direction:column;gap:1px;">
-            <div class="l4-step-item active" id="l4-s1" onclick="setL4Step(1)"><span class="l4-step-num">1</span>🔍 데이터 찾기</div>
-            <div class="l4-step-item" id="l4-s2" onclick="setL4Step(2)"><span class="l4-step-num">2</span>👀 데이터 이해하기</div>
-            <div class="l4-step-item" id="l4-s3" onclick="setL4Step(3)"><span class="l4-step-num">3</span>📊 데이터 분석하기</div>
-            <div class="l4-step-item" id="l4-s4" onclick="setL4Step(4)"><span class="l4-step-num">4</span>💡 인사이트 찾기</div>
-            <div class="l4-step-item" id="l4-s5" onclick="setL4Step(5)"><span class="l4-step-num">5</span>🚀 서비스 아이디어</div>
-            <div class="l4-step-item" id="l4-s6" onclick="setL4Step(6)"><span class="l4-step-num">6</span>📝 자기 성찰 기록</div>
+            <div class="l4-step-item active" id="l4-s1" onclick="setL4Step(1)"><span class="l4-step-num">1</span><div><div style="font-size:11px;">🔍 데이터 찾기</div><div class="l4-step-desc">문제에 맞는 데이터를 찾습니다</div></div></div>
+            <div class="l4-step-item" id="l4-s2" onclick="setL4Step(2)"><span class="l4-step-num">2</span><div><div style="font-size:11px;">👀 데이터 이해하기</div><div class="l4-step-desc">데이터 구조를 파악합니다</div></div></div>
+            <div class="l4-step-item" id="l4-s3" onclick="setL4Step(3)"><span class="l4-step-num">3</span><div><div style="font-size:11px;">📊 데이터 분석하기</div><div class="l4-step-desc">비교하고 특징을 찾습니다</div></div></div>
+            <div class="l4-step-item" id="l4-s4" onclick="setL4Step(4)"><span class="l4-step-num">4</span><div><div style="font-size:11px;">💡 인사이트 찾기</div><div class="l4-step-desc">의미 있는 결과를 발견합니다</div></div></div>
+            <div class="l4-step-item" id="l4-s5" onclick="setL4Step(5)"><span class="l4-step-num">5</span><div><div style="font-size:11px;">🚀 서비스 아이디어</div><div class="l4-step-desc">AI 서비스를 설계합니다</div></div></div>
+            <div class="l4-step-item" id="l4-s6" onclick="setL4Step(6)"><span class="l4-step-num">6</span><div><div style="font-size:11px;">📝 자기 성찰 기록</div><div class="l4-step-desc">프로젝트를 정리합니다</div></div></div>
           </div>
           <div style="height:1px;background:var(--border);"></div>
           <!-- 파일 업로드 (항상 표시) -->
@@ -1028,6 +1090,9 @@
 
         <!-- 오른쪽: 단계별 뷰 -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+
+          <!-- 현재 단계 안내 배너 -->
+          <div id="l4-step-guide-banner" style="padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;"></div>
 
           <!-- ① STEP 1: 데이터 찾기 -->
           <div id="l4-view-1" style="flex:1;overflow-y:auto;padding:24px 28px;">
@@ -1057,7 +1122,7 @@
                   </div>
                 </div>
                 <div style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(108,99,255,0.2);">
-                  <button onclick="l4QuickSend('우리 팀 주제에 맞는 공공데이터를 어디서 어떻게 찾으면 될까요? 단계별로 알려주세요.')" style="font-size:11px;padding:5px 12px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI에게 데이터 찾는 방법 물어보기 →</button>
+                  <button onclick="l4AskAndGo('우리 팀 주제에 맞는 공공데이터를 어디서 어떻게 찾으면 될까요? 단계별로 알려주세요.')" style="font-size:11px;padding:5px 12px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI에게 데이터 찾는 방법 물어보기 →</button>
                 </div>
               </div>
 
@@ -1192,49 +1257,75 @@
                   </div>
                 </div>
                 <div style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(16,185,129,0.2);display:flex;gap:6px;flex-wrap:wrap;">
-                  <button onclick="l4QuickSend('업로드한 데이터의 각 열(컬럼)이 무엇을 의미하는지 쉽게 설명해줘')" style="font-size:11px;padding:5px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">열 설명 보기</button>
-                  <button onclick="l4QuickSend('이 데이터에서 비교하면 의미 있는 기준(컬럼)은 무엇인지 추천해줘')" style="font-size:11px;padding:5px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">비교 기준 추천</button>
-                  <button onclick="l4QuickSend('이 데이터에 이상한 값이나 주의해야 할 점이 있으면 알려줘')" style="font-size:11px;padding:5px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">이상값 확인</button>
+                  <button onclick="l4AskAndGo('업로드한 데이터의 각 열(컬럼)이 무엇을 의미하는지 쉽게 설명해줘')" style="font-size:11px;padding:5px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">열 설명 보기</button>
+                  <button onclick="l4AskAndGo('이 데이터에서 비교하면 의미 있는 기준(컬럼)은 무엇인지 추천해줘')" style="font-size:11px;padding:5px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">비교 기준 추천</button>
+                  <button onclick="l4AskAndGo('이 데이터에 이상한 값이나 주의해야 할 점이 있으면 알려줘')" style="font-size:11px;padding:5px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:20px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">이상값 확인</button>
                 </div>
               </div>
 
-              <!-- 개념 카드 -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-                <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:12px;font-weight:600;color:#f87171;margin-bottom:5px;">❓ 결측치 (Missing Value)</div>
-                  <div style="font-size:11px;color:var(--muted);line-height:1.8;">빈 칸이나 기록되지 않은 값<br><b style="color:var(--text);">왜 생기나?</b> 응답 거부, 측정 오류, 데이터 누락<br><b style="color:var(--text);">처리법:</b> 제거 또는 평균값으로 대체</div>
-                </div>
-                <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:12px;font-weight:600;color:#f59e0b;margin-bottom:5px;">⚡ 이상값 (Outlier)</div>
-                  <div style="font-size:11px;color:var(--muted);line-height:1.8;">다른 값들과 크게 다른 극단값<br><b style="color:var(--text);">예)</b> 학생 수가 갑자기 999999<br><b style="color:var(--text);">판단:</b> 실수인지 실제인지 확인 필요</div>
-                </div>
-                <div style="background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:5px;">🏷️ 데이터 형식</div>
-                  <div style="font-size:11px;color:var(--muted);line-height:1.8;">숫자가 텍스트로 저장된 경우<br><b style="color:var(--text);">예)</b> "1,234" (쉼표 포함) → 계산 불가<br><b style="color:var(--text);">확인법:</b> 합계/평균 계산 시 오류 여부</div>
-                </div>
-                <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:12px;font-weight:600;color:#10b981;margin-bottom:5px;">🔄 중복 데이터</div>
-                  <div style="font-size:11px;color:var(--muted);line-height:1.8;">같은 행이 두 번 이상 입력된 경우<br><b style="color:var(--text);">원인:</b> 수동 입력 오류, 합치기 실수<br><b style="color:var(--text);">처리:</b> 중복 행 제거</div>
-                </div>
-              </div>
+              <!-- 학생 친화적 탐구 서브 단계 카드 3종 -->
+              <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
 
-              <!-- Python 참고 (접기/펼치기) -->
-              <details style="margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0;">
-                <summary style="padding:10px 14px;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);list-style:none;display:flex;align-items:center;gap:6px;">🐍 파이썬 코드로 보면? <span style="font-size:10px;">(클릭해서 보기)</span></summary>
-                <div style="padding:0 14px 12px;border-top:1px solid var(--border);">
-                  <div style="margin-top:10px;font-size:11px;color:var(--muted);line-height:2;">
-                    <code style="display:block;background:var(--surface2);border-radius:8px;padding:10px 12px;font-size:11px;color:#10b981;line-height:2;white-space:pre-wrap;">import pandas as pd
-df = pd.read_csv('data.csv')
-
-df.isnull().sum()        # 결측치 수 확인
-df.dropna()              # 결측치 행 제거
-df.fillna(df.mean())     # 평균값으로 대체
-df.drop_duplicates()     # 중복 제거
-df.describe()            # 기본 통계 (이상값 확인용)</code>
-                    <div style="margin-top:8px;font-size:10px;color:var(--muted);">💡 우리 플랫폼은 이 작업들을 자동으로 계산해서 아래 차트로 보여줍니다</div>
+                <!-- SUB-STEP 1 -->
+                <div style="background:linear-gradient(135deg,rgba(96,165,250,0.08),rgba(96,165,250,0.03));border:1px solid rgba(96,165,250,0.25);border-radius:12px;padding:14px 16px;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span style="background:#60a5fa;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;">STEP 1</span>
+                    <span style="font-size:13px;font-weight:700;color:#60a5fa;">데이터 이해하기</span>
+                  </div>
+                  <p style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.7;">데이터에는 어떤 정보가 있는지 확인합니다</p>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                      <span style="color:#60a5fa;font-weight:700;flex-shrink:0;">Q</span><span>데이터에는 어떤 <b>항목</b>이 있나요?</span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                      <span style="color:#60a5fa;font-weight:700;flex-shrink:0;">Q</span><span>비교할 수 있는 항목은 <b>무엇</b>인가요?</span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                      <span style="color:#60a5fa;font-weight:700;flex-shrink:0;">Q</span><span>어떤 점이 <b>궁금</b>한가요?</span>
+                    </div>
                   </div>
                 </div>
-              </details>
+
+                <!-- SUB-STEP 2 -->
+                <div style="background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(245,158,11,0.03));border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:14px 16px;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span style="background:#f59e0b;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;">STEP 2</span>
+                    <span style="font-size:13px;font-weight:700;color:#f59e0b;">데이터 비교하기</span>
+                  </div>
+                  <p style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.7;">데이터를 비교하면서 특징을 찾습니다</p>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                      <span style="color:#f59e0b;font-weight:700;flex-shrink:0;">Q</span><span>가장 <b>높은 값</b>은 무엇인가요?</span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                      <span style="color:#f59e0b;font-weight:700;flex-shrink:0;">Q</span><span>가장 <b>낮은 값</b>은 무엇인가요?</span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                      <span style="color:#f59e0b;font-weight:700;flex-shrink:0;">Q</span><span>차이가 <b>큰 곳</b>은 어디인가요?</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- SUB-STEP 3 -->
+                <div style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(16,185,129,0.03));border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:14px 16px;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span style="background:#10b981;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;">STEP 3</span>
+                    <span style="font-size:13px;font-weight:700;color:#10b981;">특징 찾기</span>
+                  </div>
+                  <p style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.7;">데이터에서 의미 있는 결과를 찾습니다</p>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                      <span style="color:#10b981;font-weight:700;flex-shrink:0;">Q</span><span><b>특이한 점</b>이 있나요?</span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                      <span style="color:#10b981;font-weight:700;flex-shrink:0;">Q</span><span>어떤 <b>문제</b>가 보이나요?</span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
+                      <span style="color:#10b981;font-weight:700;flex-shrink:0;">Q</span><span>어떤 <b>해결 방법</b>이 있을까요?</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <!-- 자동 분석 결과 -->
               <div id="l4-preprocess-content"></div>
@@ -1250,6 +1341,16 @@ df.describe()            # 기본 통계 (이상값 확인용)</code>
                 <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 분석하기</h3>
                 <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 3</span>
               </div>
+
+              <!-- 학생 격려 배너 -->
+              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(108,99,255,0.07));border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px 18px;margin:10px 0 14px;display:flex;align-items:flex-start;gap:12px;">
+                <span style="font-size:24px;flex-shrink:0;">💪</span>
+                <div>
+                  <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">데이터 분석은 어렵지 않습니다.</div>
+                  <div style="font-size:12px;color:var(--muted);line-height:1.7;">데이터를 <b style="color:#f59e0b;">비교</b>하고 <b style="color:var(--accent2);">특징</b>을 찾으면 됩니다.<br>아래 그래프를 직접 만들어 보세요!</div>
+                </div>
+              </div>
+
               <p style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.7;">그래프로 그려보면 숫자에서 안 보이던 패턴이 눈에 보여요</p>
 
               <!-- 탐구 질문 카드 -->
@@ -1438,7 +1539,7 @@ df.describe()            # 기본 통계 (이상값 확인용)</code>
                   <div style="display:flex;gap:8px;font-size:12px;"><span style="color:#f59e0b;font-weight:600;flex-shrink:0;">Q3</span><span>이 서비스가 실제로 만들어지면 <b>어떤 변화</b>가 생길까요?</span></div>
                 </div>
                 <div style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(245,158,11,0.25);">
-                  <button onclick="l4QuickSend('우리가 발견한 교육 문제를 해결하는 AI 서비스 아이디어를 3가지 제안해줘. 각각 서비스명, 대상, 기능을 포함해서.')" style="font-size:11px;padding:5px 12px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:20px;color:#f59e0b;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💡 AI가 서비스 아이디어 제안해줘</button>
+                  <button onclick="l4AskAndGo('우리가 발견한 교육 문제를 해결하는 AI 서비스 아이디어를 3가지 제안해줘. 각각 서비스명, 대상, 기능을 포함해서.')" style="font-size:11px;padding:5px 12px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:20px;color:#f59e0b;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💡 AI가 서비스 아이디어 제안해줘</button>
                 </div>
               </div>
               <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
@@ -1506,7 +1607,7 @@ df.describe()            # 기본 통계 (이상값 확인용)</code>
               <button onclick="setLesson(7, document.querySelector('.lesson-btn:nth-child(9)'))" style="display:block;width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:10px;">
                 📝 자기 성찰 기록 탭으로 이동 →
               </button>
-              <button onclick="l4QuickSend('오늘 우리 팀의 데이터 분석 과정을 짧게 정리해줘. 우리가 발견한 것과 앞으로 보완할 점을 포함해서.')" style="display:block;width:100%;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+              <button onclick="l4AskAndGo('오늘 우리 팀의 데이터 분석 과정을 짧게 정리해줘. 우리가 발견한 것과 앞으로 보완할 점을 포함해서.')" style="display:block;width:100%;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
                 💬 AI와 오늘 수업 회고 정리하기
               </button>
             </div>
@@ -2545,6 +2646,7 @@ function setLesson(idx, btn) {
     if (inputWrap) inputWrap.style.display = 'none';
     linksDiv.style.display = 'none';
     restoreLessonState(2);
+    updateProjFlow(currentL4Step || 1);
   } else {
     msgArea.style.display = 'flex';
     if (inputWrap) inputWrap.style.display = 'block';
@@ -3203,9 +3305,85 @@ function advanceL4Step(text) {
   // Kept for compatibility but step nav is now handled by setL4Step
 }
 
+// ── 프로젝트 전체 흐름 ──
+const PROJ_STEPS = [
+  {n:1, icon:'🎯', label:'문제 정의'},
+  {n:2, icon:'🔍', label:'데이터 수집'},
+  {n:3, icon:'🧹', label:'데이터 전처리'},
+  {n:4, icon:'📊', label:'데이터 분석'},
+  {n:5, icon:'🤖', label:'AI 모델 설계'},
+  {n:6, icon:'💡', label:'인사이트 도출'},
+  {n:7, icon:'📝', label:'기획서 작성'},
+];
+// 사용자 지정 매핑: l4탐구단계 → 프로젝트 전체 단계
+const L4_TO_PROJ = {1:2, 2:3, 3:4, 4:6, 5:5, 6:7};
+
+const L4_STEP_META = [null,
+  { title:'🔍 데이터 찾기',      phase:'② 데이터 수집',    phaseColor:'#60a5fa', desc:'문제와 관련된 공공데이터를 찾습니다', done:'문제 정의를 완료했습니다',                 next:'이제 필요한 데이터를 수집합니다' },
+  { title:'👀 데이터 이해하기',   phase:'③ 데이터 전처리',  phaseColor:'#a78bfa', desc:'데이터 구조와 내용을 파악합니다',       done:'문제 정의와 데이터 수집을 완료했습니다', next:'이제 데이터를 이해하고 정리합니다' },
+  { title:'📊 데이터 분석하기',   phase:'④ 데이터 분석',    phaseColor:'#f59e0b', desc:'데이터를 비교하고 특징을 찾습니다',     done:'데이터 수집과 전처리를 완료했습니다',    next:'이제 데이터를 시각화하고 분석합니다' },
+  { title:'💡 인사이트 찾기',     phase:'⑥ 인사이트 도출',  phaseColor:'#10b981', desc:'문제를 발견하고 해결 방향을 찾습니다', done:'데이터 분석을 완료했습니다',             next:'이제 의미 있는 인사이트를 발굴합니다' },
+  { title:'🚀 서비스 아이디어',   phase:'⑤ AI 모델 설계',   phaseColor:'#6C63FF', desc:'AI 서비스 아이디어를 설계합니다',       done:'인사이트를 도출했습니다',                next:'이제 AI 서비스를 기획합니다' },
+  { title:'📝 자기 성찰 기록',    phase:'⑦ 기획서 작성',    phaseColor:'#ec4899', desc:'프로젝트를 정리하고 기록합니다',       done:'AI 서비스 아이디어를 설계했습니다',      next:'이제 프로젝트를 정리합니다' },
+];
+
+function updateProjFlow(currentL4StepNum) {
+  const activeProjStep = L4_TO_PROJ[currentL4StepNum] || 2;
+  const doneProjSteps = new Set([1]);
+  for (let i = 1; i < currentL4StepNum; i++) {
+    if (L4_TO_PROJ[i]) doneProjSteps.add(L4_TO_PROJ[i]);
+  }
+  const container = document.getElementById('proj-flow-steps');
+  if (!container) return;
+  let html = '';
+  PROJ_STEPS.forEach((s, idx) => {
+    const isDone   = doneProjSteps.has(s.n) && s.n !== activeProjStep;
+    const isActive = s.n === activeProjStep;
+    const cls = isDone ? 'pf-done' : (isActive ? 'pf-active' : 'pf-upcoming');
+    const circle = isDone ? '✓' : s.n;
+    html += `<div class="pf-step ${cls}"><div class="pf-circle">${circle}</div><div class="pf-label">${s.icon} ${s.label}</div></div>`;
+    if (idx < PROJ_STEPS.length - 1) {
+      html += `<div class="pf-connector ${isDone ? 'pf-done' : 'pf-upcoming'}"></div>`;
+    }
+  });
+  container.innerHTML = html;
+  updateStepGuideBanner(currentL4StepNum);
+}
+
+function updateStepGuideBanner(n) {
+  const banner = document.getElementById('l4-step-guide-banner');
+  if (!banner) return;
+  const meta = L4_STEP_META[n];
+  if (!meta) return;
+  const pct = Math.round((n / 6) * 100);
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:11px;font-weight:700;color:${meta.phaseColor};background:${meta.phaseColor}22;padding:3px 10px;border-radius:20px;white-space:nowrap;">${meta.phase}</span>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);">${meta.title}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:1px;">${meta.desc}</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-align:right;">
+        <span style="color:var(--text);font-weight:600;">${n}</span> / 6 단계
+      </div>
+    </div>
+    <div style="margin-top:8px;">
+      <div style="height:4px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,${meta.phaseColor},${meta.phaseColor}aa);border-radius:4px;transition:width 0.4s ease;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--muted);">
+        <span>✓ ${meta.done}</span>
+        <span style="color:${meta.phaseColor};">${meta.next} →</span>
+      </div>
+    </div>`;
+}
+
 // ── Step Navigation ──
 function setL4Step(n) {
   currentL4Step = n;
+  updateProjFlow(n);
   // Update step indicators
   for (let i = 1; i <= 6; i++) {
     const el = document.getElementById('l4-s' + i);
@@ -3585,6 +3763,15 @@ function l4QuickSend(text) {
   const input = document.getElementById('l4-input');
   if (input) { input.value = text; input.style.height = 'auto'; }
   sendL4Message();
+}
+
+function l4AskAndGo(text) {
+  setL4Step(4);
+  setTimeout(() => {
+    const input = document.getElementById('l4-input');
+    if (input) { input.value = text; autoResize(input); }
+    sendL4Message();
+  }, 150);
 }
 
 async function l4ValidateService() {
