@@ -180,12 +180,36 @@ Chart.register(piePercentPlugin);
 
   /* ── Sidebar ── */
   .sidebar {
-    width: 200px; flex-shrink: 0;
+    width: 220px; flex-shrink: 0;
     background: var(--surface);
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column;
-    padding: 16px 12px;
+    padding: 16px 12px; overflow-y: auto;
   }
+
+  /* ── 사이드바 프로젝트 흐름 (7단계) ── */
+  .ps-row { display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;font-size:11px;transition:background 0.1s; }
+  .ps-circle { width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0; }
+  .ps-row.ps-done   { color:#10b981; }
+  .ps-row.ps-active { background:rgba(108,99,255,0.12);color:var(--accent2);font-weight:600; }
+  .ps-row.ps-upcoming { color:var(--muted); }
+  .ps-row.ps-done   .ps-circle { background:rgba(16,185,129,0.2);color:#10b981; }
+  .ps-row.ps-active .ps-circle { background:var(--accent);color:#fff; }
+  .ps-row.ps-upcoming .ps-circle { background:var(--surface2);color:var(--muted); }
+  .ps-connector { width:2px;height:6px;margin-left:14px;border-radius:1px; }
+  .ps-connector.done { background:rgba(16,185,129,0.35); }
+  .ps-connector.upcoming { background:rgba(255,255,255,0.07); }
+
+  /* ── 본문 수평 서브탭 (6단계) ── */
+  #l4-subtab-nav { display:flex;overflow-x:auto;flex-shrink:0;background:var(--surface);border-bottom:2px solid var(--border);scrollbar-width:none; }
+  #l4-subtab-nav::-webkit-scrollbar { display:none; }
+  .l4-tab { flex-shrink:0;padding:10px 14px;font-size:11px;font-family:'Noto Sans KR',sans-serif;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap;display:flex;align-items:center;gap:5px; }
+  .l4-tab:hover { background:var(--surface2);color:var(--text); }
+  .l4-tab.active { color:var(--accent2);border-bottom-color:var(--accent);font-weight:600; }
+  .l4-tab.done { color:#10b981; }
+  .l4-tab.done .l4-tab-num { background:rgba(16,185,129,0.2);color:#10b981; }
+  .l4-tab.active .l4-tab-num { background:var(--accent);color:#fff; }
+  .l4-tab-num { width:16px;height:16px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0; }
   .sidebar-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px; }
   .lesson-btn {
     display: block; width: 100%;
@@ -725,6 +749,17 @@ Chart.register(piePercentPlugin);
       <button class="lesson-btn" onclick="setLesson(1,this)">💡 주제 선정 · 문제 정의</button>
       <button class="lesson-btn" onclick="setLesson(2,this)">🔬 데이터 수집 · 분석</button>
 
+      <!-- ══ 프로젝트 전체 흐름 (7단계) ══ -->
+      <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+      <div class="sidebar-label">🗂️ 프로젝트 진행 현황</div>
+      <div id="sidebar-proj-flow">
+        <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:4px;">
+          <div id="sidebar-proj-bar" style="height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#10b981);width:14%;transition:width 0.4s;"></div>
+        </div>
+        <div id="sidebar-proj-label" style="font-size:9px;color:var(--muted);margin-bottom:6px;text-align:right;">1 / 7 완료</div>
+        <div id="sidebar-proj-steps"></div>
+      </div>
+
       <div style="height:1px;background:var(--border);margin:8px 0;"></div>
       <div class="sidebar-label">📖 개념 학습</div>
       <button class="lesson-btn" onclick="setLesson(8,this)">📂 공공데이터 탐색</button>
@@ -1063,36 +1098,12 @@ Chart.register(piePercentPlugin);
       <!-- 4차시 데이터 탐색 패널 -->
       <div id="lesson4-panel" style="display:none;flex:1;overflow:hidden;flex-direction:row;">
         <!-- 왼쪽: 단계 네비게이션 (좁은 사이드바) -->
-        <div class="l4-sidebar" style="width:200px;">
-          <!-- ══ 팀 진행률 + 프로젝트 전체 흐름 ══ -->
-          <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(16,185,129,0.04));border:1px solid rgba(108,99,255,0.16);border-radius:10px;padding:10px 9px;margin-bottom:4px;">
-            <!-- 팀 진행률 헤더 -->
-            <div id="team-progress-header" style="margin-bottom:10px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:flex;align-items:center;gap:4px;">
-                  <span style="width:14px;height:14px;border-radius:3px;background:rgba(108,99,255,0.25);display:inline-flex;align-items:center;justify-content:center;font-size:9px;">◈</span>프로젝트 흐름
-                </div>
-                <div id="save-status-badge" class=""></div>
-              </div>
-              <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;margin-bottom:4px;">
-                <div id="team-prog-bar" style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),#10b981);transition:width 0.4s ease;width:14%;"></div>
-              </div>
-              <div id="team-prog-label" style="font-size:9px;color:var(--muted);text-align:right;">1 / 7 단계</div>
-            </div>
-            <div id="proj-flow-steps"></div>
+        <div class="l4-sidebar" style="width:180px;">
+          <!-- 저장 상태 -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:10px;color:var(--muted);">📁 데이터 파일</div>
+            <div id="save-status-badge" class=""></div>
           </div>
-          <div style="height:1px;background:var(--border);margin:2px 0 6px;"></div>
-          <!-- ══ 데이터 탐구 6단계 ══ -->
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">데이터 탐구 6단계</div>
-          <div id="l4-steps" style="display:flex;flex-direction:column;gap:1px;">
-            <div class="l4-step-item active" id="l4-s1" onclick="setL4Step(1)"><span class="l4-step-num">1</span><div><div style="font-size:11px;">🔍 데이터 찾기</div><div class="l4-step-desc">문제에 맞는 데이터를 찾습니다</div></div></div>
-            <div class="l4-step-item" id="l4-s2" onclick="setL4Step(2)"><span class="l4-step-num">2</span><div><div style="font-size:11px;">👀 데이터 이해하기</div><div class="l4-step-desc">데이터 구조를 파악합니다</div></div></div>
-            <div class="l4-step-item" id="l4-s3" onclick="setL4Step(3)"><span class="l4-step-num">3</span><div><div style="font-size:11px;">📊 데이터 분석하기</div><div class="l4-step-desc">비교하고 특징을 찾습니다</div></div></div>
-            <div class="l4-step-item" id="l4-s4" onclick="setL4Step(4)"><span class="l4-step-num">4</span><div><div style="font-size:11px;">💡 인사이트 찾기</div><div class="l4-step-desc">의미 있는 결과를 발견합니다</div></div></div>
-            <div class="l4-step-item" id="l4-s5" onclick="setL4Step(5)"><span class="l4-step-num">5</span><div><div style="font-size:11px;">🚀 서비스 아이디어</div><div class="l4-step-desc">AI 서비스를 설계합니다</div></div></div>
-            <div class="l4-step-item" id="l4-s6" onclick="setL4Step(6)"><span class="l4-step-num">6</span><div><div style="font-size:11px;">📝 자기 성찰 기록</div><div class="l4-step-desc">프로젝트를 정리합니다</div></div></div>
-          </div>
-          <div style="height:1px;background:var(--border);"></div>
           <!-- 파일 업로드 (항상 표시) -->
           <div id="l4-upload-box" style="border:2px dashed var(--border2);border-radius:10px;padding:12px;text-align:center;">
             <div style="font-size:20px;margin-bottom:5px;">📁</div>
@@ -1118,8 +1129,18 @@ Chart.register(piePercentPlugin);
         <!-- 오른쪽: 단계별 뷰 -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
 
-          <!-- 현재 단계 안내 배너 (단계 제목 + 진행률만, 프로젝트 흐름은 사이드바에서) -->
-          <div id="l4-step-guide-banner" style="padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;"></div>
+          <!-- 데이터 탐구 6단계 서브탭 -->
+          <nav id="l4-subtab-nav">
+            <button class="l4-tab active" id="l4-tab-1" onclick="setL4Step(1)"><span class="l4-tab-num">1</span>🔍 데이터 찾기</button>
+            <button class="l4-tab" id="l4-tab-2" onclick="setL4Step(2)"><span class="l4-tab-num">2</span>👀 이해하기</button>
+            <button class="l4-tab" id="l4-tab-3" onclick="setL4Step(3)"><span class="l4-tab-num">3</span>📊 분석하기</button>
+            <button class="l4-tab" id="l4-tab-4" onclick="setL4Step(4)"><span class="l4-tab-num">4</span>💡 인사이트</button>
+            <button class="l4-tab" id="l4-tab-5" onclick="setL4Step(5)"><span class="l4-tab-num">5</span>🚀 아이디어</button>
+            <button class="l4-tab" id="l4-tab-6" onclick="setL4Step(6)"><span class="l4-tab-num">6</span>📝 성찰 기록</button>
+          </nav>
+
+          <!-- 현재 단계 안내 배너 (단계 제목 + 진행률) -->
+          <div id="l4-step-guide-banner" style="padding:8px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;"></div>
 
           <!-- 지난 기록 이어하기 배너 -->
           <div id="l4-resume-banner"></div>
@@ -3364,28 +3385,44 @@ function updateProjFlow(currentL4StepNum) {
   for (let i = 1; i < currentL4StepNum; i++) {
     if (L4_TO_PROJ[i]) doneProjSteps.add(L4_TO_PROJ[i]);
   }
-  const container = document.getElementById('proj-flow-steps');
-  if (!container) return;
-  let html = '';
-  PROJ_STEPS.forEach((s, idx) => {
-    const isDone   = doneProjSteps.has(s.n) && s.n !== activeProjStep;
-    const isActive = s.n === activeProjStep;
-    const cls = isDone ? 'pf-done' : (isActive ? 'pf-active' : 'pf-upcoming');
-    const circle = isDone ? '✓' : s.n;
-    html += `<div class="pf-step ${cls}"><div class="pf-circle">${circle}</div><div class="pf-label">${s.icon} ${s.label}</div></div>`;
-    if (idx < PROJ_STEPS.length - 1) {
-      html += `<div class="pf-connector ${isDone ? 'pf-done' : 'pf-upcoming'}"></div>`;
-    }
-  });
-  container.innerHTML = html;
-  updateStepGuideBanner(currentL4StepNum);
-  // 팀 진행률 바 업데이트
+
+  // ── 왼쪽 큰 사이드바의 7단계 업데이트 ──
+  const container = document.getElementById('sidebar-proj-steps');
+  if (container) {
+    let html = '';
+    PROJ_STEPS.forEach((s, idx) => {
+      const isDone   = doneProjSteps.has(s.n) && s.n !== activeProjStep;
+      const isActive = s.n === activeProjStep;
+      const cls = isDone ? 'ps-done' : (isActive ? 'ps-active' : 'ps-upcoming');
+      const circle = isDone ? '✓' : s.n;
+      html += `<div class="ps-row ${cls}"><div class="ps-circle">${circle}</div><span>${s.icon} ${s.label}</span></div>`;
+      if (idx < PROJ_STEPS.length - 1) {
+        html += `<div class="ps-connector ${isDone ? 'done' : 'upcoming'}"></div>`;
+      }
+    });
+    container.innerHTML = html;
+  }
+
+  // ── 진행률 바 업데이트 ──
   const doneCount = doneProjSteps.size;
-  const pct = Math.round(doneCount / 7 * 100);
-  const bar = document.getElementById('team-prog-bar');
-  const lbl = document.getElementById('team-prog-label');
-  if (bar) bar.style.width = Math.max(pct, 4) + '%';
-  if (lbl) lbl.textContent = `${doneCount} / 7 단계 완료`;
+  const pct = Math.max(Math.round(doneCount / 7 * 100), 4);
+  const bar = document.getElementById('sidebar-proj-bar');
+  const lbl = document.getElementById('sidebar-proj-label');
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = `${doneCount} / 7 완료`;
+
+  updateStepGuideBanner(currentL4StepNum);
+  updateL4SubTabs(currentL4StepNum);
+}
+
+function updateL4SubTabs(n) {
+  for (let i = 1; i <= 6; i++) {
+    const tab = document.getElementById('l4-tab-' + i);
+    if (!tab) continue;
+    tab.classList.remove('active', 'done');
+    if (i < n) tab.classList.add('done');
+    else if (i === n) tab.classList.add('active');
+  }
 }
 
 function updateStepGuideBanner(n) {
@@ -3414,16 +3451,8 @@ function updateStepGuideBanner(n) {
 // ── Step Navigation ──
 function setL4Step(n) {
   currentL4Step = n;
-  updateProjFlow(n);
+  updateProjFlow(n);   // updates big sidebar 7-steps + sub-tabs
   scheduleAutosave();
-  // Update step indicators
-  for (let i = 1; i <= 6; i++) {
-    const el = document.getElementById('l4-s' + i);
-    if (!el) continue;
-    el.classList.remove('active', 'done');
-    if (i < n) el.classList.add('done');
-    else if (i === n) el.classList.add('active');
-  }
   // Show the right view, hide others
   for (let i = 1; i <= 6; i++) {
     const view = document.getElementById('l4-view-' + i);
@@ -4352,12 +4381,37 @@ function collectSaveData() {
 function saveTeamProgress() {
   const key = getTeamKey();
   if (!key || !currentTeam) return;
+  const data = collectSaveData();
   try {
-    localStorage.setItem(key, JSON.stringify(collectSaveData()));
+    localStorage.setItem(key, JSON.stringify(data));
     showSaveStatus('saved');
-  } catch(e) {
-    showSaveStatus('error');
-  }
+  } catch(e) { showSaveStatus('error'); }
+  // 서버에도 비동기 저장 (실패해도 무시)
+  syncProgressToServer(data);
+}
+
+async function syncProgressToServer(data) {
+  if (!currentTeam) return;
+  try {
+    await fetch('/api/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'saveProgress', teamId: currentTeam, progress: data })
+    });
+  } catch(e) { /* silent – localStorage이 백업 */ }
+}
+
+async function loadProgressFromServer() {
+  if (!currentTeam) return null;
+  try {
+    const r = await fetch('/api/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'getProgress', teamId: currentTeam })
+    });
+    const d = await r.json();
+    return d.progress || null;
+  } catch(e) { return null; }
 }
 
 function loadTeamProgress() {
@@ -4403,8 +4457,20 @@ function showSaveStatus(state) {
   }
 }
 
-function checkForSavedProgress() {
-  const data = loadTeamProgress();
+async function checkForSavedProgress() {
+  // 로컬스토리지 먼저 확인 (빠름)
+  const local = loadTeamProgress();
+  // 서버에서도 확인 (더 최신일 수 있음)
+  const server = await loadProgressFromServer();
+  // 더 최신 데이터 선택
+  let data = local;
+  if (server && server.updatedAt) {
+    if (!local || !local.updatedAt || server.updatedAt > local.updatedAt) {
+      data = server;
+      // 서버 데이터를 로컬에도 동기화
+      try { localStorage.setItem(getTeamKey(), JSON.stringify(server)); } catch(e) {}
+    }
+  }
   if (!data || !data.updatedAt) return;
   teamProgressData = data;
   showResumeBanner(data);
