@@ -569,6 +569,24 @@ Chart.register(piePercentPlugin);
   .l4-step-item.active .l4-step-desc { color:rgba(159,151,255,0.7); }
   .l4-step-item.done .l4-step-desc { color:rgba(16,185,129,0.6); }
 
+  /* ── 저장 상태 배지 ── */
+  #save-status-badge { font-size:10px; padding:3px 8px; border-radius:10px; display:none; align-items:center; gap:4px; transition:all 0.3s; flex-shrink:0; }
+  #save-status-badge.show { display:inline-flex; }
+  .ssb-saving { background:rgba(245,158,11,0.18); color:#f59e0b; }
+  .ssb-saved  { background:rgba(16,185,129,0.14); color:#10b981; }
+  .ssb-error  { background:rgba(239,68,68,0.14);  color:#ef4444; }
+
+  /* ── 이어하기 배너 ── */
+  #l4-resume-banner {
+    display:none; padding:14px 20px; flex-shrink:0;
+    background:linear-gradient(135deg,rgba(108,99,255,0.1),rgba(16,185,129,0.06));
+    border-bottom:2px solid rgba(108,99,255,0.25);
+  }
+
+  /* ── 확인 모달 ── */
+  .hyfl-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999;display:flex;align-items:center;justify-content:center; }
+  .hyfl-modal-box { background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px 24px;max-width:360px;width:90%;text-align:center; }
+
   /* ── 프로젝트 전체 흐름 스테퍼 ── */
   .pf-step { display:flex; align-items:center; gap:7px; padding:3px 0; }
   .pf-circle {
@@ -1046,11 +1064,20 @@ Chart.register(piePercentPlugin);
       <div id="lesson4-panel" style="display:none;flex:1;overflow:hidden;flex-direction:row;">
         <!-- 왼쪽: 단계 네비게이션 (좁은 사이드바) -->
         <div class="l4-sidebar" style="width:200px;">
-          <!-- ══ 프로젝트 전체 흐름 ══ -->
+          <!-- ══ 팀 진행률 + 프로젝트 전체 흐름 ══ -->
           <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(16,185,129,0.04));border:1px solid rgba(108,99,255,0.16);border-radius:10px;padding:10px 9px;margin-bottom:4px;">
-            <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:9px;display:flex;align-items:center;gap:5px;">
-              <span style="width:14px;height:14px;border-radius:3px;background:rgba(108,99,255,0.25);display:inline-flex;align-items:center;justify-content:center;font-size:9px;">◈</span>
-              프로젝트 전체 흐름
+            <!-- 팀 진행률 헤더 -->
+            <div id="team-progress-header" style="margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;display:flex;align-items:center;gap:4px;">
+                  <span style="width:14px;height:14px;border-radius:3px;background:rgba(108,99,255,0.25);display:inline-flex;align-items:center;justify-content:center;font-size:9px;">◈</span>프로젝트 흐름
+                </div>
+                <div id="save-status-badge" class=""></div>
+              </div>
+              <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;margin-bottom:4px;">
+                <div id="team-prog-bar" style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),#10b981);transition:width 0.4s ease;width:14%;"></div>
+              </div>
+              <div id="team-prog-label" style="font-size:9px;color:var(--muted);text-align:right;">1 / 7 단계</div>
             </div>
             <div id="proj-flow-steps"></div>
           </div>
@@ -1091,8 +1118,11 @@ Chart.register(piePercentPlugin);
         <!-- 오른쪽: 단계별 뷰 -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
 
-          <!-- 현재 단계 안내 배너 -->
-          <div id="l4-step-guide-banner" style="padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;"></div>
+          <!-- 현재 단계 안내 배너 (단계 제목 + 진행률만, 프로젝트 흐름은 사이드바에서) -->
+          <div id="l4-step-guide-banner" style="padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;"></div>
+
+          <!-- 지난 기록 이어하기 배너 -->
+          <div id="l4-resume-banner"></div>
 
           <!-- ① STEP 1: 데이터 찾기 -->
           <div id="l4-view-1" style="flex:1;overflow-y:auto;padding:24px 28px;">
@@ -1589,12 +1619,12 @@ Chart.register(piePercentPlugin);
               <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;">
                 <div style="font-size:11px;font-weight:600;color:#10b981;margin-bottom:8px;">✅ 오늘 완료한 단계를 체크하세요</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 🔍 데이터 찾기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 👀 데이터 이해하기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 📊 데이터 분석하기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 💡 인사이트 찾기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 🚀 서비스 아이디어</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox"> 📝 자기 성찰 기록</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-1"> 🔍 데이터 찾기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-2"> 👀 데이터 이해하기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-3"> 📊 데이터 분석하기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-4"> 💡 인사이트 찾기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-5"> 🚀 서비스 아이디어</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-6"> 📝 자기 성찰 기록</label>
                 </div>
               </div>
 
@@ -2329,6 +2359,7 @@ async function doLogin() {
   document.getElementById('team-chip').textContent = currentTeam;
   document.getElementById('app').classList.add('visible');
   loadHistory();
+  setTimeout(checkForSavedProgress, 300);
 }
 
 // ── Register ──
@@ -3348,6 +3379,13 @@ function updateProjFlow(currentL4StepNum) {
   });
   container.innerHTML = html;
   updateStepGuideBanner(currentL4StepNum);
+  // 팀 진행률 바 업데이트
+  const doneCount = doneProjSteps.size;
+  const pct = Math.round(doneCount / 7 * 100);
+  const bar = document.getElementById('team-prog-bar');
+  const lbl = document.getElementById('team-prog-label');
+  if (bar) bar.style.width = Math.max(pct, 4) + '%';
+  if (lbl) lbl.textContent = `${doneCount} / 7 단계 완료`;
 }
 
 function updateStepGuideBanner(n) {
@@ -3356,27 +3394,20 @@ function updateStepGuideBanner(n) {
   const meta = L4_STEP_META[n];
   if (!meta) return;
   const pct = Math.round((n / 6) * 100);
+  // 컨텐츠 영역: 단계 제목+설명만 (프로젝트 흐름은 사이드바에서 표시)
   banner.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:11px;font-weight:700;color:${meta.phaseColor};background:${meta.phaseColor}22;padding:3px 10px;border-radius:20px;white-space:nowrap;">${meta.phase}</span>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:var(--text);">${meta.title}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:1px;">${meta.desc}</div>
-        </div>
-      </div>
-      <div style="font-size:11px;color:var(--muted);text-align:right;">
-        <span style="color:var(--text);font-weight:600;">${n}</span> / 6 단계
+    <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+      <span style="font-size:11px;font-weight:700;color:${meta.phaseColor};background:${meta.phaseColor}1a;padding:2px 9px;border-radius:20px;white-space:nowrap;">${n} / 6</span>
+      <div style="min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${meta.title}</div>
+        <div style="font-size:10px;color:var(--muted);">${meta.desc}</div>
       </div>
     </div>
-    <div style="margin-top:8px;">
+    <div style="flex:1;max-width:160px;min-width:80px;">
       <div style="height:4px;background:var(--surface2);border-radius:4px;overflow:hidden;">
-        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,${meta.phaseColor},${meta.phaseColor}aa);border-radius:4px;transition:width 0.4s ease;"></div>
+        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,${meta.phaseColor},${meta.phaseColor}99);border-radius:4px;transition:width 0.4s ease;"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:var(--muted);">
-        <span>✓ ${meta.done}</span>
-        <span style="color:${meta.phaseColor};">${meta.next} →</span>
-      </div>
+      <div style="font-size:10px;color:var(--muted);text-align:right;margin-top:3px;">${meta.next} →</div>
     </div>`;
 }
 
@@ -3384,6 +3415,7 @@ function updateStepGuideBanner(n) {
 function setL4Step(n) {
   currentL4Step = n;
   updateProjFlow(n);
+  scheduleAutosave();
   // Update step indicators
   for (let i = 1; i <= 6; i++) {
     const el = document.getElementById('l4-s' + i);
@@ -4288,6 +4320,175 @@ function renderMarkdown(text) {
     .replace(/^\d+\.\s(.+)/gm,'<div style="padding:1px 0 1px 14px;line-height:1.5;">$&</div>')
     .replace(/\n\n/g,'<br>').replace(/\n/g,'<br>');
 }
+
+// ═══════════════════════════════════════════════════════
+//  팀 진행 기록 자동저장 시스템
+// ═══════════════════════════════════════════════════════
+
+const L4_SAVE_FIELDS = ['l4-svc-input','l4-svc-process','l4-svc-output','l4-svc-user'];
+const L4_CHECK_IDS   = ['l4-chk-1','l4-chk-2','l4-chk-3','l4-chk-4','l4-chk-5','l4-chk-6'];
+
+let saveDebounceTimer = null;
+let teamProgressData  = null;
+
+function getTeamKey() {
+  return currentTeam ? 'hyfl_l4_' + currentTeam.replace(/\s/g,'_') : null;
+}
+
+function collectSaveData() {
+  const fields = {};
+  L4_SAVE_FIELDS.forEach(id => { const el = document.getElementById(id); if (el) fields[id] = el.value; });
+  const checks = {};
+  L4_CHECK_IDS.forEach(id => { const el = document.getElementById(id); if (el) checks[id] = el.checked; });
+  return {
+    teamId: currentTeam,
+    currentL4Step,
+    fields,
+    checks,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function saveTeamProgress() {
+  const key = getTeamKey();
+  if (!key || !currentTeam) return;
+  try {
+    localStorage.setItem(key, JSON.stringify(collectSaveData()));
+    showSaveStatus('saved');
+  } catch(e) {
+    showSaveStatus('error');
+  }
+}
+
+function loadTeamProgress() {
+  const key = getTeamKey();
+  if (!key) return null;
+  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; }
+  catch(e) { return null; }
+}
+
+function restoreSaveData(data) {
+  if (!data) return;
+  if (data.fields) {
+    Object.entries(data.fields).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) { el.value = val; autoResize && autoResize(el); }
+    });
+  }
+  if (data.checks) {
+    Object.entries(data.checks).forEach(([id, checked]) => {
+      const el = document.getElementById(id);
+      if (el) el.checked = checked;
+    });
+  }
+}
+
+function scheduleAutosave() {
+  if (!currentTeam) return;
+  showSaveStatus('saving');
+  clearTimeout(saveDebounceTimer);
+  saveDebounceTimer = setTimeout(saveTeamProgress, 1500);
+}
+
+function showSaveStatus(state) {
+  const el = document.getElementById('save-status-badge');
+  if (!el) return;
+  el.className = 'show ssb-' + state;
+  const map = { saving:['⏳','저장 중...'], saved:['✓','저장됨'], error:['!','저장 실패'] };
+  const [icon, text] = map[state] || ['?',''];
+  el.innerHTML = `${icon} ${text}`;
+  if (state === 'saved') {
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2500);
+  }
+}
+
+function checkForSavedProgress() {
+  const data = loadTeamProgress();
+  if (!data || !data.updatedAt) return;
+  teamProgressData = data;
+  showResumeBanner(data);
+}
+
+function showResumeBanner(data) {
+  const banner = document.getElementById('l4-resume-banner');
+  if (!banner) return;
+  const d = new Date(data.updatedAt);
+  const dateStr = isNaN(d) ? '' : d.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const stepTitle = L4_STEP_META[data.currentL4Step]?.title || `STEP ${data.currentL4Step}`;
+  banner.style.display = 'block';
+  banner.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;">📂 지난 시간 기록이 있어요!</div>
+        <div style="font-size:11px;color:var(--muted);">
+          ${dateStr ? dateStr + ' 저장 · ' : ''}마지막 단계: <b style="color:var(--accent2);">${stepTitle}</b>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="resumeProgress()" style="font-size:12px;padding:7px 16px;background:var(--accent);color:white;border:none;border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:600;">이어서 하기 →</button>
+        <button onclick="confirmResetProgress()" style="font-size:12px;padding:7px 12px;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">새로 시작하기</button>
+      </div>
+    </div>`;
+}
+
+function resumeProgress() {
+  if (!teamProgressData) return;
+  document.getElementById('l4-resume-banner').style.display = 'none';
+  restoreSaveData(teamProgressData);
+  setL4Step(teamProgressData.currentL4Step || 1);
+  showSaveStatus('saved');
+}
+
+function confirmResetProgress() {
+  showConfirmModal('모든 기록이 삭제됩니다.<br>정말 새로 시작할까요?', () => {
+    const key = getTeamKey();
+    if (key) localStorage.removeItem(key);
+    teamProgressData = null;
+    document.getElementById('l4-resume-banner').style.display = 'none';
+  });
+}
+
+function showConfirmModal(html, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'hyfl-overlay';
+  overlay.innerHTML = `
+    <div class="hyfl-modal-box">
+      <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+      <div style="font-size:14px;color:var(--text);margin-bottom:22px;line-height:1.7;">${html}</div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button onclick="this.closest('.hyfl-overlay').remove()"
+          style="padding:9px 20px;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
+          취소
+        </button>
+        <button id="_confirm_yes"
+          style="padding:9px 20px;background:#ef4444;color:white;border:none;border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:600;">
+          새로 시작하기
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#_confirm_yes').onclick = () => { overlay.remove(); onConfirm(); };
+}
+
+// 텍스트 입력 자동저장 (이벤트 위임)
+document.addEventListener('DOMContentLoaded', () => {
+  const panel = document.getElementById('lesson4-panel');
+  if (!panel) return;
+  panel.addEventListener('input', e => {
+    if (['TEXTAREA','INPUT'].includes(e.target.tagName) && e.target.id !== 'l4-input') {
+      scheduleAutosave();
+    }
+  });
+  panel.addEventListener('change', e => {
+    if (e.target.type === 'checkbox') scheduleAutosave();
+  });
+});
+
+// 페이지 이탈 시 저장
+window.addEventListener('beforeunload', () => {
+  if (currentTeam) saveTeamProgress();
+});
 </script>
 </body>
 </html>
