@@ -156,24 +156,24 @@ Chart.register(piePercentPlugin);
   /* ── 귀여운 마스코트 ── */
   @keyframes pet-walk {
     0%    { left: -50px; }
-    45%   { left: calc(100% + 10px); }
-    50%   { left: calc(100% + 10px); }
-    95%   { left: -50px; }
+    42%   { left: calc(100% + 10px); }
+    44%   { left: calc(100% + 10px); }
+    86%   { left: -50px; }
     100%  { left: -50px; }
   }
   @keyframes pet-flip {
     0%    { transform: scaleX(1); }
-    45%   { transform: scaleX(1); }
-    47%   { transform: scaleX(-1); }
-    95%   { transform: scaleX(-1); }
-    97%   { transform: scaleX(1); }
+    42%   { transform: scaleX(1); }
+    44%   { transform: scaleX(-1); }
+    86%   { transform: scaleX(-1); }
+    88%   { transform: scaleX(1); }
     100%  { transform: scaleX(1); }
   }
   @keyframes pet-hop {
     0%,100% { bottom: 8px; }
-    30%     { bottom: 16px; }
-    60%     { bottom: 8px; }
-    80%     { bottom: 13px; }
+    25%     { bottom: 15px; }
+    50%     { bottom: 8px; }
+    75%     { bottom: 12px; }
   }
   #pet-mascot {
     position: absolute;
@@ -183,7 +183,7 @@ Chart.register(piePercentPlugin);
     pointer-events: all;
     z-index: 5;
     filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15));
-    animation: pet-walk 16s linear infinite, pet-flip 16s linear infinite, pet-hop 0.45s ease-in-out infinite;
+    animation: pet-walk 36s ease-in-out infinite, pet-flip 36s linear infinite, pet-hop 0.55s ease-in-out infinite;
     user-select: none;
   }
   @keyframes float-up {
@@ -795,7 +795,7 @@ Chart.register(piePercentPlugin);
         </div>
       </div>
       <!-- 자유 대화 -->
-      <button class="lesson-btn" onclick="setLesson(0,this)" id="btn-free" style="margin-bottom:4px;">🏠 자유 대화</button>
+      <button class="lesson-btn active" onclick="setLesson(0,this)" id="btn-free" style="margin-bottom:4px;">🏠 자유 대화</button>
 
       <!-- ══ 프로젝트 전체 흐름 (7단계) ══ -->
       <div style="height:1px;background:var(--border);margin:8px 0;"></div>
@@ -819,7 +819,7 @@ Chart.register(piePercentPlugin);
 
       <div style="height:1px;background:var(--border);margin:10px 0;"></div>
       <div class="sidebar-label">🏆 대회 정보</div>
-      <button class="lesson-btn active" onclick="setLesson(3,this)" id="btn-contest">📋 대회 개요 · 일정</button>
+      <button class="lesson-btn" onclick="setLesson(3,this)" id="btn-contest">📋 대회 개요 · 일정</button>
       <button class="lesson-btn" onclick="setLesson(4,this)">⭐ 심사 기준</button>
       <button class="lesson-btn" onclick="setLesson(5,this)">🗂️ 데이터 목록</button>
 
@@ -2438,6 +2438,7 @@ async function doLogin() {
   document.getElementById('app').classList.add('visible');
   loadHistory();
   updateProjFlow(currentL4Step || 1);  // 사이드바 7단계 초기 렌더
+  setLesson(0, document.getElementById('btn-free'));  // 첫 화면: 자유 대화
   setTimeout(checkForSavedProgress, 300);
 }
 
