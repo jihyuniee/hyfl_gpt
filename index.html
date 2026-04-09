@@ -2606,7 +2606,7 @@ function setLesson(idx, btn) {
   saveLessonState(currentLesson);
   currentLesson = Math.min(idx, lessons.length - 1);
   document.querySelectorAll('.lesson-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
 
   // 모든 패널 숨기기
   const allPanels = ['lesson4-panel','contest-panel','judge-panel','data-panel','write-compare-panel','self-reflect-panel','pubdata-panel','datastory-panel','aiuse-panel'];
