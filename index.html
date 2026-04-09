@@ -740,23 +740,20 @@ Chart.register(piePercentPlugin);
   </div>
   <div class="body-wrap">
     <div class="sidebar">
-      <div style="height:1px;background:var(--border);margin:12px 0;"></div>
-      <div class="sidebar-label">📚 수업 차시</div>
-      <button class="lesson-btn" onclick="setLesson(0,this)" id="btn-free">🏠 자유 대화</button>
-
-      <div style="height:1px;background:var(--border);margin:8px 0;"></div>
-      <div class="sidebar-label">✏️ 수업 진행</div>
-      <button class="lesson-btn" onclick="setLesson(1,this)">💡 주제 선정 · 문제 정의</button>
-      <button class="lesson-btn" onclick="setLesson(2,this)">🔬 데이터 수집 · 분석</button>
+      <!-- 자유 대화 -->
+      <button class="lesson-btn" onclick="setLesson(0,this)" id="btn-free" style="margin-bottom:4px;">🏠 자유 대화</button>
 
       <!-- ══ 프로젝트 전체 흐름 (7단계) ══ -->
       <div style="height:1px;background:var(--border);margin:8px 0;"></div>
       <div class="sidebar-label">🗂️ 프로젝트 진행 현황</div>
       <div id="sidebar-proj-flow">
-        <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div id="sidebar-proj-label" style="font-size:9px;color:var(--muted);">1 / 7 완료</div>
+          <div id="save-status-badge-sidebar" style="font-size:9px;color:var(--muted);"></div>
+        </div>
+        <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:8px;">
           <div id="sidebar-proj-bar" style="height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#10b981);width:14%;transition:width 0.4s;"></div>
         </div>
-        <div id="sidebar-proj-label" style="font-size:9px;color:var(--muted);margin-bottom:6px;text-align:right;">1 / 7 완료</div>
         <div id="sidebar-proj-steps"></div>
       </div>
 
@@ -2380,6 +2377,7 @@ async function doLogin() {
   document.getElementById('team-chip').textContent = currentTeam;
   document.getElementById('app').classList.add('visible');
   loadHistory();
+  updateProjFlow(currentL4Step || 1);  // 사이드바 7단계 초기 렌더
   setTimeout(checkForSavedProgress, 300);
 }
 
@@ -3386,7 +3384,7 @@ function updateProjFlow(currentL4StepNum) {
     if (L4_TO_PROJ[i]) doneProjSteps.add(L4_TO_PROJ[i]);
   }
 
-  // ── 왼쪽 큰 사이드바의 7단계 업데이트 ──
+  // ── 왼쪽 큰 사이드바의 7단계 업데이트 (클릭 가능) ──
   const container = document.getElementById('sidebar-proj-steps');
   if (container) {
     let html = '';
@@ -3395,7 +3393,7 @@ function updateProjFlow(currentL4StepNum) {
       const isActive = s.n === activeProjStep;
       const cls = isDone ? 'ps-done' : (isActive ? 'ps-active' : 'ps-upcoming');
       const circle = isDone ? '✓' : s.n;
-      html += `<div class="ps-row ${cls}"><div class="ps-circle">${circle}</div><span>${s.icon} ${s.label}</span></div>`;
+      html += `<div class="ps-row ${cls}" onclick="goToProjectStep(${s.n})" style="cursor:pointer;" title="${s.label}로 이동"><div class="ps-circle">${circle}</div><span>${s.icon} ${s.label}</span></div>`;
       if (idx < PROJ_STEPS.length - 1) {
         html += `<div class="ps-connector ${isDone ? 'done' : 'upcoming'}"></div>`;
       }
@@ -3413,6 +3411,27 @@ function updateProjFlow(currentL4StepNum) {
 
   updateStepGuideBanner(currentL4StepNum);
   updateL4SubTabs(currentL4StepNum);
+}
+
+// 프로젝트 단계 클릭 → 해당 lesson + l4 서브스텝으로 이동
+const PROJ_TO_LESSON = {
+  1: { lesson: 1, l4: null },    // 문제 정의
+  2: { lesson: 2, l4: 1 },       // 데이터 수집 → 데이터 찾기
+  3: { lesson: 2, l4: 2 },       // 데이터 전처리 → 이해하기
+  4: { lesson: 2, l4: 3 },       // 데이터 분석 → 분석하기
+  5: { lesson: 2, l4: 5 },       // AI 모델 설계 → 서비스 아이디어
+  6: { lesson: 2, l4: 4 },       // 인사이트 도출 → 인사이트 찾기
+  7: { lesson: 2, l4: 6 },       // 기획서 작성 → 자기 성찰
+};
+
+function goToProjectStep(projStep) {
+  const target = PROJ_TO_LESSON[projStep];
+  if (!target) return;
+  const btn = document.querySelector(`[onclick="setLesson(${target.lesson},this)"]`);
+  setLesson(target.lesson, btn);
+  if (target.l4 !== null) {
+    setTimeout(() => setL4Step(target.l4), 150);
+  }
 }
 
 function updateL4SubTabs(n) {
@@ -4445,15 +4464,28 @@ function scheduleAutosave() {
 }
 
 function showSaveStatus(state) {
+  // 내부 사이드바 배지
   const el = document.getElementById('save-status-badge');
-  if (!el) return;
-  el.className = 'show ssb-' + state;
-  const map = { saving:['⏳','저장 중...'], saved:['✓','저장됨'], error:['!','저장 실패'] };
-  const [icon, text] = map[state] || ['?',''];
-  el.innerHTML = `${icon} ${text}`;
-  if (state === 'saved') {
-    clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove('show'), 2500);
+  if (el) {
+    el.className = 'show ssb-' + state;
+    const map = { saving:['⏳','저장 중...'], saved:['✓','저장됨'], error:['!','저장 실패'] };
+    const [icon, text] = map[state] || ['?',''];
+    el.innerHTML = `${icon} ${text}`;
+    if (state === 'saved') {
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('show'), 2500);
+    }
+  }
+  // 큰 사이드바 배지
+  const el2 = document.getElementById('save-status-badge-sidebar');
+  if (el2) {
+    const map = { saving:'⏳ 저장 중', saved:'✓ 저장됨', error:'⚠ 저장 실패' };
+    el2.textContent = map[state] || '';
+    el2.style.color = state==='saved' ? '#10b981' : state==='error' ? '#ef4444' : '#f59e0b';
+    if (state === 'saved') {
+      clearTimeout(el2._t);
+      el2._t = setTimeout(() => el2.textContent = '', 2500);
+    }
   }
 }
 
