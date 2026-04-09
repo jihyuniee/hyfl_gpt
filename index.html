@@ -2209,6 +2209,8 @@ let uploadedFileContent = null;
 let lesson4Data = null;
 let lesson4AllData = null;
 let currentL4Step = 1;
+const completedProjectStepNums = new Set([1]); // 문제 정의는 항상 완료 (누적, 뒤로 가도 유지)
+let currentProjectStep = 2; // 현재 활성 프로젝트 단계
 let v3ChartType = 'bar';
 let v3ChartInst = null;
 let scaffoldingMode = false;
@@ -3377,19 +3379,19 @@ const L4_STEP_META = [null,
   { title:'📝 자기 성찰 기록',    phase:'⑦ 기획서 작성',    phaseColor:'#ec4899', desc:'프로젝트를 정리하고 기록합니다',       done:'AI 서비스 아이디어를 설계했습니다',      next:'이제 프로젝트를 정리합니다' },
 ];
 
-function updateProjFlow(currentL4StepNum) {
-  const activeProjStep = L4_TO_PROJ[currentL4StepNum] || 2;
-  const doneProjSteps = new Set([1]);
-  for (let i = 1; i < currentL4StepNum; i++) {
-    if (L4_TO_PROJ[i]) doneProjSteps.add(L4_TO_PROJ[i]);
-  }
+// 프로젝트 단계를 앞으로만 진행 (완료 표시는 누적, 뒤로 가도 지워지지 않음)
+function setCurrentProjectStep(projStep) {
+  for (let i = 1; i < projStep; i++) completedProjectStepNums.add(i);
+  currentProjectStep = projStep;
+}
 
-  // ── 왼쪽 큰 사이드바의 7단계 업데이트 (클릭 가능) ──
+// 사이드바 7단계 렌더 (completedProjectStepNums 사용)
+function renderSidebarProjFlow(activeProjStep) {
   const container = document.getElementById('sidebar-proj-steps');
   if (container) {
     let html = '';
     PROJ_STEPS.forEach((s, idx) => {
-      const isDone   = doneProjSteps.has(s.n) && s.n !== activeProjStep;
+      const isDone   = completedProjectStepNums.has(s.n) && s.n !== activeProjStep;
       const isActive = s.n === activeProjStep;
       const cls = isDone ? 'ps-done' : (isActive ? 'ps-active' : 'ps-upcoming');
       const circle = isDone ? '✓' : s.n;
@@ -3400,15 +3402,19 @@ function updateProjFlow(currentL4StepNum) {
     });
     container.innerHTML = html;
   }
-
   // ── 진행률 바 업데이트 ──
-  const doneCount = doneProjSteps.size;
+  const doneCount = completedProjectStepNums.size;
   const pct = Math.max(Math.round(doneCount / 7 * 100), 4);
   const bar = document.getElementById('sidebar-proj-bar');
   const lbl = document.getElementById('sidebar-proj-label');
   if (bar) bar.style.width = pct + '%';
   if (lbl) lbl.textContent = `${doneCount} / 7 완료`;
+}
 
+function updateProjFlow(currentL4StepNum) {
+  const projStep = L4_TO_PROJ[currentL4StepNum] || 2;
+  setCurrentProjectStep(projStep);
+  renderSidebarProjFlow(projStep);
   updateStepGuideBanner(currentL4StepNum);
   updateL4SubTabs(currentL4StepNum);
 }
@@ -4391,6 +4397,8 @@ function collectSaveData() {
   return {
     teamId: currentTeam,
     currentL4Step,
+    currentProjectStep,
+    completedSteps: [...completedProjectStepNums],
     fields,
     checks,
     updatedAt: new Date().toISOString()
@@ -4442,6 +4450,14 @@ function loadTeamProgress() {
 
 function restoreSaveData(data) {
   if (!data) return;
+  // 완료 단계 복원 (누적 Set에 추가)
+  if (data.completedSteps && Array.isArray(data.completedSteps)) {
+    data.completedSteps.forEach(s => completedProjectStepNums.add(s));
+  }
+  if (data.currentProjectStep) {
+    currentProjectStep = data.currentProjectStep;
+    renderSidebarProjFlow(currentProjectStep);
+  }
   if (data.fields) {
     Object.entries(data.fields).forEach(([id, val]) => {
       const el = document.getElementById(id);
@@ -4543,6 +4559,11 @@ function confirmResetProgress() {
     const key = getTeamKey();
     if (key) localStorage.removeItem(key);
     teamProgressData = null;
+    // 완료 단계 초기화 (문제 정의만 유지)
+    completedProjectStepNums.clear();
+    completedProjectStepNums.add(1);
+    currentProjectStep = 2;
+    renderSidebarProjFlow(2);
     document.getElementById('l4-resume-banner').style.display = 'none';
   });
 }
