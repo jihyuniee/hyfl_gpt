@@ -150,6 +150,45 @@ Chart.register(piePercentPlugin);
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  /* ── 귀여운 마스코트 ── */
+  @keyframes pet-walk {
+    0%    { left: -50px; }
+    45%   { left: calc(100% + 10px); }
+    50%   { left: calc(100% + 10px); }
+    95%   { left: -50px; }
+    100%  { left: -50px; }
+  }
+  @keyframes pet-flip {
+    0%    { transform: scaleX(1); }
+    45%   { transform: scaleX(1); }
+    47%   { transform: scaleX(-1); }
+    95%   { transform: scaleX(-1); }
+    97%   { transform: scaleX(1); }
+    100%  { transform: scaleX(1); }
+  }
+  @keyframes pet-hop {
+    0%,100% { bottom: 8px; }
+    30%     { bottom: 16px; }
+    60%     { bottom: 8px; }
+    80%     { bottom: 13px; }
+  }
+  #pet-mascot {
+    position: absolute;
+    font-size: 26px;
+    line-height: 1;
+    bottom: 8px;
+    pointer-events: all;
+    z-index: 5;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15));
+    animation: pet-walk 16s linear infinite, pet-flip 16s linear infinite, pet-hop 0.45s ease-in-out infinite;
+    user-select: none;
+  }
+  @keyframes float-up {
+    0%   { opacity:1; transform: translateY(0) scale(1); }
+    100% { opacity:0; transform: translateY(-40px) scale(1.4); }
   }
   .top-logo { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; }
   .top-logo span { color: var(--accent2); }
@@ -736,6 +775,7 @@ Chart.register(piePercentPlugin);
 <!-- ── Main App ── -->
 <div id="app">
   <div class="topbar">
+    <span id="pet-mascot" title="클릭하면 간식을 줄 수 있어요 🦴">🐕</span>
     <div class="top-logo">HYFL edu<span>AI</span></div>
     <div class="top-right">
       <div class="team-chip" id="team-chip">팀명</div>
@@ -4368,6 +4408,32 @@ document.addEventListener('click', e => {
     document.getElementById('model-drop-menu')?.classList.remove('open');
   }
 });
+
+// ── 마스코트 클릭 이벤트 ──
+(function() {
+  const pets = ['🐕','🐶','🐩','🐈','🐱','🐇','🐿️'];
+  const reactions = ['🦴','❤️','⭐','🎉','💝','🍪','😊'];
+  let idx = 0;
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('pet-mascot');
+    if (!el) return;
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => {
+      // 이모지 변경
+      idx = (idx + 1) % pets.length;
+      el.textContent = pets[idx];
+      // 반응 이펙트
+      const r = document.createElement('span');
+      r.textContent = reactions[Math.floor(Math.random() * reactions.length)];
+      r.style.cssText = 'position:fixed;font-size:20px;pointer-events:none;z-index:9999;animation:float-up 1s ease-out forwards;';
+      const rect = el.getBoundingClientRect();
+      r.style.left = rect.left + 10 + 'px';
+      r.style.top  = rect.top - 10 + 'px';
+      document.body.appendChild(r);
+      setTimeout(() => r.remove(), 1000);
+    });
+  });
+})();
 
 // ── Chat Mode Toggle ──
 function setChatMode(mode) {
