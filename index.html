@@ -1200,12 +1200,14 @@ Chart.register(piePercentPlugin);
 
           <!-- 데이터 탐구 6단계 서브탭 -->
           <nav id="l4-subtab-nav">
-            <button class="l4-tab active" id="l4-tab-1" onclick="setL4Step(1)"><span class="l4-tab-num">1</span>🔍 데이터 찾기</button>
-            <button class="l4-tab" id="l4-tab-2" onclick="setL4Step(2)"><span class="l4-tab-num">2</span>👀 이해하기</button>
-            <button class="l4-tab" id="l4-tab-3" onclick="setL4Step(3)"><span class="l4-tab-num">3</span>📊 분석하기</button>
-            <button class="l4-tab" id="l4-tab-4" onclick="setL4Step(4)"><span class="l4-tab-num">4</span>💡 인사이트</button>
-            <button class="l4-tab" id="l4-tab-5" onclick="setL4Step(5)"><span class="l4-tab-num">5</span>🚀 아이디어</button>
-            <button class="l4-tab" id="l4-tab-6" onclick="setL4Step(6)"><span class="l4-tab-num">6</span>📋 기획서 작성</button>
+            <button class="l4-tab active" id="l4-tab-1" onclick="setL4Step(1)"><span class="l4-tab-num">1</span>🎯 문제 정의</button>
+            <button class="l4-tab" id="l4-tab-2" onclick="setL4Step(2)"><span class="l4-tab-num">2</span>🔍 데이터 찾기</button>
+            <button class="l4-tab" id="l4-tab-3" onclick="setL4Step(3)"><span class="l4-tab-num">3</span>👀 데이터 이해</button>
+            <button class="l4-tab" id="l4-tab-4" onclick="setL4Step(4)"><span class="l4-tab-num">4</span>📊 데이터 분석</button>
+            <button class="l4-tab" id="l4-tab-5" onclick="setL4Step(5)"><span class="l4-tab-num">5</span>💡 인사이트</button>
+            <button class="l4-tab" id="l4-tab-6" onclick="setL4Step(6)"><span class="l4-tab-num">6</span>🚀 AI 아이디어</button>
+            <button class="l4-tab" id="l4-tab-7" onclick="setL4Step(7)"><span class="l4-tab-num">7</span>🛠 서비스 기획</button>
+            <button class="l4-tab" id="l4-tab-8" onclick="setL4Step(8)"><span class="l4-tab-num">8</span>📋 기획서 작성</button>
           </nav>
 
           <!-- 현재 단계 안내 배너 (단계 제목 + 진행률) -->
@@ -1214,15 +1216,74 @@ Chart.register(piePercentPlugin);
           <!-- 지난 기록 이어하기 배너 -->
           <div id="l4-resume-banner"></div>
 
-          <!-- ① STEP 1: 데이터 찾기 -->
+          <!-- ① STEP 1: 문제 정의 -->
           <div id="l4-view-1" style="flex:1;overflow-y:auto;padding:24px 28px;">
-            <div style="max-width:620px;margin:0 auto;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">🔍</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 찾기</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 1</span>
+            <div style="max-width:640px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:24px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 1 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🎯 문제 정의</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">우리가 해결하고 싶은 문제가 무엇인지 명확하게 정의합니다. 좋은 문제 정의가 좋은 프로젝트의 출발점입니다.</div>
               </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">우리 팀의 연구 주제에 맞는 공공데이터를 찾아 업로드해요<br>파일을 올리면 자동으로 다음 단계로 안내해드려요 ✨</p>
+
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 우리 주변에서 불편하거나 해결하고 싶은 문제를 적어봤다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 그 문제가 왜 중요한지 이유를 설명할 수 있다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 어떤 사람들이 이 문제를 겪고 있는지 생각해봤다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 데이터로 이 문제를 탐구할 수 있다고 생각한다</label>
+              </div>
+
+              <!-- 문제 정의 폼 -->
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-weight:700;font-size:15px;margin-bottom:16px;">📝 문제 정의서</div>
+
+                <div style="margin-bottom:16px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">1. 우리 팀이 해결하고 싶은 문제는?</label>
+                  <textarea id="prob-def-1" rows="3" placeholder="예) 우리 동네 쓰레기 불법 투기 문제가 심각한데, 어디에 집중적으로 발생하는지 알 수 없다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">2. 이 문제가 중요한 이유는?</label>
+                  <textarea id="prob-def-2" rows="3" placeholder="예) 불법 투기가 많은 지역은 주민 생활환경이 나빠지고, 처리 비용도 증가한다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">3. 이 문제를 겪고 있는 사람(대상)은?</label>
+                  <textarea id="prob-def-3" rows="2" placeholder="예) 해당 지역 주민, 환경부 담당자, 지자체" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                </div>
+
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">4. 데이터로 어떻게 탐구할 수 있을까?</label>
+                  <textarea id="prob-def-4" rows="2" placeholder="예) 공공데이터포털에서 불법투기 신고 데이터를 구해 지역별 건수를 분석한다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                </div>
+              </div>
+
+              <!-- 저장 + 다음 단계 -->
+              <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:32px;">
+                <button onclick="saveL4StepData(1)" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;">💾 저장</button>
+                <button onclick="setL4Step(2)" style="padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">다음 단계: 데이터 찾기 →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ② STEP 2: 공공데이터 찾기 -->
+          <div id="l4-view-2" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
+            <div style="max-width:620px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#06b6d4 0%,#0284c7 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 2 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🔍 공공데이터 찾기</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">우리 팀의 문제와 관련된 공공데이터를 찾아 다운로드하고 업로드합니다. 파일을 올리면 자동으로 다음 단계로 이동해요.</div>
+              </div>
+
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 문제와 관련된 키워드로 공공데이터포털을 검색했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> CSV 또는 XLSX 파일을 다운로드했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 파일을 열어서 어떤 항목(컬럼)이 있는지 확인했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 아래에 파일을 업로드했다</label>
+              </div>
 
               <!-- 탐구 질문 카드 -->
               <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(96,165,250,0.07));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
@@ -1246,7 +1307,7 @@ Chart.register(piePercentPlugin);
                 </div>
               </div>
 
-              <div id="l4-view-1-uploaded" style="display:none;margin-bottom:16px;"></div>
+              <div id="l4-view-2-uploaded" style="display:none;margin-bottom:16px;"></div>
 
               <!-- 예시 분석 카드 (바로 시작 가능) -->
               <div style="margin-bottom:20px;">
@@ -1361,15 +1422,22 @@ Chart.register(piePercentPlugin);
             </div>
           </div>
 
-          <!-- ② STEP 2: 데이터 이해하기 -->
-          <div id="l4-view-2" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
+          <!-- ③ STEP 3: 데이터 이해하기 -->
+          <div id="l4-view-3" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:640px;margin:0 auto;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">👀</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 이해하기</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 2</span>
+              <div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 3 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">👀 데이터 이해</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">데이터가 어떻게 구성되어 있는지 파악합니다. 어떤 항목이 있고, 빠진 값이나 이상한 값은 없는지 확인해요.</div>
               </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">데이터가 어떻게 구성되어 있는지 파악하는 단계예요<br>어떤 항목이 있고, 빠진 값은 없는지 확인해봐요</p>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 데이터에 몇 개의 행(관측값)과 열(항목)이 있는지 확인했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 각 열이 어떤 데이터 타입인지(숫자/텍스트/날짜) 확인했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 빈 값(결측치)이 많은 열이 있는지 확인했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 분석에 사용할 핵심 열을 선택했다</label>
+              </div>
 
               <!-- 탐구 질문 카드 -->
               <div style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(96,165,250,0.06));border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
@@ -1461,21 +1529,29 @@ Chart.register(piePercentPlugin);
 
               <!-- 자동 분석 결과 -->
               <div id="l4-preprocess-content"></div>
-              <button class="l4-next-btn" onclick="setL4Step(3)">다음 단계: 📊 데이터 분석하기 →</button>
+              <button class="l4-next-btn" onclick="setL4Step(4)">다음 단계: 📊 데이터 분석하기 →</button>
             </div>
           </div>
 
-          <!-- ③ STEP 3: 시각화 (Ch.09~13) -->
-          <div id="l4-view-3" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
+          <!-- ④ STEP 4: 데이터 분석 -->
+          <div id="l4-view-4" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:720px;margin:0 auto;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">📊</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 분석하기</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 3</span>
+              <div style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 4 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">📊 데이터 분석</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">데이터를 직접 시각화하고 비교하면서 패턴과 특징을 발견합니다. 그래프를 만들고 "왜?"라는 질문을 계속 던져보세요.</div>
+              </div>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 막대 또는 꺾은선 그래프를 하나 만들었다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 그래프에서 가장 눈에 띄는 부분을 발견했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 두 항목 이상을 비교하는 분석을 해봤다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> AI에게 분석 결과를 설명하고 피드백을 받았다</label>
               </div>
 
               <!-- 학생 격려 배너 -->
-              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(108,99,255,0.07));border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px 18px;margin:10px 0 14px;display:flex;align-items:flex-start;gap:12px;">
+              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(108,99,255,0.07));border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px 18px;margin:0 0 14px;display:flex;align-items:flex-start;gap:12px;">
                 <span style="font-size:24px;flex-shrink:0;">💪</span>
                 <div>
                   <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">데이터 분석은 어렵지 않습니다.</div>
@@ -1627,17 +1703,17 @@ Chart.register(piePercentPlugin);
                 <div id="v3-desc-stats"></div>
               </div>
 
-              <button class="l4-next-btn" onclick="setL4Step(4)" style="margin-top:16px;">다음 단계: 💡 인사이트 찾기 →</button>
+              <button class="l4-next-btn" onclick="setL4Step(5)" style="margin-top:16px;">다음 단계: 💡 인사이트 도출 →</button>
             </div>
           </div>
 
-          <!-- ④ STEP 4: 인사이트 찾기 -->
-          <div id="l4-view-4" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+          <!-- ⑤ STEP 5: 인사이트 도출 -->
+          <div id="l4-view-5" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
             <div style="padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                 <span style="font-size:18px;">💡</span>
-                <div style="font-size:14px;font-weight:700;">인사이트 찾기</div>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 4</span>
+                <div style="font-size:14px;font-weight:700;">인사이트 도출</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.4;margin-left:4px;">STEP 5 · 데이터 분석 결과에서 의미 있는 발견을 언어로 정리합니다</div>
               </div>
               <!-- 탐구 질문 + 빠른 실행 -->
               <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
@@ -1662,34 +1738,28 @@ Chart.register(piePercentPlugin);
                 <button onclick="l4QuickSend('이 데이터의 핵심 인사이트를 3가지로 요약해줘. 각각 한 문장으로 쓰고 왜 중요한지도 써줘.')" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 인사이트 찾기</button>
                 <button onclick="l4QuickSend('이 데이터가 보여주는 교육 문제를 해결할 AI 서비스 아이디어를 3가지 제안해줘. 서비스명, 대상, 주요 기능 포함.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">서비스 아이디어</button>
                 <button onclick="l4QuickSend('이 데이터 분석 결과를 발표자료에 쓸 수 있는 문장으로 작성해줘. ① 문제 제기 ② 데이터 근거 ③ 결론 순서로.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">발표자료 생성</button>
-                <button onclick="setL4Step(5)" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚀 서비스 아이디어 →</button>
+                <button onclick="setL4Step(6)" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚀 AI 아이디어 →</button>
               </div>
             </div>
           </div>
 
-          <!-- ⑤ STEP 5: AI 활용 아이디어 정하기 -->
-          <div id="l4-view-5" style="display:none;flex:1;overflow-y:auto;padding:18px 22px;">
+          <!-- ⑥ STEP 6: AI 활용 아이디어 정하기 -->
+          <div id="l4-view-6" style="display:none;flex:1;overflow-y:auto;padding:18px 22px;">
             <div style="max-width:620px;margin:0 auto;">
 
-              <!-- 헤더 -->
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
-                <span style="font-size:20px;">🤖</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin:0;">AI 활용 아이디어 정하기</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 5</span>
+              <div style="background:linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:16px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 6 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🚀 AI 활용 아이디어</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">인사이트를 바탕으로 AI 기술을 활용한 서비스 아이디어를 구체화합니다. 어떤 AI를 어떻게 쓸지 정해봐요.</div>
               </div>
-              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.1),rgba(16,185,129,0.07));border:1px solid rgba(108,99,255,0.25);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:11px;color:var(--text);line-height:1.7;">
-      📊 <b>데이터 분석 결과를 기반으로 AI 활용 아이디어를 만듭니다</b><br>
-      <span style="color:var(--muted);">이전 단계에서 발견한 패턴과 인사이트를 바탕으로 AI가 해결할 수 있는 문제를 정의해보세요</span>
-    </div>
-    <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;">
-      <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:6px;">🧐 학생들이 생각해볼 질문</div>
-      <div style="font-size:11px;color:var(--muted);line-height:2;">
-        💬 데이터를 보니 어떤 <b style="color:var(--text);">문제</b>가 보이나요?<br>
-        📊 어떤 <b style="color:var(--text);">데이터</b>를 AI에 활용할 수 있나요?<br>
-        🤖 AI로 이 문제를 <b style="color:var(--text);">해결</b>할 수 있을까요?<br>
-        👤 누구에게 <b style="color:var(--text);">도움</b>이 되는 서비스인가요?
-      </div>
-    </div>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 어떤 문제를 AI로 해결할지 명확히 정했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 사용할 AI 유형(분류/예측/추천/생성 등)을 선택했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> AI 서비스의 입력·출력·사용자를 설명할 수 있다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> AI를 이용해 피드백을 받고 아이디어를 다듬었다</label>
+              </div>
 
               <!-- ① AI 유형 선택 -->
               <div class="step-card">
@@ -1763,19 +1833,87 @@ Chart.register(piePercentPlugin);
                 <button onclick="l4ValidateService()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🤖 AI에게 우리 아이디어 피드백 받기</button>
                 <button onclick="l4AskAndGo('우리가 발견한 교육 문제를 해결하는 AI 서비스 아이디어를 3가지 제안해줘. 각각 서비스명, 대상, 핵심 기능을 포함해서.')" style="width:100%;padding:10px;background:rgba(108,99,255,0.1);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💡 AI 서비스 아이디어 3가지 제안받기</button>
               </div>
-              <button class="l4-next-btn" onclick="setL4Step(6)">다음 단계: 📋 기획서 작성 →</button>
+              <button class="l4-next-btn" onclick="setL4Step(7)">다음 단계: 🛠 서비스 기획 →</button>
             </div>
           </div>
 
-          <!-- ⑥ STEP 6: 기획서 작성 -->
-          <div id="l4-view-6" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
+          <!-- ⑦ STEP 7: 서비스 기획 -->
+          <div id="l4-view-7" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:640px;margin:0 auto;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">📋</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">기획서 작성</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 6</span>
+              <div style="background:linear-gradient(135deg,#ec4899 0%,#be185d 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 7 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🛠 서비스 기획</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">AI 아이디어를 실제 서비스로 구체화합니다. 서비스 구조, 주요 기능, 사용 흐름을 설계해봐요.</div>
               </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">지금까지 분석한 내용을 바탕으로 AI 서비스 기획서를 완성합니다</p>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 서비스 이름을 정했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 누가 어떻게 사용하는지 사용 흐름을 그렸다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 주요 기능 3가지 이상을 정했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 서비스가 문제를 어떻게 해결하는지 설명할 수 있다</label>
+              </div>
+
+              <!-- 서비스 기획 폼 -->
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-weight:700;font-size:15px;margin-bottom:16px;">📐 서비스 설계서</div>
+
+                <div style="margin-bottom:16px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">1. 서비스 이름</label>
+                  <input type="text" id="svc-name" placeholder="예) 스마트 불법투기 알림 앱" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;background:var(--bg);color:var(--text);box-sizing:border-box;">
+                </div>
+
+                <div style="margin-bottom:16px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">2. 주요 사용자</label>
+                  <input type="text" id="svc-user-target" placeholder="예) 환경부 담당자, 지역 주민" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;background:var(--bg);color:var(--text);box-sizing:border-box;">
+                </div>
+
+                <div style="margin-bottom:16px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">3. 주요 기능 (각 줄에 하나씩)</label>
+                  <textarea id="svc-features" rows="4" placeholder="예)&#10;- 불법투기 위험 지역 지도 시각화&#10;- AI 신고 접수 및 분류&#10;- 처리 현황 대시보드" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                </div>
+
+                <div style="margin-bottom:16px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">4. 사용 흐름 (시나리오)</label>
+                  <textarea id="svc-flow" rows="4" placeholder="예) 사용자가 앱 실행 → 지도에서 위험 지역 확인 → AI가 불법투기 예측 → 알림 전송 → 담당자가 처리" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                </div>
+
+                <div>
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">5. 기대 효과</label>
+                  <textarea id="svc-impact" rows="3" placeholder="예) 불법투기 30% 감소, 처리 시간 단축, 주민 생활환경 개선" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                </div>
+              </div>
+
+              <!-- AI 피드백 요청 -->
+              <div style="background:linear-gradient(135deg,rgba(236,72,153,0.07),rgba(168,85,247,0.07));border:1px solid rgba(236,72,153,0.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;">
+                <div style="font-size:12px;font-weight:600;color:#be185d;margin-bottom:8px;">💬 AI에게 서비스 기획 피드백 받기</div>
+                <button onclick="l4AskAndGo('우리 팀이 기획한 서비스에 대해 피드백해줘. 강점, 보완할 점, 실현 가능성을 알려줘.')" style="font-size:12px;padding:7px 16px;background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3);border-radius:8px;color:#be185d;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">AI 피드백 요청 →</button>
+              </div>
+
+              <!-- 저장 + 다음 단계 -->
+              <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:32px;">
+                <button onclick="saveL4StepData(7)" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;">💾 저장</button>
+                <button onclick="setL4Step(8)" style="padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">다음 단계: 기획서 작성 →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ⑧ STEP 8: 기획서 작성 -->
+          <div id="l4-view-8" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
+            <div style="max-width:640px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 8 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">📋 기획서 작성</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">지금까지 분석하고 기획한 내용을 하나의 기획서로 완성합니다. AI의 도움을 받아 완성도 높은 기획서를 만들어봐요.</div>
+              </div>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 모든 항목을 채워 기획서를 작성했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> AI로 기획서 초안을 자동 생성했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 기획서를 읽어보고 수정할 부분을 찾았다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 팀원 모두가 기획서 내용을 발표할 수 있다</label>
+              </div>
 
               <!-- 안내 박스 -->
               <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(16,185,129,0.05));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;">
@@ -1823,12 +1961,14 @@ Chart.register(piePercentPlugin);
               <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 16px;">
                 <div style="font-size:11px;font-weight:600;color:#10b981;margin-bottom:8px;">✅ 오늘 완료한 단계를 체크하세요</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-1"> 📂 데이터 찾기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-2"> 🔎 데이터 이해</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-3"> 📊 데이터 분석</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-4"> 💡 인사이트 도출</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-5"> 🤖 AI 활용 아이디어</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-6"> 📋 기획서 작성</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-1"> 🎯 문제 정의</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-2"> 🔍 데이터 찾기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-3"> 👀 데이터 이해</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-4"> 📊 데이터 분석</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-5"> 💡 인사이트 도출</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-6"> 🚀 AI 아이디어</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-7"> 🛠 서비스 기획</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-8"> 📋 기획서 작성</label>
                 </div>
               </div>
             </div>
@@ -2842,7 +2982,7 @@ function restoreLessonState(idx) {
     if (store.active) {
       const md = document.getElementById('l4-messages');
       if (md) md.innerHTML = store.l4html || '';
-      setL4Step(4);
+      setL4Step(5);
     }
     return !!store.active;
   } else {
@@ -3492,14 +3632,14 @@ function applyHeaderSelection() {
     lesson4Data = allData[0];
     const f0 = allData[0];
     renderLesson4Stats(f0.headers, f0.rows, rawPendingFiles[0].filename.endsWith('.xlsx')||rawPendingFiles[0].filename.endsWith('.xls'));
-    const uploadedBox = document.getElementById('l4-view-1-uploaded');
+    const uploadedBox = document.getElementById('l4-view-2-uploaded');
     if (uploadedBox) {
       uploadedBox.style.display = 'block';
       uploadedBox.innerHTML = `<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 14px;font-size:12px;color:#10b981;">✅ ${allData.map(d=>`<b>${d.filename}</b> (${d.rows.length}행 × ${d.headers.length}열)`).join(', ')} 업로드 완료</div>`;
     }
     l4Messages = [];
     document.getElementById('l4-messages').innerHTML = '';
-    setL4Step(2);
+    setL4Step(3);
   } catch(e) {
     alert('데이터 처리 오류: ' + e.message);
   }
@@ -4047,23 +4187,27 @@ function advanceL4Step(text) {
 
 // ── 프로젝트 전체 흐름 (6단계: 데이터 찾기 → 기획서 작성) ──
 const PROJ_STEPS = [
-  {n:1, icon:'📂', label:'데이터 찾기'},
-  {n:2, icon:'🔎', label:'데이터 이해'},
-  {n:3, icon:'📊', label:'데이터 분석'},
-  {n:4, icon:'💡', label:'인사이트 도출'},
-  {n:5, icon:'🤖', label:'AI 아이디어'},
-  {n:6, icon:'📋', label:'기획서 작성'},
+  {n:1, icon:'🎯', label:'문제 정의'},
+  {n:2, icon:'🔍', label:'데이터 찾기'},
+  {n:3, icon:'👀', label:'데이터 이해'},
+  {n:4, icon:'📊', label:'데이터 분석'},
+  {n:5, icon:'💡', label:'인사이트 도출'},
+  {n:6, icon:'🚀', label:'AI 아이디어'},
+  {n:7, icon:'🛠', label:'서비스 기획'},
+  {n:8, icon:'📋', label:'기획서 작성'},
 ];
-// l4탐구단계(1~6) → 프로젝트 전체 단계(1~6) 1:1 매핑
-const L4_TO_PROJ = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6};
+// l4탐구단계(1~8) → 프로젝트 전체 단계(1~8) 1:1 매핑
+const L4_TO_PROJ = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8};
 
 const L4_STEP_META = [null,
-  { title:'📂 데이터 찾기',       phase:'① 데이터 찾기',       phaseColor:'#60a5fa', desc:'연구 주제에 맞는 공공데이터를 찾습니다',  done:'',                                     next:'데이터를 업로드하면 다음 단계로 이동합니다' },
-  { title:'🔎 데이터 이해하기',   phase:'② 데이터 이해',       phaseColor:'#a78bfa', desc:'데이터 구조와 내용을 파악합니다',         done:'데이터 탐색을 완료했습니다',            next:'이제 데이터를 이해하고 파악합니다' },
-  { title:'📊 데이터 분석하기',   phase:'③ 데이터 분석',       phaseColor:'#f59e0b', desc:'그래프로 패턴과 특징을 찾습니다',         done:'데이터 이해를 완료했습니다',            next:'이제 데이터를 시각화해 분석합니다' },
-  { title:'💡 인사이트 도출',     phase:'④ 인사이트 도출',     phaseColor:'#10b981', desc:'데이터에서 의미 있는 발견을 정리합니다',  done:'데이터 분석을 완료했습니다',            next:'이제 핵심 인사이트를 정리합니다' },
-  { title:'🤖 AI 활용 아이디어',  phase:'⑤ AI 활용 아이디어',  phaseColor:'#6C63FF', desc:'데이터 기반으로 AI 서비스를 구상합니다',  done:'인사이트를 도출했습니다',               next:'이제 AI 활용 아이디어를 구상합니다' },
-  { title:'📋 기획서 작성',       phase:'⑥ 기획서 작성',       phaseColor:'#ec4899', desc:'프로젝트를 정리하고 기획서를 완성합니다', done:'AI 아이디어 구상을 완료했습니다',        next:'이제 기획서를 작성합니다' },
+  { title:'🎯 문제 정의',         phase:'① 문제 정의',         phaseColor:'#7c3aed', desc:'해결할 문제를 명확하게 정의합니다',         done:'',                                     next:'문제를 정의하면 데이터를 찾습니다' },
+  { title:'🔍 공공데이터 찾기',   phase:'② 데이터 찾기',       phaseColor:'#0284c7', desc:'연구 주제에 맞는 공공데이터를 찾습니다',   done:'문제 정의를 완료했습니다',              next:'데이터를 업로드하면 다음 단계로 이동합니다' },
+  { title:'👀 데이터 이해',        phase:'③ 데이터 이해',       phaseColor:'#059669', desc:'데이터 구조와 내용을 파악합니다',           done:'데이터 탐색을 완료했습니다',            next:'이제 데이터를 이해하고 파악합니다' },
+  { title:'📊 데이터 분석',        phase:'④ 데이터 분석',       phaseColor:'#d97706', desc:'그래프로 패턴과 특징을 찾습니다',           done:'데이터 이해를 완료했습니다',            next:'이제 데이터를 시각화해 분석합니다' },
+  { title:'💡 인사이트 도출',     phase:'⑤ 인사이트 도출',     phaseColor:'#10b981', desc:'데이터에서 의미 있는 발견을 정리합니다',   done:'데이터 분석을 완료했습니다',            next:'이제 핵심 인사이트를 정리합니다' },
+  { title:'🚀 AI 활용 아이디어', phase:'⑥ AI 활용 아이디어',  phaseColor:'#6C63FF', desc:'데이터 기반으로 AI 서비스를 구상합니다',   done:'인사이트를 도출했습니다',               next:'이제 AI 활용 아이디어를 구상합니다' },
+  { title:'🛠 서비스 기획',        phase:'⑦ 서비스 기획',       phaseColor:'#be185d', desc:'AI 아이디어를 실제 서비스로 구체화합니다', done:'AI 아이디어를 완성했습니다',             next:'이제 서비스 기획을 구체화합니다' },
+  { title:'📋 기획서 작성',       phase:'⑧ 기획서 작성',       phaseColor:'#1d4ed8', desc:'프로젝트를 정리하고 기획서를 완성합니다',  done:'서비스 기획을 완료했습니다',             next:'이제 기획서를 작성합니다' },
 ];
 
 // 프로젝트 단계를 앞으로만 진행 (완료 표시는 누적, 뒤로 가도 지워지지 않음)
@@ -4090,16 +4234,16 @@ function renderSidebarProjFlow(activeProjStep) {
     container.innerHTML = html;
   }
   // ── 진행률 바 업데이트 ──
-  const doneCount = Math.min(completedProjectStepNums.size, 6);
-  const pct = Math.max(Math.round(doneCount / 6 * 100), 4);
+  const doneCount = Math.min(completedProjectStepNums.size, 8);
+  const pct = Math.max(Math.round(doneCount / 8 * 100), 4);
   const bar = document.getElementById('sidebar-proj-bar');
   const lbl = document.getElementById('sidebar-proj-label');
   if (bar) bar.style.width = pct + '%';
-  if (lbl) lbl.textContent = `${doneCount} / 6 완료`;
+  if (lbl) lbl.textContent = `${doneCount} / 8 완료`;
 }
 
 function updateProjFlow(currentL4StepNum) {
-  const projStep = L4_TO_PROJ[currentL4StepNum] || 2;
+  const projStep = L4_TO_PROJ[currentL4StepNum] || 1;
   setCurrentProjectStep(projStep);
   renderSidebarProjFlow(projStep);
   updateStepGuideBanner(currentL4StepNum);
@@ -4108,13 +4252,14 @@ function updateProjFlow(currentL4StepNum) {
 
 // 프로젝트 단계 클릭 → 해당 lesson + l4 서브스텝으로 이동
 const PROJ_TO_LESSON = {
-  1: { lesson: 1, l4: null },    // 문제 정의 → 3차시 주제선정
-  2: { lesson: 2, l4: 1 },       // 공공데이터 찾기 → l4 step 1
-  3: { lesson: 2, l4: 2 },       // 데이터 이해 → l4 step 2
-  4: { lesson: 2, l4: 3 },       // AI 활용 아이디어 → l4 step 3
-  5: { lesson: 2, l4: 4 },       // 인사이트 도출 → l4 step 4
-  6: { lesson: 2, l4: 5 },       // 서비스 기획 → l4 step 5
-  7: { lesson: 2, l4: 6 },       // 기획서 작성 → l4 step 6
+  1: { lesson: 2, l4: 1 },       // 문제 정의 → l4 step 1
+  2: { lesson: 2, l4: 2 },       // 공공데이터 찾기 → l4 step 2
+  3: { lesson: 2, l4: 3 },       // 데이터 이해 → l4 step 3
+  4: { lesson: 2, l4: 4 },       // 데이터 분석 → l4 step 4
+  5: { lesson: 2, l4: 5 },       // 인사이트 도출 → l4 step 5
+  6: { lesson: 2, l4: 6 },       // AI 활용 아이디어 → l4 step 6
+  7: { lesson: 2, l4: 7 },       // 서비스 기획 → l4 step 7
+  8: { lesson: 2, l4: 8 },       // 기획서 작성 → l4 step 8
 };
 
 function goToProjectStep(projStep) {
@@ -4128,7 +4273,7 @@ function goToProjectStep(projStep) {
 }
 
 function updateL4SubTabs(n) {
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 8; i++) {
     const tab = document.getElementById('l4-tab-' + i);
     if (!tab) continue;
     tab.classList.remove('active', 'done');
@@ -4142,11 +4287,11 @@ function updateStepGuideBanner(n) {
   if (!banner) return;
   const meta = L4_STEP_META[n];
   if (!meta) return;
-  const pct = Math.round((n / 6) * 100);
+  const pct = Math.round((n / 8) * 100);
   // 컨텐츠 영역: 단계 제목+설명만 (프로젝트 흐름은 사이드바에서 표시)
   banner.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-      <span style="font-size:11px;font-weight:700;color:${meta.phaseColor};background:${meta.phaseColor}1a;padding:2px 9px;border-radius:20px;white-space:nowrap;">${n} / 6</span>
+      <span style="font-size:11px;font-weight:700;color:${meta.phaseColor};background:${meta.phaseColor}1a;padding:2px 9px;border-radius:20px;white-space:nowrap;">${n} / 8</span>
       <div style="min-width:0;">
         <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${meta.title}</div>
         <div style="font-size:10px;color:var(--muted);">${meta.desc}</div>
@@ -4163,27 +4308,27 @@ function updateStepGuideBanner(n) {
 // ── Step Navigation ──
 function setL4Step(n) {
   currentL4Step = n;
-  updateProjFlow(n);   // updates big sidebar 7-steps + sub-tabs
+  updateProjFlow(n);   // updates big sidebar 8-steps + sub-tabs
   scheduleAutosave();
   // Show the right view, hide others
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 8; i++) {
     const view = document.getElementById('l4-view-' + i);
     if (!view) continue;
     if (i === n) {
-      view.style.display = (i === 4) ? 'flex' : 'block';
-      view.style.flexDirection = (i === 4) ? 'column' : '';
+      view.style.display = (i === 5) ? 'flex' : 'block';
+      view.style.flexDirection = (i === 5) ? 'column' : '';
     } else {
       view.style.display = 'none';
     }
   }
   // Step-specific side effects
-  if (n === 2 && lesson4Data) renderL4Preprocessing();
-  if (n === 3 && lesson4Data) {
+  if (n === 3 && lesson4Data) renderL4Preprocessing();
+  if (n === 4 && lesson4Data) {
     refreshV3Selectors();
     renderV3ColTypeBadges();
     renderV3Chart();
   }
-  if (n === 4 && lesson4Data && l4Messages.length === 0) {
+  if (n === 5 && lesson4Data && l4Messages.length === 0) {
     triggerL4AutoAnalysis(lesson4AllData || [lesson4Data]);
   }
 }
@@ -4546,7 +4691,7 @@ function l4QuickSend(text) {
 }
 
 function l4AskAndGo(text) {
-  setL4Step(4);
+  setL4Step(5);
   setTimeout(() => {
     const input = document.getElementById('l4-input');
     if (input) { input.value = text; autoResize(input); }
@@ -4561,7 +4706,7 @@ async function l4ValidateService() {
   const usr = document.getElementById('l4-svc-user')?.value?.trim();
   if (!inp && !proc && !out) { alert('AI 서비스 설계를 먼저 작성하세요.'); return; }
   const design = `내 AI 서비스 설계를 검토해줘:\n[입력 데이터] ${inp||'(미작성)'}\n[AI 처리] ${proc||'(미작성)'}\n[출력 결과] ${out||'(미작성)'}\n[사용자] ${usr||'(미작성)'}`;
-  setL4Step(4);
+  setL4Step(5);
   const input = document.getElementById('l4-input');
   if (input) { input.value = design; input.style.height = 'auto'; }
   sendL4Message();
@@ -5073,7 +5218,7 @@ async function analyzeWriteDiff() {
     const box = document.getElementById('compare-analysis');
     box.style.display = 'block';
     box.innerHTML = `<div style="font-size:13px;font-weight:500;color:var(--accent2);margin-bottom:10px;">🔍 차이 분석 결과</div><div style="font-size:13px;line-height:1.8;">${renderMarkdown(data.reply)}</div>`;
-    box.scrollIntoView({ behavior: 'smooth' });
+    // scrollIntoView removed to prevent page jump
   } catch(e) { alert('오류: ' + e.message); }
   finally { btn.textContent = '🔍 차이 분석하기'; btn.disabled = false; }
 }
@@ -5081,8 +5226,7 @@ async function analyzeWriteDiff() {
 function showRewriteArea() {
   const area = document.getElementById('rewrite-area');
   area.style.display = 'block';
-  area.scrollIntoView({ behavior: 'smooth' });
-  document.getElementById('rewrite-ta').focus();
+  // scrollIntoView and focus removed to prevent page jump
 }
 
 // ── Self Reflection ──
@@ -5150,8 +5294,8 @@ function renderMarkdown(text) {
 //  팀 진행 기록 자동저장 시스템
 // ═══════════════════════════════════════════════════════
 
-const L4_SAVE_FIELDS = ['l4-svc-input','l4-svc-process','l4-svc-output','l4-svc-user','plan-problem','plan-insight','plan-idea','plan-structure','plan-effect'];
-const L4_CHECK_IDS   = ['l4-chk-1','l4-chk-2','l4-chk-3','l4-chk-4','l4-chk-5','l4-chk-6'];
+const L4_SAVE_FIELDS = ['prob-def-1','prob-def-2','prob-def-3','prob-def-4','svc-name','svc-user-target','svc-features','svc-flow','svc-impact','l4-svc-input','l4-svc-process','l4-svc-output','l4-svc-user','plan-problem','plan-insight','plan-idea','plan-structure','plan-effect'];
+const L4_CHECK_IDS   = ['l4-chk-1','l4-chk-2','l4-chk-3','l4-chk-4','l4-chk-5','l4-chk-6','l4-chk-7','l4-chk-8'];
 
 let saveDebounceTimer = null;
 let teamProgressData  = null;
@@ -5257,6 +5401,11 @@ function scheduleAutosave() {
   showSaveStatus('saving');
   clearTimeout(saveDebounceTimer);
   saveDebounceTimer = setTimeout(saveTeamProgress, 1500);
+}
+
+function saveL4StepData(step) {
+  scheduleAutosave();
+  showSaveStatus('saved');
 }
 
 function showSaveStatus(state) {
@@ -5511,7 +5660,7 @@ async function fetchXmlData() {
     status.style.color = '#10b981';
 
     // 데이터 이해 단계로 이동
-    setTimeout(() => setL4Step(2), 800);
+    setTimeout(() => setL4Step(3), 800);
   } catch(e) {
     status.style.color = '#ef4444';
     if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
