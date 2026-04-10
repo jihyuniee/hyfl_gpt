@@ -163,13 +163,14 @@ Chart.register(piePercentPlugin);
     100%  { left: -50px; }
   }
   @keyframes pet-flip {
-    0%    { transform: scaleX(1); }
-    42%   { transform: scaleX(1); }
-    44%   { transform: scaleX(-1); }
-    86%   { transform: scaleX(-1); }
-    88%   { transform: scaleX(1); }
-    100%  { transform: scaleX(1); }
+    0%    { transform: scaleX(-1); }
+    42%   { transform: scaleX(-1); }
+    44%   { transform: scaleX(1); }
+    86%   { transform: scaleX(1); }
+    88%   { transform: scaleX(-1); }
+    100%  { transform: scaleX(-1); }
   }
+  #pet-mascot:hover { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15)) brightness(1.2); }
   @keyframes pet-hop {
     0%,100% { bottom: 8px; }
     25%     { bottom: 15px; }
@@ -794,6 +795,7 @@ Chart.register(piePercentPlugin);
     <div class="top-right">
       <div class="team-chip" id="team-chip">팀명</div>
       <div class="contest-chip">2026 공공교육데이터 AI활용대회</div>
+      <button onclick="showHelp()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 11px;cursor:pointer;font-size:12px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;line-height:1.4;" title="도움말">❓ 도움말</button>
       <button id="theme-btn" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:15px;line-height:1;" title="라이트/다크 모드">🌙</button>
       <button class="logout-btn" onclick="doLogout()">나가기</button>
     </div>
@@ -1203,7 +1205,7 @@ Chart.register(piePercentPlugin);
             <button class="l4-tab" id="l4-tab-3" onclick="setL4Step(3)"><span class="l4-tab-num">3</span>📊 분석하기</button>
             <button class="l4-tab" id="l4-tab-4" onclick="setL4Step(4)"><span class="l4-tab-num">4</span>💡 인사이트</button>
             <button class="l4-tab" id="l4-tab-5" onclick="setL4Step(5)"><span class="l4-tab-num">5</span>🚀 아이디어</button>
-            <button class="l4-tab" id="l4-tab-6" onclick="setL4Step(6)"><span class="l4-tab-num">6</span>📝 성찰 기록</button>
+            <button class="l4-tab" id="l4-tab-6" onclick="setL4Step(6)"><span class="l4-tab-num">6</span>📋 기획서 작성</button>
           </nav>
 
           <!-- 현재 단계 안내 배너 (단계 제목 + 진행률) -->
@@ -1335,7 +1337,7 @@ Chart.register(piePercentPlugin);
               </div>
 
               <!-- 중간점검 Ch.07 -->
-              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 14px;">
+              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
                 <div style="font-size:11px;font-weight:600;color:#10b981;margin-bottom:7px;">✅ Ch.07 · 중간 점검 — 업로드 전에 확인하세요</div>
                 <div style="font-size:11px;color:var(--muted);line-height:2.1;">
                   □ 데이터가 CSV 또는 XLSX 형식인가요?<br>
@@ -1343,6 +1345,18 @@ Chart.register(piePercentPlugin);
                   □ 빈 셀이 최소화되어 있나요?<br>
                   □ 내 연구 주제와 관련 있는 컬럼이 포함되어 있나요?
                 </div>
+              </div>
+
+              <!-- XML 데이터 가져오기 -->
+              <div style="background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:6px;">🌐 XML / API 데이터 가져오기 <span style="font-size:10px;font-weight:400;color:var(--muted);">(선택)</span></div>
+                <p style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.7;">공공데이터 API URL을 입력하면 XML 데이터를 자동으로 불러와 표로 변환합니다</p>
+                <div style="display:flex;gap:7px;margin-bottom:8px;">
+                  <input type="text" id="xml-url-input" placeholder="https://... (공공데이터 API URL 입력)" style="flex:1;font-size:11px;padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;min-width:0;">
+                  <button onclick="fetchXmlData()" style="padding:7px 14px;background:#60a5fa;color:white;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;font-weight:600;">불러오기</button>
+                </div>
+                <div id="xml-status" style="display:none;font-size:11px;color:var(--muted);margin-bottom:6px;"></div>
+                <div style="font-size:10px;color:var(--muted);line-height:1.7;">💡 CORS 오류 발생 시: 공공데이터포털에서 CSV로 직접 다운로드해 업로드해 주세요</div>
               </div>
             </div>
           </div>
@@ -1663,7 +1677,19 @@ Chart.register(piePercentPlugin);
                 <h3 style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin:0;">AI 활용 아이디어 정하기</h3>
                 <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 5</span>
               </div>
-              <p style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.7;">우리 팀 문제에 가장 잘 맞는 AI 방식을 정하고 아이디어를 기록해봐요</p>
+              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.1),rgba(16,185,129,0.07));border:1px solid rgba(108,99,255,0.25);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:11px;color:var(--text);line-height:1.7;">
+      📊 <b>데이터 분석 결과를 기반으로 AI 활용 아이디어를 만듭니다</b><br>
+      <span style="color:var(--muted);">이전 단계에서 발견한 패턴과 인사이트를 바탕으로 AI가 해결할 수 있는 문제를 정의해보세요</span>
+    </div>
+    <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:6px;">🧐 학생들이 생각해볼 질문</div>
+      <div style="font-size:11px;color:var(--muted);line-height:2;">
+        💬 데이터를 보니 어떤 <b style="color:var(--text);">문제</b>가 보이나요?<br>
+        📊 어떤 <b style="color:var(--text);">데이터</b>를 AI에 활용할 수 있나요?<br>
+        🤖 AI로 이 문제를 <b style="color:var(--text);">해결</b>할 수 있을까요?<br>
+        👤 누구에게 <b style="color:var(--text);">도움</b>이 되는 서비스인가요?
+      </div>
+    </div>
 
               <!-- ① AI 유형 선택 -->
               <div class="step-card">
@@ -1737,55 +1763,74 @@ Chart.register(piePercentPlugin);
                 <button onclick="l4ValidateService()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🤖 AI에게 우리 아이디어 피드백 받기</button>
                 <button onclick="l4AskAndGo('우리가 발견한 교육 문제를 해결하는 AI 서비스 아이디어를 3가지 제안해줘. 각각 서비스명, 대상, 핵심 기능을 포함해서.')" style="width:100%;padding:10px;background:rgba(108,99,255,0.1);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💡 AI 서비스 아이디어 3가지 제안받기</button>
               </div>
-              <button class="l4-next-btn" onclick="setL4Step(6)">다음 단계: 📝 자기 성찰 기록 →</button>
+              <button class="l4-next-btn" onclick="setL4Step(6)">다음 단계: 📋 기획서 작성 →</button>
             </div>
           </div>
 
-          <!-- ⑥ STEP 6: 자기 성찰 기록 -->
+          <!-- ⑥ STEP 6: 기획서 작성 -->
           <div id="l4-view-6" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
-            <div style="max-width:560px;margin:0 auto;">
+            <div style="max-width:640px;margin:0 auto;">
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">📝</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">자기 성찰 기록</h3>
+                <span style="font-size:22px;">📋</span>
+                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">기획서 작성</h3>
                 <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 6</span>
               </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.7;">오늘 우리 팀이 발견한 것들을 정리하고 솔직하게 돌아볼게요<br>이 기록은 수업 평가에 반영됩니다</p>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">지금까지 분석한 내용을 바탕으로 AI 서비스 기획서를 완성합니다</p>
 
-              <!-- 탐구 질문 카드 -->
-              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(96,165,250,0.07));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
-                <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;">🧐 오늘 수업을 돌아보며</div>
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q1</span><span>오늘 우리 팀이 데이터에서 찾은 <b>핵심 발견</b>은 무엇인가요?</span></div>
-                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q2</span><span>오늘 <b>부족했던 점</b>이나 더 알고 싶은 것은 무엇인가요?</span></div>
-                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q3</span><span>다음 시간에 <b>무엇을 보완</b>해야 할까요?</span></div>
+              <!-- 안내 박스 -->
+              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(16,185,129,0.05));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;">
+                <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:7px;">📋 기획서 포함 항목</div>
+                <div style="font-size:11px;color:var(--muted);line-height:2;">
+                  ① 문제 정의 &nbsp;② 데이터 분석 결과 &nbsp;③ AI 활용 아이디어<br>④ 서비스 구조 &nbsp;⑤ 기대 효과
                 </div>
               </div>
 
-              <!-- 오늘의 성과 체크 -->
-              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;">
+              <!-- 기획서 직접 작성 -->
+              <div class="step-card">
+                <div class="step-card-title">✏️ 기획서 초안 직접 작성</div>
+
+                <div style="font-size:10px;color:var(--accent2);font-weight:600;margin-bottom:4px;">① 우리가 해결하려는 문제</div>
+                <textarea id="plan-problem" class="step-textarea" placeholder="예) 지역별 교육 기회 불평등 문제" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:10px;"></textarea>
+
+                <div style="font-size:10px;color:#10b981;font-weight:600;margin-bottom:4px;">② 데이터에서 발견한 핵심 사실</div>
+                <textarea id="plan-insight" class="step-textarea" placeholder="예) 서울 학생 수는 지방의 3배, 농촌 지역은 5년간 20% 감소" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:10px;"></textarea>
+
+                <div style="font-size:10px;color:#f59e0b;font-weight:600;margin-bottom:4px;">③ AI 활용 아이디어</div>
+                <textarea id="plan-idea" class="step-textarea" placeholder="예) 예측 AI로 5년 후 지역별 학생 수를 예측해 미리 자원을 배분" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:10px;"></textarea>
+
+                <div style="font-size:10px;color:#60a5fa;font-weight:600;margin-bottom:4px;">④ 서비스 구조 (사용자 → 입력 → AI 처리 → 출력)</div>
+                <textarea id="plan-structure" class="step-textarea" placeholder="예) 교사·학부모 → 지역 데이터 입력 → AI 예측 분석 → 자원 배분 리포트 출력" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:10px;"></textarea>
+
+                <div style="font-size:10px;color:#ec4899;font-weight:600;margin-bottom:4px;">⑤ 기대 효과</div>
+                <textarea id="plan-effect" class="step-textarea" placeholder="예) 교육 자원의 효율적 배분으로 지역 교육 격차 20% 감소 기대" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:6px;"></textarea>
+              </div>
+
+              <!-- 자동 생성 -->
+              <div class="step-card">
+                <div class="step-card-title">🤖 AI가 기획서 초안 자동 생성</div>
+                <p style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.7;">이전 단계에서 입력한 내용을 자동으로 모아 기획서 형식으로 정리합니다</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                  <button onclick="generatePlan()" style="flex:1;min-width:160px;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 기획서 자동 생성</button>
+                  <button onclick="l4AskAndGo('우리 팀의 AI 서비스 기획서를 완성도 높게 작성해줘. 서비스명, 문제 정의, 데이터 활용, AI 기능, 기대 효과를 포함해서 PPT용으로 정리해줘.')" style="flex:1;min-width:160px;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI에게 기획서 도움 요청</button>
+                </div>
+                <div id="plan-generated" style="display:none;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--text);"></div>
+                <div id="plan-copy-btn-wrap" style="display:none;margin-top:8px;">
+                  <button onclick="copyPlan()" style="font-size:11px;padding:5px 14px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 기획서 텍스트 복사</button>
+                </div>
+              </div>
+
+              <!-- 완료 체크리스트 -->
+              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 16px;">
                 <div style="font-size:11px;font-weight:600;color:#10b981;margin-bottom:8px;">✅ 오늘 완료한 단계를 체크하세요</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-1"> 🔍 데이터 찾기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-2"> 👀 데이터 이해하기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-3"> 📊 데이터 분석하기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-4"> 💡 인사이트 찾기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-5"> 🚀 서비스 아이디어</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-6"> 📝 자기 성찰 기록</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-1"> 📂 데이터 찾기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-2"> 🔎 데이터 이해</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-3"> 📊 데이터 분석</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-4"> 💡 인사이트 도출</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-5"> 🤖 AI 활용 아이디어</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-6"> 📋 기획서 작성</label>
                 </div>
               </div>
-
-              <!-- AI 기록 구분 안내 -->
-              <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.8;">
-                📋 <b style="color:var(--text);">AI가 쓴 것 vs 내가 직접 쓴 것</b>을 구분해서 기록해두세요<br>
-                💡 AI 대화 중 <b style="color:var(--text);">내 생각이 바뀌거나 새로운 것을 발견한 순간</b>을 기억해두면 좋아요
-              </div>
-
-              <button onclick="setLesson(7, document.querySelector('.lesson-btn:nth-child(9)'))" style="display:block;width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:10px;">
-                📝 자기 성찰 기록 탭으로 이동 →
-              </button>
-              <button onclick="l4AskAndGo('오늘 우리 팀의 데이터 분석 과정을 짧게 정리해줘. 우리가 발견한 것과 앞으로 보완할 점을 포함해서.')" style="display:block;width:100%;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
-                💬 AI와 오늘 수업 회고 정리하기
-              </button>
             </div>
           </div>
 
@@ -2249,6 +2294,62 @@ Chart.register(piePercentPlugin);
     <div style="overflow:auto;flex:1;" id="l4-preview-scroll">
       <table id="l4-preview-table-full" style="font-size:12px;border-collapse:collapse;white-space:nowrap;min-width:100%;"></table>
     </div>
+  </div>
+</div>
+
+<!-- ── 도움말 모달 ── -->
+<div id="help-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:24px;width:min(680px,95vw);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:15px;font-weight:600;font-family:'Space Grotesk',sans-serif;">❓ 도움말</div>
+      <button onclick="document.getElementById('help-modal').style.display='none'" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <!-- 데이터 분석 방법 -->
+    <div style="background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.25);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:12px;font-weight:700;color:#60a5fa;margin-bottom:10px;">📊 데이터 분석 방법</div>
+      <div style="font-size:11px;color:var(--muted);line-height:2;">
+        <b style="color:var(--text);">1. 비교하기</b> — 가장 높은 값과 낮은 값을 찾아보세요<br>
+        <b style="color:var(--text);">2. 변화 보기</b> — 시간에 따라 증가/감소하는 경향을 확인하세요<br>
+        <b style="color:var(--text);">3. 패턴 찾기</b> — 반복되는 특징이나 규칙이 있는지 살펴보세요<br>
+        <b style="color:var(--text);">4. 차이 찾기</b> — 지역별·집단별로 큰 차이가 있는지 확인하세요<br>
+        <b style="color:var(--text);">5. 이상값 탐지</b> — 튀는 값(이상치)이 있으면 이유를 생각해보세요
+      </div>
+    </div>
+    <!-- 그래프 설명 -->
+    <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:10px;">📈 그래프 읽는 방법</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px;color:var(--muted);line-height:1.8;">
+        <div><b style="color:#60a5fa;">X축 (가로)</b><br>비교할 대상<br>예) 지역명, 학교명, 연도</div>
+        <div><b style="color:#10b981;">Y축 (세로)</b><br>비교할 숫자 값<br>예) 학생 수, 점수, 비율(%)</div>
+        <div><b style="color:var(--text);">막대 그래프</b><br>여러 항목을 한눈에 비교<br>→ 지역 간 차이 파악</div>
+        <div><b style="color:var(--text);">선 그래프</b><br>시간에 따른 변화 추이<br>→ 연도별 증감 확인</div>
+        <div><b style="color:var(--text);">원 그래프</b><br>전체에서 각 부분의 비율<br>→ 구성 비율 한눈에 파악</div>
+        <div><b style="color:var(--text);">산점도</b><br>두 수치 간 관계 확인<br>→ 상관관계 탐색</div>
+      </div>
+    </div>
+    <!-- AI 아이디어 작성 -->
+    <div style="background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.25);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:10px;">🤖 AI 아이디어 작성 방법</div>
+      <div style="font-size:11px;color:var(--muted);line-height:2;">
+        <b style="color:var(--text);">1. 문제 찾기</b> — 데이터에서 어떤 문제가 보이나요?<br>
+        <b style="color:var(--text);">2. 해결 대상</b> — 누가 이 문제를 겪고 있나요?<br>
+        <b style="color:var(--text);">3. AI 역할</b> — 예측·분류·추천·챗봇 중 무엇이 맞나요?<br>
+        <b style="color:var(--text);">4. 데이터 연결</b> — 어떤 데이터를 AI에 입력하나요?<br>
+        <b style="color:var(--text);">5. 기대 효과</b> — 이 AI 서비스가 생기면 어떤 점이 좋아지나요?
+      </div>
+    </div>
+    <!-- 기획서 작성 -->
+    <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:12px;font-weight:700;color:#10b981;margin-bottom:10px;">📝 기획서 작성 방법</div>
+      <div style="font-size:11px;color:var(--muted);line-height:2;">
+        <b style="color:var(--text);">① 문제 정의</b> — 우리가 해결하려는 사회 문제는 무엇인가?<br>
+        <b style="color:var(--text);">② 데이터 근거</b> — 데이터 분석으로 발견한 핵심 사실은?<br>
+        <b style="color:var(--text);">③ AI 아이디어</b> — 어떤 AI 기술로 문제를 해결할 것인가?<br>
+        <b style="color:var(--text);">④ 서비스 구조</b> — 사용자 → 입력 → AI 처리 → 출력 흐름<br>
+        <b style="color:var(--text);">⑤ 기대 효과</b> — 이 서비스가 사회에 미칠 긍정적 변화
+      </div>
+    </div>
+    <button onclick="document.getElementById('help-modal').style.display='none'" style="align-self:center;padding:8px 24px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:500;">확인</button>
   </div>
 </div>
 
@@ -3944,26 +4045,25 @@ function advanceL4Step(text) {
   // Kept for compatibility but step nav is now handled by setL4Step
 }
 
-// ── 프로젝트 전체 흐름 (AI 아이디어 기획 중심) ──
+// ── 프로젝트 전체 흐름 (6단계: 데이터 찾기 → 기획서 작성) ──
 const PROJ_STEPS = [
-  {n:1, icon:'🎯', label:'문제 정의'},
-  {n:2, icon:'📂', label:'공공데이터 찾기'},
-  {n:3, icon:'🔎', label:'데이터 이해'},
-  {n:4, icon:'🤖', label:'AI 활용 아이디어'},
-  {n:5, icon:'💡', label:'인사이트 도출'},
-  {n:6, icon:'🧠', label:'서비스 기획'},
-  {n:7, icon:'📝', label:'기획서 작성'},
+  {n:1, icon:'📂', label:'데이터 찾기'},
+  {n:2, icon:'🔎', label:'데이터 이해'},
+  {n:3, icon:'📊', label:'데이터 분석'},
+  {n:4, icon:'💡', label:'인사이트 도출'},
+  {n:5, icon:'🤖', label:'AI 아이디어'},
+  {n:6, icon:'📋', label:'기획서 작성'},
 ];
-// l4탐구단계 → 프로젝트 전체 단계 매핑
-const L4_TO_PROJ = {1:2, 2:3, 3:4, 4:5, 5:6, 6:7};
+// l4탐구단계(1~6) → 프로젝트 전체 단계(1~6) 1:1 매핑
+const L4_TO_PROJ = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6};
 
 const L4_STEP_META = [null,
-  { title:'📂 공공데이터 찾기',   phase:'② 공공데이터 찾기',  phaseColor:'#60a5fa', desc:'문제와 관련된 공공데이터를 찾습니다',    done:'문제 정의를 완료했습니다',              next:'이제 공공데이터를 찾아봅니다' },
-  { title:'🔎 데이터 이해하기',   phase:'③ 데이터 이해',       phaseColor:'#a78bfa', desc:'데이터 구조와 내용을 파악합니다',        done:'공공데이터 탐색을 완료했습니다',         next:'이제 데이터를 이해하고 파악합니다' },
-  { title:'🤖 AI 활용 아이디어',  phase:'④ AI 활용 아이디어',  phaseColor:'#f59e0b', desc:'AI를 어떻게 활용할지 아이디어를 냅니다', done:'데이터 이해를 완료했습니다',            next:'이제 AI 활용 아이디어를 구상합니다' },
-  { title:'💡 인사이트 도출',     phase:'⑤ 인사이트 도출',     phaseColor:'#10b981', desc:'데이터에서 의미 있는 발견을 정리합니다', done:'AI 아이디어 구상을 완료했습니다',        next:'이제 핵심 인사이트를 정리합니다' },
-  { title:'🧠 서비스 기획',       phase:'⑥ 서비스 기획',       phaseColor:'#6C63FF', desc:'AI 서비스 시나리오와 기능을 설계합니다', done:'인사이트를 도출했습니다',               next:'이제 서비스를 기획합니다' },
-  { title:'📝 기획서 작성',       phase:'⑦ 기획서 작성',       phaseColor:'#ec4899', desc:'프로젝트를 정리하고 기획서를 작성합니다',done:'서비스 기획을 완료했습니다',            next:'이제 기획서를 작성합니다' },
+  { title:'📂 데이터 찾기',       phase:'① 데이터 찾기',       phaseColor:'#60a5fa', desc:'연구 주제에 맞는 공공데이터를 찾습니다',  done:'',                                     next:'데이터를 업로드하면 다음 단계로 이동합니다' },
+  { title:'🔎 데이터 이해하기',   phase:'② 데이터 이해',       phaseColor:'#a78bfa', desc:'데이터 구조와 내용을 파악합니다',         done:'데이터 탐색을 완료했습니다',            next:'이제 데이터를 이해하고 파악합니다' },
+  { title:'📊 데이터 분석하기',   phase:'③ 데이터 분석',       phaseColor:'#f59e0b', desc:'그래프로 패턴과 특징을 찾습니다',         done:'데이터 이해를 완료했습니다',            next:'이제 데이터를 시각화해 분석합니다' },
+  { title:'💡 인사이트 도출',     phase:'④ 인사이트 도출',     phaseColor:'#10b981', desc:'데이터에서 의미 있는 발견을 정리합니다',  done:'데이터 분석을 완료했습니다',            next:'이제 핵심 인사이트를 정리합니다' },
+  { title:'🤖 AI 활용 아이디어',  phase:'⑤ AI 활용 아이디어',  phaseColor:'#6C63FF', desc:'데이터 기반으로 AI 서비스를 구상합니다',  done:'인사이트를 도출했습니다',               next:'이제 AI 활용 아이디어를 구상합니다' },
+  { title:'📋 기획서 작성',       phase:'⑥ 기획서 작성',       phaseColor:'#ec4899', desc:'프로젝트를 정리하고 기획서를 완성합니다', done:'AI 아이디어 구상을 완료했습니다',        next:'이제 기획서를 작성합니다' },
 ];
 
 // 프로젝트 단계를 앞으로만 진행 (완료 표시는 누적, 뒤로 가도 지워지지 않음)
@@ -3990,12 +4090,12 @@ function renderSidebarProjFlow(activeProjStep) {
     container.innerHTML = html;
   }
   // ── 진행률 바 업데이트 ──
-  const doneCount = completedProjectStepNums.size;
-  const pct = Math.max(Math.round(doneCount / 7 * 100), 4);
+  const doneCount = Math.min(completedProjectStepNums.size, 6);
+  const pct = Math.max(Math.round(doneCount / 6 * 100), 4);
   const bar = document.getElementById('sidebar-proj-bar');
   const lbl = document.getElementById('sidebar-proj-label');
   if (bar) bar.style.width = pct + '%';
-  if (lbl) lbl.textContent = `${doneCount} / 7 완료`;
+  if (lbl) lbl.textContent = `${doneCount} / 6 완료`;
 }
 
 function updateProjFlow(currentL4StepNum) {
@@ -5050,7 +5150,7 @@ function renderMarkdown(text) {
 //  팀 진행 기록 자동저장 시스템
 // ═══════════════════════════════════════════════════════
 
-const L4_SAVE_FIELDS = ['l4-svc-input','l4-svc-process','l4-svc-output','l4-svc-user'];
+const L4_SAVE_FIELDS = ['l4-svc-input','l4-svc-process','l4-svc-output','l4-svc-user','plan-problem','plan-insight','plan-idea','plan-structure','plan-effect'];
 const L4_CHECK_IDS   = ['l4-chk-1','l4-chk-2','l4-chk-3','l4-chk-4','l4-chk-5','l4-chk-6'];
 
 let saveDebounceTimer = null;
@@ -5283,6 +5383,145 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.type === 'checkbox') scheduleAutosave();
   });
 });
+
+// ── 도움말 모달 표시 ──
+function showHelp() {
+  document.getElementById('help-modal').style.display = 'flex';
+}
+
+// ── 기획서 자동 생성 ──
+/**
+ * 이전 단계(Step 5)에서 입력한 내용을 수집해
+ * AI에게 기획서 초안 생성을 요청합니다.
+ */
+async function generatePlan() {
+  // 이전 단계 입력값 수집
+  const problem   = (document.getElementById('plan-problem')?.value   || document.getElementById('l4-svc-problem')?.value  || '').trim();
+  const insight   = (document.getElementById('plan-insight')?.value   || '').trim();
+  const idea      = (document.getElementById('plan-idea')?.value      || document.getElementById('l4-svc-process')?.value  || '').trim();
+  const structure = (document.getElementById('plan-structure')?.value || '').trim();
+  const effect    = (document.getElementById('plan-effect')?.value    || '').trim();
+  const aiType    = document.getElementById('ai-type-selected')?.textContent?.trim() || '';
+  const dataUse   = (document.getElementById('l4-svc-input')?.value  || '').trim();
+  const user      = (document.getElementById('l4-svc-user')?.value   || '').trim();
+  const service   = (document.getElementById('l4-svc-output')?.value  || '').trim();
+
+  const genDiv  = document.getElementById('plan-generated');
+  const copyWrap = document.getElementById('plan-copy-btn-wrap');
+  genDiv.style.display  = 'block';
+  copyWrap.style.display = 'none';
+  genDiv.textContent = '⏳ AI가 기획서를 작성하는 중...';
+
+  // 프롬프트 구성
+  const prompt = `아래 학생 팀의 데이터 분석 프로젝트 내용을 바탕으로 AI 서비스 기획서 초안을 작성해줘.
+
+[프로젝트 정보]
+- 문제 정의: ${problem || '(미입력)'}
+- 데이터 발견 사실: ${insight || '(미입력)'}
+- AI 활용 아이디어: ${idea || '(미입력)'}
+- 선택 AI 유형: ${aiType || '(미선택)'}
+- 데이터 활용 방법: ${dataUse || '(미입력)'}
+- 서비스 대상: ${user || '(미입력)'}
+- 서비스 이름·기능: ${service || '(미입력)'}
+- 서비스 구조: ${structure || '(미입력)'}
+- 기대 효과: ${effect || '(미입력)'}
+
+[기획서 형식]
+다음 5가지 항목을 포함해 PPT 슬라이드용으로 작성해줘. 각 항목은 명확하고 간결하게:
+① 문제 정의
+② 데이터 분석 결과 (핵심 발견 2~3가지)
+③ AI 활용 아이디어
+④ 서비스 구조 (사용자→입력→AI처리→출력)
+⑤ 기대 효과`;
+
+  try {
+    // AI 호출 (비스트리밍)
+    const reply = await callAI(currentModel, [{ role: 'user', content: prompt }]);
+    genDiv.textContent = reply;
+    copyWrap.style.display = 'block';
+  } catch(e) {
+    genDiv.textContent = `❌ 생성 실패: ${e.message}\n\n직접 작성하거나 "AI에게 기획서 도움 요청" 버튼을 눌러보세요.`;
+  }
+}
+
+/** 생성된 기획서를 클립보드에 복사 */
+function copyPlan() {
+  const text = document.getElementById('plan-generated')?.textContent || '';
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('#plan-copy-btn-wrap button');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✅ 복사됨!'; setTimeout(() => btn.textContent = orig, 1500); }
+  }).catch(() => alert('복사 실패: 브라우저가 클립보드를 지원하지 않습니다.'));
+}
+
+// ── XML 데이터 가져오기 ──
+/**
+ * 공공데이터 API URL에서 XML 데이터를 가져와
+ * JSON으로 변환 후 lesson4Data로 로드합니다.
+ * CORS 정책으로 인해 동일 출처가 아니면 실패할 수 있습니다.
+ */
+async function fetchXmlData() {
+  const url    = (document.getElementById('xml-url-input')?.value || '').trim();
+  const status = document.getElementById('xml-status');
+  if (!url) { status.style.display='block'; status.textContent='❌ URL을 입력해주세요.'; status.style.color='#ef4444'; return; }
+
+  status.style.display = 'block';
+  status.style.color   = 'var(--muted)';
+  status.textContent   = '⏳ 데이터 불러오는 중...';
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+
+    // DOMParser로 XML 파싱
+    const parser = new DOMParser();
+    const xml    = parser.parseFromString(text, 'application/xml');
+    const parseErr = xml.querySelector('parsererror');
+    if (parseErr) throw new Error('XML 파싱 실패: 올바른 XML 형식이 아닙니다');
+
+    // 모든 자식 요소 수집 → 첫 번째 반복 요소를 데이터 단위로 사용
+    const root     = xml.documentElement;
+    const items    = Array.from(root.querySelectorAll('*')).filter(el => el.children.length === 0 || el.tagName === root.firstElementChild?.tagName);
+    const rowEls   = Array.from(root.children).filter(el => el.tagName !== 'totalCount' && el.tagName !== 'numOfRows' && el.tagName !== 'pageNo' && el.tagName !== 'resultCode' && el.tagName !== 'resultMsg');
+
+    // 컬럼 헤더 추출
+    const headers = rowEls.length > 0
+      ? [...new Set(rowEls.flatMap(el => Array.from(el.children).map(c => c.tagName)))]
+      : [];
+
+    if (!headers.length) {
+      // 단순 XML: leaf 노드를 행으로 처리
+      const leaves = Array.from(root.querySelectorAll('*')).filter(el => el.children.length === 0);
+      const rows   = leaves.map(el => ({ 항목: el.tagName, 값: el.textContent.trim() }));
+      lesson4Data  = { headers: ['항목', '값'], rows, filename: 'xml_data' };
+    } else {
+      const rows = rowEls.map(el => {
+        const obj = {};
+        headers.forEach(h => { obj[h] = el.querySelector(h)?.textContent?.trim() ?? ''; });
+        return obj;
+      });
+      lesson4Data = { headers, rows, filename: 'xml_data' };
+    }
+
+    // 사이드바 통계 갱신
+    renderLesson4Stats(lesson4Data.headers, lesson4Data.rows, false);
+    document.getElementById('l4-stats-area').style.display = 'block';
+    status.textContent = `✅ XML 로드 성공: ${lesson4Data.rows.length}행 × ${lesson4Data.headers.length}열`;
+    status.style.color = '#10b981';
+
+    // 데이터 이해 단계로 이동
+    setTimeout(() => setL4Step(2), 800);
+  } catch(e) {
+    status.style.color = '#ef4444';
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+      status.textContent = '❌ CORS 오류: 이 URL은 브라우저에서 직접 접근이 불가합니다.\n💡 공공데이터포털에서 CSV로 직접 다운로드해 업로드해주세요.';
+    } else {
+      status.textContent = `❌ 오류: ${e.message}`;
+    }
+    console.error('XML fetch 오류:', e);
+  }
+}
 
 // 페이지 이탈 시 저장
 window.addEventListener('beforeunload', () => {
