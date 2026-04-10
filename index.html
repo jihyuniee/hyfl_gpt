@@ -37,6 +37,7 @@ const piePercentPlugin = {
 Chart.register(piePercentPlugin);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
     --bg: #0f0f13;
@@ -2145,7 +2146,7 @@ Chart.register(piePercentPlugin);
             <button id="improve-btn" onclick="improvePrompt()" style="font-size:12px;padding:5px 12px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.35);border-radius:8px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 프롬프트 개선</button>
             <label style="font-size:12px;padding:5px 12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
               📁 파일 업로드
-              <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt" multiple style="display:none" onchange="handleFileUpload(this)">
+              <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt,.pdf" multiple style="display:none" onchange="handleFileUpload(this)">
             </label>
           </div>
           <div style="position:relative;" id="model-dropdown-wrap">
@@ -2236,14 +2237,17 @@ Chart.register(piePercentPlugin);
 
 <!-- ── 데이터 전체 보기 모달 ── -->
 <div id="l4-preview-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:24px;width:min(900px,97vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column;gap:12px;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:24px;width:min(960px,97vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column;gap:10px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <div style="font-size:15px;font-weight:600;font-family:'Space Grotesk',sans-serif;">🔍 데이터 전체 보기</div>
-      <button onclick="document.getElementById('l4-preview-modal').style.display='none'" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">✕</button>
+      <button onclick="closePreviewModal()" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">✕</button>
     </div>
-    <div id="l4-preview-info" style="font-size:12px;color:var(--muted);flex-shrink:0;"></div>
-    <div style="overflow:auto;flex:1;">
-      <table id="l4-preview-table-full" style="font-size:12px;border-collapse:collapse;white-space:nowrap;"></table>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px;">
+      <div id="l4-preview-info" style="font-size:12px;color:var(--muted);"></div>
+      <button id="l4-filter-reset-btn" onclick="resetPreviewFilters()" style="display:none;font-size:11px;padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✕ 필터 초기화</button>
+    </div>
+    <div style="overflow:auto;flex:1;" id="l4-preview-scroll">
+      <table id="l4-preview-table-full" style="font-size:12px;border-collapse:collapse;white-space:nowrap;min-width:100%;"></table>
     </div>
   </div>
 </div>
@@ -2515,6 +2519,14 @@ async function doLogin() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('team-chip').textContent = currentTeam;
   document.getElementById('app').classList.add('visible');
+
+  // 이전 팀의 메모리 캐시를 초기화 (다른 팀으로 재로그인 시 데이터 혼재 방지)
+  Object.keys(lessonMsgStore).forEach(k => delete lessonMsgStore[k]);
+  messages = [];
+  histories = [];
+  completedProjectStepNums.clear();
+  completedProjectStepNums.add(1);
+
   loadHistory();
   updateProjFlow(currentL4Step || 1);  // 사이드바 7단계 초기 렌더
   setLesson(0, document.getElementById('btn-free'));  // 첫 화면: 자유 대화
@@ -2707,8 +2719,11 @@ function saveLessonState(idx) {
     const msgDiv = document.getElementById(panelKey + '-messages');
     lessonMsgStore[idx] = { html: msgDiv?.innerHTML || '', msgs: [...(specialChatMsgs[panelKey] || [])] };
   } else if (idx === 0 || idx === 1) {
-    lessonMsgStore[idx] = { msgs: [...messages] };
-    try { sessionStorage.setItem(`lmsgs_${currentTeam}_${idx}`, JSON.stringify(messages)); } catch(e) {}
+    // 빈 메시지 배열로 이전에 저장된 대화를 덮어쓰지 않도록 보호
+    if (messages.length > 0) {
+      lessonMsgStore[idx] = { msgs: [...messages] };
+      try { localStorage.setItem(`lmsgs_${currentTeam}_${idx}`, JSON.stringify(messages)); } catch(e) {}
+    }
   }
 }
 
@@ -2716,7 +2731,7 @@ function restoreLessonState(idx) {
   let store = lessonMsgStore[idx];
   if (!store && currentTeam) {
     try {
-      const s = sessionStorage.getItem(`lmsgs_${currentTeam}_${idx}`);
+      const s = localStorage.getItem(`lmsgs_${currentTeam}_${idx}`);
       if (s) store = { msgs: JSON.parse(s) };
     } catch(e) {}
   }
@@ -2906,8 +2921,9 @@ function createWelcome() {
 function newChat() {
   if (messages.length > 0) {
     histories.unshift({ model: currentModel, messages: [...messages], preview: messages[0]?.content?.slice(0,30) || '대화' });
-    if (histories.length > 10) histories.pop();
+    if (histories.length > 15) histories.pop();
     renderHistory();
+    scheduleAutosave();
   }
   messages = [];
   const msgDiv = document.getElementById('messages');
@@ -2917,7 +2933,7 @@ function newChat() {
 
 function loadHistory() {
   try {
-    histories = JSON.parse(sessionStorage.getItem('chat_history_' + currentTeam) || '[]');
+    histories = JSON.parse(localStorage.getItem('chat_history_' + currentTeam) || '[]');
   } catch { histories = []; }
   renderHistory();
 }
@@ -2926,7 +2942,7 @@ function renderHistory() {
   list.innerHTML = histories.map((h, i) =>
     `<div class="history-item" onclick="loadChat(${i})">${h.preview || '대화 '+(i+1)}</div>`
   ).join('');
-  sessionStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
+  localStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
 }
 function loadChat(idx) {
   const h = histories[idx];
@@ -3068,7 +3084,7 @@ async function sendMessage() {
   colDiv.appendChild(copyBtn);
   msgDiv.scrollTop = 99999;
   // 차시별 대화 세션 저장
-  try { sessionStorage.setItem(`lmsgs_${currentTeam}_${currentLesson}`, JSON.stringify(messages)); } catch(e) {}
+  try { localStorage.setItem(`lmsgs_${currentTeam}_${currentLesson}`, JSON.stringify(messages)); } catch(e) {}
 }
 
 async function callAI(model, msgs) {
@@ -3098,20 +3114,104 @@ async function handleFileUpload(input) {
   previewEl.style.display = 'flex';
   chipsEl.innerHTML = '';
   const parts = [];
+
   for (const file of files) {
+    const isPdf = file.name.toLowerCase().endsWith('.pdf');
+    const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+
+    // 칩 생성
     const chip = document.createElement('span');
-    chip.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);border-radius:20px;color:#10b981;font-size:11px;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;';
-    chip.textContent = '📄 ' + file.name;
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);border-radius:20px;color:#10b981;font-size:11px;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;cursor:default;';
     chip.title = file.name;
     chipsEl.appendChild(chip);
-    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+
+    if (isPdf) {
+      // PDF: pdf.js로 텍스트 추출
+      chip.textContent = '⏳ ' + file.name + ' (읽는 중...)';
+      try {
+        const result = await extractPdfText(file);
+        if (result.text && result.text.trim().length > 20) {
+          chip.textContent = `📄 ${file.name} (${result.pages}쪽 · 텍스트 추출됨)`;
+          chip.style.background = 'rgba(108,99,255,0.15)';
+          chip.style.borderColor = 'rgba(108,99,255,0.4)';
+          chip.style.color = '#6C63FF';
+          parts.push(
+            `--- PDF: ${file.name} (총 ${result.pages}쪽) ---\n` +
+            `[텍스트 추출 성공 · 상위 ${Math.min(result.pages, 20)}쪽]\n\n` +
+            result.text.slice(0, 8000)
+          );
+        } else {
+          // 텍스트 레이어 없음 → 스캔본 가능성
+          chip.textContent = `⚠️ ${file.name} (텍스트 없음 - 스캔본?)`;
+          chip.style.background = 'rgba(245,158,11,0.15)';
+          chip.style.borderColor = 'rgba(245,158,11,0.4)';
+          chip.style.color = '#f59e0b';
+          parts.push(
+            `[PDF: ${file.name}]\n` +
+            `텍스트 추출 불가 — 이미지/스캔본 PDF이거나 텍스트 레이어가 없습니다.\n` +
+            `OCR 처리가 필요하면 Adobe Acrobat 또는 온라인 OCR 서비스를 이용해주세요.`
+          );
+        }
+      } catch (e) {
+        chip.textContent = `❌ ${file.name} (PDF 오류)`;
+        chip.style.background = 'rgba(239,68,68,0.15)';
+        chip.style.borderColor = 'rgba(239,68,68,0.4)';
+        chip.style.color = '#ef4444';
+        chip.title = e.message;
+        parts.push(`[PDF: ${file.name}] 읽기 실패: ${e.message}`);
+        console.error('PDF 파싱 오류:', e);
+      }
+    } else if (isExcel) {
+      chip.textContent = '📊 ' + file.name;
       parts.push(`[엑셀: ${file.name}] (CSV로 변환하면 더 정확히 분석됩니다)`);
     } else {
+      chip.textContent = '📄 ' + file.name;
       const content = await readFileWithEncoding(file);
       parts.push(`--- ${file.name} ---\n${content.slice(0, 4000)}`);
     }
   }
   uploadedFileContent = parts.join('\n\n');
+}
+
+/**
+ * pdf.js를 사용해 PDF 파일에서 텍스트를 추출합니다.
+ * @param {File} file - PDF 파일 객체
+ * @returns {Promise<{text: string, pages: number}>}
+ */
+async function extractPdfText(file) {
+  // pdf.js 워커 경로 설정 (CDN)
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error('pdf.js 라이브러리를 불러오지 못했습니다');
+  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const totalPages = pdf.numPages;
+  // 성능 및 토큰 제한 고려: 최대 20페이지 추출
+  const maxPages = Math.min(totalPages, 20);
+  const pageParts = [];
+
+  for (let i = 1; i <= maxPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    // items 배열에서 텍스트 문자열만 추출 후 합치기
+    const pageText = content.items
+      .map(item => item.str)
+      .join(' ')
+      .replace(/\s{3,}/g, '  ') // 과도한 공백 정리
+      .trim();
+    if (pageText) pageParts.push(`[${i}/${totalPages}쪽]\n${pageText}`);
+  }
+
+  const text = pageParts.join('\n\n');
+  // 총 페이지 수가 20을 초과하면 안내 문구 추가
+  const suffix = totalPages > maxPages
+    ? `\n\n[주의: 총 ${totalPages}쪽 중 앞 ${maxPages}쪽만 추출했습니다. 전체 내용이 필요하면 PDF를 분리해 다시 업로드해주세요.]`
+    : '';
+
+  return { text: text + suffix, pages: totalPages };
 }
 function clearFile() {
   uploadedFileContent = null;
@@ -3328,20 +3428,233 @@ function rawDataToStructured(rawData, headerOpt) {
   return { headers, rows };
 }
 
-// ── 데이터 전체 보기 모달 ──
+// ── 데이터 전체 보기 모달 (컬럼 필터 기능 포함) ──
+
+// 모달에 로드된 원본 데이터 (필터 동안 변경되지 않음)
+let _previewData = null;
+// 컬럼별 현재 필터 값 { colName: { text|min|max|select|dateFrom|dateTo: value } }
+let _previewFilters = {};
+// 디바운스 타이머 핸들
+let _previewDebounce = null;
+// 컬럼 타입 캐시 { colName: 'number'|'date'|'text' }
+let _previewColTypes = {};
+// 컬럼 고유값 캐시 { colName: string[]|null } — null이면 드롭다운 미사용
+let _previewColUniq = {};
+
+/** 모달 닫기 */
+function closePreviewModal() {
+  document.getElementById('l4-preview-modal').style.display = 'none';
+}
+
+/**
+ * 샘플 행을 보고 컬럼 타입 추정
+ * @returns {'number'|'date'|'text'}
+ */
+function _detectPreviewColType(header, rows) {
+  const sample = rows.slice(0, 60).map(r => String(r[header] ?? '')).filter(v => v.trim() !== '');
+  if (!sample.length) return 'text';
+  const numHits = sample.filter(v => !isNaN(parseFloat(v)) && isFinite(Number(v))).length;
+  if (numHits / sample.length > 0.8) return 'number';
+  const dateHits = sample.filter(v => /^\d{4}[-./년]\d{1,2}/.test(v)).length;
+  if (dateHits / sample.length > 0.6) return 'date';
+  return 'text';
+}
+
+/**
+ * 데이터 전체 보기 모달 열기
+ * - 헤더 sticky, 필터 행 sticky (헤더 바로 아래)
+ * - 컬럼 타입에 맞는 필터 UI 자동 생성
+ * - 성능: 최대 1000행 렌더링, 300ms debounce
+ */
 function showL4Preview() {
   if (!lesson4Data) return;
   const { headers, rows } = lesson4Data;
-  const preview = rows.slice(0, 200);
-  document.getElementById('l4-preview-info').textContent =
-    `총 ${rows.length.toLocaleString()}행 × ${headers.length}열  (상위 ${preview.length}행 표시)`;
+  _previewData = { headers, rows };
+  _previewFilters = {};
+
+  // 컬럼 타입 및 고유값 탐지 (한 번만)
+  _previewColTypes = {};
+  _previewColUniq = {};
+  headers.forEach(h => {
+    _previewColTypes[h] = _detectPreviewColType(h, rows);
+    if (_previewColTypes[h] === 'text') {
+      // 20개 이하 고유값이면 드롭다운, 초과면 텍스트 검색
+      const uniq = [...new Set(rows.map(r => String(r[h] ?? '')).filter(v => v !== ''))].sort();
+      _previewColUniq[h] = uniq.length <= 20 ? uniq : null;
+    } else {
+      _previewColUniq[h] = null;
+    }
+  });
+
+  // ── 헤더 행 생성 ──
+  const thBase = 'padding:6px 8px;background:var(--surface2);border:1px solid var(--border2);color:var(--accent2);font-size:11px;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:3;';
+  const filterBase = 'padding:4px 6px;background:var(--surface2);border:1px solid var(--border2);position:sticky;top:28px;z-index:2;';
+
+  /** HTML 특수문자 이스케이프 */
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /** 컬럼 타입별 필터 입력 위젯 생성 */
+  function buildFilter(h) {
+    const type = _previewColTypes[h];
+    const inputStyle = 'font-size:10px;padding:2px 5px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:inherit;';
+
+    if (type === 'number') {
+      return `<div style="display:flex;gap:3px;align-items:center;">
+        <input type="number" placeholder="최소" data-col="${esc(h)}" data-ftype="min"
+          oninput="updatePreviewFilter(this)" style="${inputStyle}width:55px;">
+        <span style="font-size:9px;color:var(--muted);">~</span>
+        <input type="number" placeholder="최대" data-col="${esc(h)}" data-ftype="max"
+          oninput="updatePreviewFilter(this)" style="${inputStyle}width:55px;">
+      </div>`;
+    }
+    if (type === 'date') {
+      return `<div style="display:flex;gap:3px;align-items:center;flex-wrap:wrap;">
+        <input type="date" data-col="${esc(h)}" data-ftype="dateFrom"
+          oninput="updatePreviewFilter(this)" style="${inputStyle}width:110px;">
+        <span style="font-size:9px;color:var(--muted);">~</span>
+        <input type="date" data-col="${esc(h)}" data-ftype="dateTo"
+          oninput="updatePreviewFilter(this)" style="${inputStyle}width:110px;">
+      </div>`;
+    }
+    if (_previewColUniq[h]) {
+      // 값 종류 ≤ 20: 드롭다운
+      const opts = _previewColUniq[h].map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      return `<select data-col="${esc(h)}" data-ftype="select"
+        onchange="updatePreviewFilter(this)"
+        style="${inputStyle}max-width:130px;">
+        <option value="">전체</option>${opts}
+      </select>`;
+    }
+    // 문자열 부분 검색
+    return `<input type="text" placeholder="검색..." data-col="${esc(h)}" data-ftype="text"
+      oninput="updatePreviewFilter(this)" style="${inputStyle}width:100px;">`;
+  }
+
+  const headerRow = `<tr>${headers.map(h => `<th style="${thBase}">${esc(h)}</th>`).join('')}</tr>`;
+  const filterRow = `<tr id="preview-filter-row">${headers.map(h => `<th style="${filterBase}">${buildFilter(h)}</th>`).join('')}</tr>`;
+
   const table = document.getElementById('l4-preview-table-full');
-  const thStyle = 'padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);color:var(--accent2);font-size:11px;position:sticky;top:0;';
-  const tdStyle = 'padding:5px 10px;border:1px solid var(--border);font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;';
-  table.innerHTML =
-    `<thead><tr>${headers.map(h=>`<th style="${thStyle}">${h}</th>`).join('')}</tr></thead>` +
-    `<tbody>${preview.map(r=>`<tr>${headers.map(h=>`<td style="${tdStyle}" title="${String(r[h]??'')}">${String(r[h]??'').slice(0,40)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  table.innerHTML = `<thead>${headerRow}${filterRow}</thead><tbody id="preview-tbody"></tbody>`;
+
+  // 전체 행 초기 렌더링
+  _renderPreviewRows(rows);
+  _updatePreviewInfo(rows.length, rows.length);
+
   document.getElementById('l4-preview-modal').style.display = 'flex';
+  document.getElementById('l4-filter-reset-btn').style.display = 'none';
+}
+
+/**
+ * 정보 표시줄 업데이트 (총 행수 / 필터 결과 행수)
+ */
+function _updatePreviewInfo(total, filtered) {
+  const { headers } = _previewData;
+  const info = document.getElementById('l4-preview-info');
+  const resetBtn = document.getElementById('l4-filter-reset-btn');
+  if (filtered < total) {
+    info.innerHTML = `총 <b>${total.toLocaleString()}</b>행 × ${headers.length}열 &nbsp;|&nbsp; <span style="color:var(--accent2);font-weight:600;">필터 결과 ${filtered.toLocaleString()}행 표시</span>`;
+    resetBtn.style.display = 'inline-block';
+  } else {
+    info.innerHTML = `총 <b>${total.toLocaleString()}</b>행 × ${headers.length}열`;
+    resetBtn.style.display = 'none';
+  }
+}
+
+/**
+ * 필터된 행을 tbody에 렌더링 (최대 1000행, 초과 시 안내)
+ */
+function _renderPreviewRows(filteredRows) {
+  const tbody = document.getElementById('preview-tbody');
+  if (!tbody || !_previewData) return;
+  const { headers } = _previewData;
+  const tdStyle = 'padding:5px 8px;border:1px solid var(--border);font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+  const display = filteredRows.slice(0, 1000);
+
+  // DocumentFragment 사용으로 DOM 조작 최소화
+  const frag = document.createDocumentFragment();
+  display.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = headers.map(h => {
+      const val = String(r[h] ?? '');
+      const safe = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `<td style="${tdStyle}" title="${safe}">${safe.slice(0, 40)}</td>`;
+    }).join('');
+    frag.appendChild(tr);
+  });
+
+  if (filteredRows.length > 1000) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="${headers.length}" style="text-align:center;padding:10px;color:var(--muted);font-size:11px;border:1px solid var(--border);">
+      ⚠️ 상위 1,000행만 표시 중 (필터 결과 총 ${filteredRows.length.toLocaleString()}행)
+    </td>`;
+    frag.appendChild(tr);
+  }
+
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+}
+
+/**
+ * 필터 입력값 변경 시 호출 — 상태 업데이트 후 300ms debounce로 재필터링
+ */
+function updatePreviewFilter(el) {
+  const col = el.dataset.col;
+  const ftype = el.dataset.ftype;
+  if (!_previewFilters[col]) _previewFilters[col] = {};
+  _previewFilters[col][ftype] = el.value;
+
+  clearTimeout(_previewDebounce);
+  _previewDebounce = setTimeout(_applyPreviewFilters, 300);
+}
+
+/**
+ * 현재 _previewFilters 기준 AND 필터링 수행 후 화면 갱신
+ */
+function _applyPreviewFilters() {
+  if (!_previewData) return;
+  const { rows } = _previewData;
+
+  const filtered = rows.filter(row => {
+    for (const [col, f] of Object.entries(_previewFilters)) {
+      const rawVal = String(row[col] ?? '');
+
+      // 숫자 범위
+      if (f.min !== undefined && f.min !== '') {
+        if (parseFloat(rawVal) < parseFloat(f.min)) return false;
+      }
+      if (f.max !== undefined && f.max !== '') {
+        if (parseFloat(rawVal) > parseFloat(f.max)) return false;
+      }
+      // 날짜 범위 (문자열 비교 — ISO8601 또는 YYYY-MM-DD 형식에서 동작)
+      if (f.dateFrom !== undefined && f.dateFrom !== '') {
+        if (rawVal.replace(/[./년월일\s]/g, '-').slice(0, 10) < f.dateFrom) return false;
+      }
+      if (f.dateTo !== undefined && f.dateTo !== '') {
+        if (rawVal.replace(/[./년월일\s]/g, '-').slice(0, 10) > f.dateTo) return false;
+      }
+      // 드롭다운 선택
+      if (f.select !== undefined && f.select !== '') {
+        if (rawVal !== f.select) return false;
+      }
+      // 텍스트 부분 검색 (대소문자 무시)
+      if (f.text !== undefined && f.text !== '') {
+        if (!rawVal.toLowerCase().includes(f.text.toLowerCase())) return false;
+      }
+    }
+    return true;
+  });
+
+  _renderPreviewRows(filtered);
+  _updatePreviewInfo(rows.length, filtered.length);
+}
+
+/** 모든 필터 초기화 */
+function resetPreviewFilters() {
+  _previewFilters = {};
+  const filterRow = document.getElementById('preview-filter-row');
+  if (filterRow) filterRow.querySelectorAll('input, select').forEach(el => { el.value = ''; });
+  _renderPreviewRows(_previewData.rows);
+  _updatePreviewInfo(_previewData.rows.length, _previewData.rows.length);
 }
 
 // ── 차트 그리기 ──
@@ -4759,6 +5072,7 @@ function collectSaveData() {
     completedSteps: [...completedProjectStepNums],
     fields,
     checks,
+    histories: histories.slice(0, 15),
     updatedAt: new Date().toISOString()
   };
 }
@@ -4827,6 +5141,14 @@ function restoreSaveData(data) {
       const el = document.getElementById(id);
       if (el) el.checked = checked;
     });
+  }
+  if (data.histories && Array.isArray(data.histories) && data.histories.length > 0) {
+    // 서버에서 복원된 기록이 로컬보다 많으면 병합 (중복 제거 없이 서버 우선)
+    if (data.histories.length > histories.length) {
+      histories = data.histories;
+      localStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
+      renderHistory();
+    }
   }
 }
 
