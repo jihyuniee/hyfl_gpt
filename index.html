@@ -382,6 +382,9 @@ Chart.register(piePercentPlugin);
     40% { content: '..'; }
     60%,100% { content: '...'; }
   }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 
   /* ── Input ── */
   .input-wrap {
@@ -1285,126 +1288,184 @@ Chart.register(piePercentPlugin);
                 <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 아래에 파일을 업로드했다</label>
               </div>
 
-              <!-- 탐구 질문 카드 -->
-              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(96,165,250,0.07));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
-                <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;display:flex;align-items:center;gap:6px;">🧐 이 단계에서 생각해볼 질문</div>
-                <div style="display:flex;flex-direction:column;gap:7px;">
-                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
-                    <span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q1</span>
-                    <span>우리 팀이 탐구하려는 <b>교육 문제</b>와 가장 관련 있는 데이터는 무엇인가요?</span>
-                  </div>
-                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
-                    <span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q2</span>
-                    <span>아래 포털 중 <b>어디서</b> 데이터를 찾을 수 있나요? 직접 접속해서 검색해보세요.</span>
-                  </div>
-                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
-                    <span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q3</span>
-                    <span>다운로드한 파일이 <b>CSV</b>인가요, <b>XLSX</b>인가요? 파일을 열면 어떤 항목이 있나요?</span>
-                  </div>
+              <!-- ★ 데이터 찾기 도우미 -->
+              <div style="background:linear-gradient(135deg,rgba(6,182,212,0.08),rgba(2,132,199,0.06));border:2px solid rgba(6,182,212,0.3);border-radius:16px;padding:18px 20px;margin-bottom:20px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div style="font-size:15px;font-weight:700;">데이터 찾기 도우미</div>
+                  <span style="font-size:10px;background:#0284c7;color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI 추천</span>
                 </div>
-                <div style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(108,99,255,0.2);">
-                  <button onclick="l4AskAndGo('우리 팀 주제에 맞는 공공데이터를 어디서 어떻게 찾으면 될까요? 단계별로 알려주세요.')" style="font-size:11px;padding:5px 12px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI에게 데이터 찾는 방법 물어보기 →</button>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">관심 주제를 입력하면 AI가 맞는 교육 데이터를 추천해줍니다!</div>
+
+                <div style="display:flex;gap:8px;margin-bottom:10px;">
+                  <input id="data-topic-input" type="text" placeholder="예) 지역별 급식 격차, 학교 폭력 현황, 특수교육 지원..."
+                    style="flex:1;padding:10px 14px;border:1.5px solid rgba(6,182,212,0.4);border-radius:10px;font-size:13px;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;"
+                    onkeydown="if(event.key==='Enter')suggestDataByTopic()">
+                  <button onclick="suggestDataByTopic()" id="data-suggest-btn"
+                    style="padding:10px 18px;background:linear-gradient(135deg,#06b6d4,#0284c7);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">
+                    추천받기 ✨
+                  </button>
+                </div>
+
+                <!-- 빠른 주제 태그 -->
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+                  <button onclick="setDataTopic('학교 급식 영양')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🍱 급식 영양</button>
+                  <button onclick="setDataTopic('지역별 학력 격차')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📚 학력 격차</button>
+                  <button onclick="setDataTopic('학교 폭력 현황')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚨 학교 폭력</button>
+                  <button onclick="setDataTopic('특수교육 지원')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">♿ 특수교육</button>
+                  <button onclick="setDataTopic('방과후 프로그램 참여율')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎨 방과후</button>
+                  <button onclick="setDataTopic('교사 1인당 학생 수')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👩‍🏫 교사 비율</button>
+                </div>
+
+                <!-- AI 추천 결과 -->
+                <div id="data-suggest-result" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.8;"></div>
+                <div id="data-suggest-loading" style="display:none;text-align:center;padding:16px;color:var(--muted);font-size:13px;">
+                  <div style="display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:#0284c7;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></div>AI가 데이터를 추천하고 있어요...
                 </div>
               </div>
 
               <div id="l4-view-2-uploaded" style="display:none;margin-bottom:16px;"></div>
 
-              <!-- 예시 분석 카드 (바로 시작 가능) -->
+              <!-- ★ 추천 사이트 5곳 -->
               <div style="margin-bottom:20px;">
-                <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:5px;">
-                  ⚡ 바로 시작할 수 있는 분석 예시
-                  <span style="font-size:10px;font-weight:400;">(클릭하면 AI가 방법을 알려줘요)</span>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-                  <div onclick="l4SampleCard('school_count')" style="cursor:pointer;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-                    <div style="font-size:22px;margin-bottom:6px;">🏫</div>
-                    <div style="font-size:12px;font-weight:600;margin-bottom:4px;">학교별 학생 수</div>
-                    <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">지역·학교급별 규모 비교</div>
-                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(108,99,255,0.1);color:var(--accent2);border-radius:20px;">막대 그래프</span>
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(108,99,255,0.1);color:var(--accent2);border-radius:20px;">지역 비교</span>
+                <div style="font-size:13px;font-weight:700;margin-bottom:10px;">📥 교육 데이터 추천 사이트</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <a href="https://edss.moe.go.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#06b6d4'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">🗃️</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">교육데이터 플랫폼 <span style="font-size:10px;background:rgba(6,182,212,0.12);color:#0284c7;padding:1px 7px;border-radius:20px;font-weight:500;margin-left:4px;">추천</span></div>
+                      <div style="font-size:11px;color:var(--muted);">교육부 공식 데이터 허브 · 학교·학생·교원 통합 데이터셋</div>
                     </div>
-                  </div>
-                  <div onclick="l4SampleCard('participation')" style="cursor:pointer;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='var(--border)'">
-                    <div style="font-size:22px;margin-bottom:6px;">📈</div>
-                    <div style="font-size:12px;font-weight:600;margin-bottom:4px;">학년별 참여율</div>
-                    <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">연도별 변화 추이 분석</div>
-                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(16,185,129,0.1);color:#10b981;border-radius:20px;">선 그래프</span>
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(16,185,129,0.1);color:#10b981;border-radius:20px;">시계열</span>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                  <a href="https://edudata.keris.or.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#8b5cf6'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">🗺️</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">교육데이터맵 (KERIS)</div>
+                      <div style="font-size:11px;color:var(--muted);">학교 정보시스템 연구원 · 교육정보 데이터 지도</div>
                     </div>
-                  </div>
-                  <div onclick="l4SampleCard('regional')" style="cursor:pointer;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='var(--border)'">
-                    <div style="font-size:22px;margin-bottom:6px;">🗺️</div>
-                    <div style="font-size:12px;font-weight:600;margin-bottom:4px;">지역별 차이 분석</div>
-                    <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">교육 기회 격차 탐구</div>
-                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(245,158,11,0.1);color:#f59e0b;border-radius:20px;">가로막대</span>
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(245,158,11,0.1);color:#f59e0b;border-radius:20px;">격차 분석</span>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                  <a href="https://schoolinfo.go.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">🏫</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">학교알리미</div>
+                      <div style="font-size:11px;color:var(--muted);">학교별 급식·성적·진로·예산 공시 데이터</div>
                     </div>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                  <a href="https://kess.kedi.re.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">📊</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">교육통계서비스 (KESS)</div>
+                      <div style="font-size:11px;color:var(--muted);">학생 수·교원·학교 현황 통계 · CSV 다운로드 가능</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                  <a href="https://open.neis.go.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#ec4899'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">📅</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">나이스 개방포털 (NEIS)</div>
+                      <div style="font-size:11px;color:var(--muted);">급식 메뉴·학사일정·행사 정보 API 제공</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- ★ 데이터 유형 안내 -->
+              <div style="margin-bottom:20px;">
+                <div style="font-size:13px;font-weight:700;margin-bottom:10px;">📁 데이터 파일 종류 알아보기</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div style="background:rgba(16,185,129,0.07);border:1.5px solid rgba(16,185,129,0.25);border-radius:12px;padding:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                      <span style="font-size:22px;">📄</span>
+                      <div>
+                        <div style="font-size:13px;font-weight:700;color:#059669;">CSV</div>
+                        <div style="font-size:10px;color:var(--muted);">가장 쉬운 형태</div>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);line-height:1.7;">쉼표로 구분된 텍스트 파일. 용량이 작고 어떤 프로그램에서도 열 수 있어요. <b style="color:var(--text);">공공데이터에서 가장 많이 쓰여요!</b></div>
+                  </div>
+                  <div style="background:rgba(108,99,255,0.07);border:1.5px solid rgba(108,99,255,0.25);border-radius:12px;padding:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                      <span style="font-size:22px;">📊</span>
+                      <div>
+                        <div style="font-size:13px;font-weight:700;color:#6C63FF;">XLSX</div>
+                        <div style="font-size:10px;color:var(--muted);">엑셀 파일</div>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);line-height:1.7;">엑셀(스프레드시트) 형식. 여러 시트가 있을 수 있어요. <b style="color:var(--text);">학교알리미, KESS에서 많이 제공해요.</b></div>
+                  </div>
+                  <div style="background:rgba(96,165,250,0.07);border:1.5px solid rgba(96,165,250,0.25);border-radius:12px;padding:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                      <span style="font-size:22px;">🌐</span>
+                      <div>
+                        <div style="font-size:13px;font-weight:700;color:#3b82f6;">API</div>
+                        <div style="font-size:10px;color:var(--muted);">실시간 데이터</div>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);line-height:1.7;">URL로 데이터를 실시간으로 받아오는 방식. NEIS 급식 데이터 등. <b style="color:var(--text);">아래 XML 가져오기로 바로 연결!</b></div>
+                  </div>
+                  <div style="background:rgba(245,158,11,0.07);border:1.5px solid rgba(245,158,11,0.25);border-radius:12px;padding:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                      <span style="font-size:22px;">🖥️</span>
+                      <div>
+                        <div style="font-size:13px;font-weight:700;color:#d97706;">HTML</div>
+                        <div style="font-size:10px;color:var(--muted);">웹 표에서 복사</div>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);line-height:1.7;">웹사이트의 표를 복사해서 스프레드시트에 붙여넣기. <b style="color:var(--text);">CSV로 저장해서 업로드하세요!</b></div>
                   </div>
                 </div>
               </div>
 
-              <!-- 개념 카드 -->
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
-                <div style="background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:18px;margin-bottom:5px;">🔢</div>
-                  <div style="font-size:11px;font-weight:600;margin-bottom:4px;">수치형 변수</div>
-                  <div style="font-size:10px;color:var(--muted);line-height:1.7;">계산 가능한 숫자<br><span style="color:var(--accent2);">예) 칼로리, 학생 수, 점수</span></div>
+              <!-- ★ 활동지 자동 생성 -->
+              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.07),rgba(234,88,12,0.05));border:1.5px solid rgba(245,158,11,0.3);border-radius:14px;padding:16px 18px;margin-bottom:20px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:18px;">📝</span>
+                  <div style="font-size:14px;font-weight:700;">데이터 탐색 활동지 자동 생성</div>
                 </div>
-                <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:18px;margin-bottom:5px;">🏷️</div>
-                  <div style="font-size:11px;font-weight:600;margin-bottom:4px;">범주형 변수</div>
-                  <div style="font-size:10px;color:var(--muted);line-height:1.7;">그룹을 나타내는 값<br><span style="color:#10b981;">예) 지역, 성별, 학교유형</span></div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">문제 정의 단계에서 입력한 내용으로 활동지를 자동으로 만들어줍니다.</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+                  <div>
+                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">문제 정의</label>
+                    <textarea id="ws-problem" rows="2" placeholder="우리 팀이 해결하려는 문제" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;background:var(--bg);color:var(--text);resize:none;box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;"></textarea>
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">필요한 데이터</label>
+                    <textarea id="ws-data-needed" rows="2" placeholder="어떤 데이터가 필요한가?" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;background:var(--bg);color:var(--text);resize:none;box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;"></textarea>
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">데이터 출처</label>
+                    <input id="ws-source" type="text" placeholder="예) 학교알리미, KESS" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;background:var(--bg);color:var(--text);box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;">
+                  </div>
+                  <div>
+                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">데이터 형태</label>
+                    <select id="ws-format" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;background:var(--bg);color:var(--text);box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;">
+                      <option value="">선택하세요</option>
+                      <option value="CSV">CSV</option>
+                      <option value="XLSX">XLSX (엑셀)</option>
+                      <option value="API">API (URL)</option>
+                      <option value="HTML">HTML (웹 표)</option>
+                    </select>
+                  </div>
                 </div>
-                <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:18px;margin-bottom:5px;">📅</div>
-                  <div style="font-size:11px;font-weight:600;margin-bottom:4px;">시계열 변수</div>
-                  <div style="font-size:10px;color:var(--muted);line-height:1.7;">시간 순서의 데이터<br><span style="color:#f59e0b;">예) 연도별, 월별 변화</span></div>
+                <div style="display:flex;gap:8px;">
+                  <button onclick="generateWorksheet()" style="flex:1;padding:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📝 활동지 미리보기</button>
+                  <button onclick="printWorksheet()" style="padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 인쇄</button>
                 </div>
+                <div id="worksheet-preview" style="display:none;margin-top:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:13px;line-height:1.9;white-space:pre-wrap;color:var(--text);"></div>
               </div>
 
-              <!-- 행/열 개념 -->
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-                <div style="font-size:11px;font-weight:600;margin-bottom:8px;">📋 Ch.06 · 데이터 구조 이해 — 구글 스프레드시트 정리법</div>
-                <div style="overflow-x:auto;">
-                  <table style="border-collapse:collapse;width:100%;font-size:10px;">
-                    <thead><tr>
-                      <th style="padding:5px 10px;background:rgba(108,99,255,0.15);border:1px solid var(--border2);color:var(--accent2);">지역 ← 범주형</th>
-                      <th style="padding:5px 10px;background:rgba(16,185,129,0.12);border:1px solid var(--border2);color:#10b981;">학생수 ← 수치형</th>
-                      <th style="padding:5px 10px;background:rgba(245,158,11,0.12);border:1px solid var(--border2);color:#f59e0b;">연도 ← 시계열</th>
-                    </tr></thead>
-                    <tbody>
-                      <tr><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">서울</td><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">277,824</td><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">2023</td></tr>
-                      <tr><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">경기</td><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">384,210</td><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">2023</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div style="font-size:10px;color:var(--muted);margin-top:7px;line-height:1.8;">
-                  ↑ <b style="color:var(--text);">1행 = 헤더(변수명)</b> · 이후 각 행 = 데이터 1건 · 빈칸 없이 정리 후 CSV로 내보내기
-                </div>
-              </div>
-
-              <!-- 데이터 포털 -->
-              <div style="background:rgba(108,99,255,0.06);border:1px solid rgba(108,99,255,0.15);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-                <div style="font-size:11px;font-weight:600;color:var(--accent2);margin-bottom:8px;">📥 Ch.05 · 어디서 데이터를 받나요?</div>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <a href="https://schoolinfo.go.kr" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;">🏫 <b>학교알리미</b> <span style="color:var(--muted);">급식·성적·진로·예산</span></a>
-                  <a href="https://data.go.kr" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;">🗂️ <b>공공데이터포털</b> <span style="color:var(--muted);">교육부 전체 공개 데이터</span></a>
-                  <a href="https://kess.kedi.re.kr" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;">📊 <b>교육통계서비스(KESS)</b> <span style="color:var(--muted);">학생수·교원·학교 통계</span></a>
-                  <a href="https://open.neis.go.kr" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;">📅 <b>NEIS 개방포털</b> <span style="color:var(--muted);">급식·학사·행사 정보</span></a>
-                </div>
-              </div>
-
-              <!-- 중간점검 Ch.07 -->
+              <!-- 업로드 전 점검 -->
               <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-                <div style="font-size:11px;font-weight:600;color:#10b981;margin-bottom:7px;">✅ Ch.07 · 중간 점검 — 업로드 전에 확인하세요</div>
-                <div style="font-size:11px;color:var(--muted);line-height:2.1;">
-                  □ 데이터가 CSV 또는 XLSX 형식인가요?<br>
-                  □ 1행이 헤더(변수명)으로 되어 있나요?<br>
-                  □ 빈 셀이 최소화되어 있나요?<br>
-                  □ 내 연구 주제와 관련 있는 컬럼이 포함되어 있나요?
+                <div style="font-size:12px;font-weight:600;color:#10b981;margin-bottom:7px;">✅ 업로드 전에 확인하세요</div>
+                <div style="font-size:12px;color:var(--muted);line-height:2.1;">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" style="accent-color:#10b981;"> 데이터가 CSV 또는 XLSX 형식이다</label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" style="accent-color:#10b981;"> 1행이 헤더(항목 이름)으로 되어 있다</label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" style="accent-color:#10b981;"> 빈 셀이 최소화되어 있다</label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" style="accent-color:#10b981;"> 우리 문제와 관련 있는 항목이 포함되어 있다</label>
                 </div>
               </div>
 
@@ -5406,6 +5467,140 @@ function scheduleAutosave() {
 function saveL4StepData(step) {
   scheduleAutosave();
   showSaveStatus('saved');
+}
+
+// ── 데이터 찾기 도우미 ──
+function setDataTopic(topic) {
+  const input = document.getElementById('data-topic-input');
+  if (input) { input.value = topic; input.focus(); }
+}
+
+async function suggestDataByTopic() {
+  const topic = (document.getElementById('data-topic-input')?.value || '').trim();
+  if (!topic) { alert('관심 주제를 입력해주세요.'); return; }
+
+  const btn = document.getElementById('data-suggest-btn');
+  const result = document.getElementById('data-suggest-result');
+  const loading = document.getElementById('data-suggest-loading');
+  if (btn) { btn.disabled = true; btn.textContent = '추천 중...'; }
+  if (result) result.style.display = 'none';
+  if (loading) loading.style.display = 'block';
+
+  const prompt = `학생이 "${topic}" 주제로 교육 데이터 프로젝트를 하려고 합니다.
+다음 형식으로 한국어로 답해주세요 (마크다운 없이 깔끔하게):
+
+🎯 주제 분석
+[이 주제로 탐구할 수 있는 교육 문제 1~2문장]
+
+📥 추천 데이터 사이트 (2~3개)
+• 사이트명: 찾을 수 있는 데이터 설명
+• 사이트명: 찾을 수 있는 데이터 설명
+
+🔑 추천 검색 키워드 (3~5개)
+• 키워드1 / 키워드2 / 키워드3
+
+📁 권장 데이터 형태
+• 형태: 이유 설명
+
+💡 데이터를 찾을 때 팁
+[1~2개의 실용적인 조언]`;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], lesson: 'data_suggest' })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    if (result) {
+      result.style.display = 'block';
+      result.innerHTML = `<div style="font-size:12px;font-weight:600;color:#0284c7;margin-bottom:8px;">📊 "${topic}" 데이터 추천 결과</div><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;">${escapeHtml(data.reply)}</div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="prefillWorksheet('${escapeHtml(topic).replace(/'/g,"\\'")}','${escapeHtml(data.reply).replace(/'/g,"\\'").replace(/\n/g,' ')}')" style="font-size:11px;padding:5px 12px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:20px;color:#d97706;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📝 활동지에 반영하기</button>
+          <button onclick="l4AskAndGo('${escapeHtml(topic)} 주제로 교육 데이터 프로젝트를 시작하려 해요. 어떤 공공데이터를 어디서 찾고, 어떻게 분석하면 좋을지 단계별로 알려주세요.')" style="font-size:11px;padding:5px 12px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI와 더 자세히 얘기하기 →</button>
+        </div>`;
+    }
+    // 활동지 문제 정의 자동 채우기
+    const wsProblem = document.getElementById('ws-problem');
+    const wsTopic = document.getElementById('ws-data-needed');
+    if (wsProblem && !wsProblem.value) wsProblem.value = topic + ' 관련 문제를 데이터로 탐구한다.';
+  } catch(e) {
+    if (result) {
+      result.style.display = 'block';
+      result.innerHTML = `<div style="color:#ef4444;font-size:12px;">오류가 발생했어요: ${escapeHtml(e.message)}<br>잠시 후 다시 시도해주세요.</div>`;
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '추천받기 ✨'; }
+    if (loading) loading.style.display = 'none';
+  }
+}
+
+function prefillWorksheet(topic, suggestionText) {
+  const wsProblem = document.getElementById('ws-problem');
+  const wsNeeded = document.getElementById('ws-data-needed');
+  if (wsProblem && !wsProblem.value) wsProblem.value = topic;
+  // 사이트명 추출 시도
+  const siteMatch = suggestionText.match(/추천 데이터 사이트[^•]*•\s*([^:•\n]+)/);
+  const wsSource = document.getElementById('ws-source');
+  if (wsSource && !wsSource.value && siteMatch) wsSource.value = siteMatch[1].trim();
+  // 스크롤
+  const el = document.querySelector('#l4-view-2 .worksheet-area, [id="worksheet-preview"]');
+}
+
+function generateWorksheet() {
+  const problem = document.getElementById('ws-problem')?.value?.trim() || '';
+  const needed = document.getElementById('ws-data-needed')?.value?.trim() || '';
+  const source = document.getElementById('ws-source')?.value?.trim() || '';
+  const format = document.getElementById('ws-format')?.value || '';
+  const team = currentTeam || '우리 팀';
+  const today = new Date().toLocaleDateString('ko-KR');
+
+  const content = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 데이터 탐색 활동지
+팀명: ${team}   날짜: ${today}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+① 우리 팀이 해결하려는 문제
+${problem || '(작성 전)'}
+
+② 이 문제를 탐구하기 위해 필요한 데이터
+${needed || '(작성 전)'}
+
+③ 데이터를 찾을 곳 (출처)
+${source || '(작성 전)'}
+
+④ 다운로드할 파일 형태
+${format || '(작성 전)'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ 체크리스트
+□ 데이터 사이트에 직접 접속해서 검색했다
+□ 파일을 다운로드했다
+□ 파일을 열어서 항목을 확인했다
+□ 위 플랫폼에 파일을 업로드했다
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+  const preview = document.getElementById('worksheet-preview');
+  if (preview) { preview.style.display = 'block'; preview.textContent = content; }
+}
+
+function printWorksheet() {
+  generateWorksheet();
+  const content = document.getElementById('worksheet-preview')?.textContent || '';
+  if (!content) return;
+  const win = window.open('', '_blank');
+  if (!win) return;
+  win.document.write(`<html><head><meta charset="UTF-8"><title>데이터 탐색 활동지</title>
+    <style>body{font-family:'Noto Sans KR',sans-serif;padding:32px;font-size:14px;line-height:2;color:#1a1a1a;white-space:pre-wrap;}
+    @media print{body{padding:16px;}}</style></head><body>${escapeHtml(content)}</body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 300);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function showSaveStatus(state) {
