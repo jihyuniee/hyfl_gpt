@@ -1679,9 +1679,8 @@ Chart.register(piePercentPlugin);
                     <div>
                       <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">정렬</div>
                       <select id="v3-sort" onchange="renderV3Chart()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;">
-                        <option value="freq">빈도순</option>
-                        <option value="desc">값 내림차순</option>
-                        <option value="asc">값 오름차순</option>
+                        <option value="desc">값 내림차순 ↓</option>
+                        <option value="asc">값 오름차순 ↑</option>
                         <option value="alpha">가나다순</option>
                       </select>
                     </div>
@@ -1704,7 +1703,12 @@ Chart.register(piePercentPlugin);
                   </div>
                 </details>
 
-                <div id="v3-chart-hint" style="font-size:11px;color:var(--muted);margin-bottom:8px;"></div>
+                <div id="v3-chart-hint" style="font-size:11px;color:var(--muted);margin-bottom:4px;"></div>
+                <div id="v3-chart-status" style="display:none;font-size:10px;color:var(--muted);background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.18);border-radius:7px;padding:5px 10px;margin-bottom:8px;"></div>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                  <input id="v3-search" type="text" placeholder="🔍 항목 검색 (예: 서울역, 서울, 초등학교…)" oninput="renderV3Chart()" style="flex:1;font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;min-width:0;outline:none;" />
+                  <button onclick="document.getElementById('v3-search').value='';renderV3Chart();" style="font-size:11px;padding:5px 10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">초기화</button>
+                </div>
                 <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;min-height:300px;">
                   <canvas id="l4-chart-canvas-v3"></canvas>
                 </div>
@@ -4404,11 +4408,13 @@ function renderV3Chart() {
   const xCol = document.getElementById('v3-x-col')?.value;
   const yCol = document.getElementById('v3-y-col')?.value;
   const seriesCol = document.getElementById('v3-series-col')?.value || '';
-  const sortMode = document.getElementById('v3-sort')?.value || 'freq';
+  const sortMode = document.getElementById('v3-sort')?.value || 'desc';
   if (!xCol) return;
   const insightBox = document.getElementById('v3-insight-box');
   if (insightBox) insightBox.style.display = 'none';
   const hint = document.getElementById('v3-chart-hint');
+  const statusEl = document.getElementById('v3-chart-status');
+  if (statusEl) statusEl.style.display = 'none';
   const canvas = document.getElementById('l4-chart-canvas-v3');
   if (!canvas) return;
   if (v3ChartInst) { v3ChartInst.destroy(); v3ChartInst = null; }
@@ -4461,16 +4467,29 @@ function renderV3Chart() {
       const agg={};
       rows.forEach(r=>{ const k=fmtLabel(r[xCol]); if(aggMethod==='count'){ const v=r[yCol]; if(v!==null&&v!==undefined&&v!==''){if(!agg[k])agg[k]=[];agg[k].push(v);} } else { const v=parseFloat(r[yCol]); if(!isNaN(v)){if(!agg[k])agg[k]=[];agg[k].push(v);} } });
       let entries=Object.entries(agg).map(([k,v])=>[k,aggMethod==='count'?v.length:aggMethod==='sum'?+(v.reduce((a,b)=>a+b,0)).toFixed(2):aggMethod==='max'?Math.max(...v):aggMethod==='min'?Math.min(...v):+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)]);
-      if (sortMode==='desc') entries.sort((a,b)=>b[1]-a[1]);
-      else if (sortMode==='asc') entries.sort((a,b)=>a[1]-b[1]);
+      if (sortMode==='asc') entries.sort((a,b)=>a[1]-b[1]);
       else if (sortMode==='alpha') entries.sort((a,b)=>a[0].localeCompare(b[0],'ko'));
-      else entries.sort((a,b)=>agg[b[0]].length-agg[a[0]].length);
-      entries=entries.slice(0,20);
+      else entries.sort((a,b)=>b[1]-a[1]); // 기본: 값 내림차순
+      const totalCount = entries.length;
+      const topN = 15;
+      const searchTerm = (document.getElementById('v3-search')?.value || '').trim().toLowerCase();
+      if (searchTerm) {
+        entries = entries.filter(e => e[0].toLowerCase().includes(searchTerm));
+      } else {
+        entries = entries.slice(0, topN);
+      }
       const labels=entries.map(e=>e[0]);
       const data=entries.map(e=>e[1]);
       const isH = type==='hbar';
       const clr = isH ? 'rgba(96,165,250,0.75)' : 'rgba(108,99,255,0.7)';
       const bclr = isH ? 'rgba(96,165,250,1)' : 'rgba(108,99,255,1)';
+      const sortLabel = {desc:'값 내림차순',asc:'값 오름차순',alpha:'가나다순'}[sortMode]||'값 내림차순';
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.textContent = searchTerm
+          ? `🔍 "${searchTerm}" 검색 결과 ${entries.length}개 표시 (전체 ${totalCount}개 중)`
+          : `전체 데이터 ${totalCount}개 중 상위 ${entries.length}개만 표시됩니다 (${sortLabel})`;
+      }
       if (hint) hint.textContent = `${isH?'가로막대':type==='bar'?'막대':'선'} 그래프: ${xCol} 별 ${yCol} ${aggLabel}`;
       const h = isH ? Math.max(300, labels.length * 28) : '';
       if (isH) { canvas.style.height=h+'px'; canvas.style.maxHeight=h+'px'; } else { canvas.style.height=''; canvas.style.maxHeight=''; }
