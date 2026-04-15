@@ -245,10 +245,10 @@ Chart.register(piePercentPlugin);
   .ps-row { display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;font-size:11px;transition:background 0.1s; }
   .ps-circle { width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0; }
   .ps-row.ps-done   { color:#10b981; }
-  .ps-row.ps-active { background:rgba(108,99,255,0.12);color:var(--accent2);font-weight:600; }
+  .ps-row.ps-active { background:rgba(108,99,255,0.18);color:var(--accent2);font-weight:700;border-left:3px solid var(--accent);padding-left:5px;border-radius:0 6px 6px 0; }
   .ps-row.ps-upcoming { color:var(--muted); }
   .ps-row.ps-done   .ps-circle { background:rgba(16,185,129,0.2);color:#10b981; }
-  .ps-row.ps-active .ps-circle { background:var(--accent);color:#fff; }
+  .ps-row.ps-active .ps-circle { background:var(--accent);color:#fff;box-shadow:0 0 0 3px rgba(108,99,255,0.25); }
   .ps-row.ps-upcoming .ps-circle { background:var(--surface2);color:var(--muted); }
   .ps-connector { width:2px;height:6px;margin-left:14px;border-radius:1px; }
   .ps-connector.done { background:rgba(16,185,129,0.35); }
@@ -257,8 +257,8 @@ Chart.register(piePercentPlugin);
   /* ── 본문 수평 서브탭 (6단계) ── */
   #l4-subtab-nav { display:flex;overflow-x:auto;flex-shrink:0;background:var(--surface);border-bottom:2px solid var(--border);scrollbar-width:none; }
   #l4-subtab-nav::-webkit-scrollbar { display:none; }
-  .l4-tab { flex-shrink:0;padding:10px 14px;font-size:11px;font-family:'Noto Sans KR',sans-serif;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap;display:flex;align-items:center;gap:5px; }
-  .l4-tab:hover { background:var(--surface2);color:var(--text); }
+  .l4-tab { flex-shrink:0;padding:10px 14px;font-size:11px;font-family:'Noto Sans KR',sans-serif;border:none;background:transparent;color:var(--muted);cursor:default;pointer-events:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap;display:flex;align-items:center;gap:5px; }
+  .l4-tab:hover { background:transparent;color:var(--muted); }
   .l4-tab.active { color:var(--accent2);border-bottom-color:var(--accent);font-weight:600; }
   .l4-tab.done { color:#10b981; }
   .l4-tab.done .l4-tab-num { background:rgba(16,185,129,0.2);color:#10b981; }
@@ -1201,16 +1201,17 @@ Chart.register(piePercentPlugin);
         <!-- 오른쪽: 단계별 뷰 -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
 
-          <!-- 데이터 탐구 6단계 서브탭 -->
+          <!-- 진행 단계 표시 (클릭 불가 · 왼쪽 사이드바에서 이동) -->
           <nav id="l4-subtab-nav">
-            <button class="l4-tab active" id="l4-tab-1" onclick="setL4Step(1)"><span class="l4-tab-num">1</span>🎯 문제 정의</button>
-            <button class="l4-tab" id="l4-tab-2" onclick="setL4Step(2)"><span class="l4-tab-num">2</span>🔍 데이터 찾기</button>
-            <button class="l4-tab" id="l4-tab-3" onclick="setL4Step(3)"><span class="l4-tab-num">3</span>👀 데이터 이해</button>
-            <button class="l4-tab" id="l4-tab-4" onclick="setL4Step(4)"><span class="l4-tab-num">4</span>📊 데이터 분석</button>
-            <button class="l4-tab" id="l4-tab-5" onclick="setL4Step(5)"><span class="l4-tab-num">5</span>💡 인사이트</button>
-            <button class="l4-tab" id="l4-tab-6" onclick="setL4Step(6)"><span class="l4-tab-num">6</span>🚀 AI 아이디어</button>
-            <button class="l4-tab" id="l4-tab-7" onclick="setL4Step(7)"><span class="l4-tab-num">7</span>🛠 서비스 기획</button>
-            <button class="l4-tab" id="l4-tab-8" onclick="setL4Step(8)"><span class="l4-tab-num">8</span>📋 기획서 작성</button>
+            <span id="l4-subtab-progress" style="font-size:10px;color:var(--muted);padding:0 12px;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px;border-right:1px solid var(--border);margin-right:4px;">진행</span>
+            <button class="l4-tab active" id="l4-tab-1"><span class="l4-tab-num">1</span>🎯 문제 정의</button>
+            <button class="l4-tab" id="l4-tab-2"><span class="l4-tab-num">2</span>🔍 데이터 찾기</button>
+            <button class="l4-tab" id="l4-tab-3"><span class="l4-tab-num">3</span>👀 데이터 이해</button>
+            <button class="l4-tab" id="l4-tab-4"><span class="l4-tab-num">4</span>📊 데이터 분석</button>
+            <button class="l4-tab" id="l4-tab-5"><span class="l4-tab-num">5</span>💡 인사이트</button>
+            <button class="l4-tab" id="l4-tab-6"><span class="l4-tab-num">6</span>🚀 AI 아이디어</button>
+            <button class="l4-tab" id="l4-tab-7"><span class="l4-tab-num">7</span>🛠 서비스 기획</button>
+            <button class="l4-tab" id="l4-tab-8"><span class="l4-tab-num">8</span>📋 기획서 작성</button>
           </nav>
 
           <!-- 현재 단계 안내 배너 (단계 제목 + 진행률) -->
@@ -1295,7 +1296,8 @@ Chart.register(piePercentPlugin);
                   <div style="font-size:15px;font-weight:700;">데이터 찾기 도우미</div>
                   <span style="font-size:10px;background:#0284c7;color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI 추천</span>
                 </div>
-                <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">관심 주제를 입력하면 AI가 맞는 교육 데이터를 추천해줍니다!</div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">찾고 싶은 주제나 문제를 입력하면, 관련 교육 데이터를 찾는 검색어와 사이트를 안내해드려요.</div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:12px;opacity:0.75;">예: 학교폭력, 고교학점제, 진로, 급식, 기초학력, 사교육비</div>
 
                 <div style="display:flex;gap:8px;margin-bottom:10px;">
                   <input id="data-topic-input" type="text" placeholder="예) 지역별 급식 격차, 학교 폭력 현황, 특수교육 지원..."
@@ -2803,6 +2805,8 @@ async function doLogin() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('team-chip').textContent = currentTeam;
   document.getElementById('app').classList.add('visible');
+  // 세션 저장 (새로고침 후 자동 복원)
+  try { localStorage.setItem('hyfl_session', JSON.stringify({ team: currentTeam, ts: Date.now() })); } catch(e) {}
 
   // 이전 팀의 메모리 캐시를 초기화 (다른 팀으로 재로그인 시 데이터 혼재 방지)
   Object.keys(lessonMsgStore).forEach(k => delete lessonMsgStore[k]);
@@ -2847,6 +2851,7 @@ async function doRegister() {
 }
 
 function doLogout() {
+  try { localStorage.removeItem('hyfl_session'); } catch(e) {}
   currentTeam = null; messages = []; histories = [];
   document.getElementById('app').classList.remove('visible');
   document.getElementById('login-screen').style.display = 'flex';
@@ -4316,6 +4321,8 @@ function goToProjectStep(projStep) {
 }
 
 function updateL4SubTabs(n) {
+  const prog = document.getElementById('l4-subtab-progress');
+  if (prog) prog.textContent = `${n} / 8단계`;
   for (let i = 1; i <= 8; i++) {
     const tab = document.getElementById('l4-tab-' + i);
     if (!tab) continue;
@@ -5512,6 +5519,7 @@ function saveL4StepData(step) {
 function setDataTopic(topic) {
   const input = document.getElementById('data-topic-input');
   if (input) { input.value = topic; input.focus(); }
+  suggestDataByTopic();
 }
 
 async function suggestDataByTopic() {
@@ -5561,8 +5569,27 @@ async function suggestDataByTopic() {
     }
   } catch(e) {
     if (result) {
+      const kws = [topic, `${topic} 통계`, `${topic} 현황`, `교육 ${topic}`];
+      const kwHtml = kws.map(k => `<button onclick="document.getElementById('data-topic-input').value='${k.replace(/'/g,"\\'")}';suggestDataByTopic();" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${escapeHtml(k)}</button>`).join('');
       result.style.display = 'block';
-      result.innerHTML = `<div style="color:#ef4444;font-size:12px;">오류가 발생했어요: ${escapeHtml(e.message)}<br>잠시 후 다시 시도해주세요.</div>`;
+      result.innerHTML = `
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <span style="font-size:18px;">😅</span>
+          <div style="font-size:13px;font-weight:600;color:var(--text);">지금은 AI 추천 연결이 원활하지 않아요</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">아래 추천 검색어와 사이트에서 직접 데이터를 찾아볼 수 있어요.</div>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px;">💡 추천 검색어</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">${kwHtml}</div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px;">🔗 데이터 찾기 추천 사이트</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <a href="https://edss.moe.go.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">교육데이터플랫폼 →</a>
+          <a href="https://edudata.keris.or.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">교육데이터맵 →</a>
+          <a href="https://schoolinfo.go.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">학교알리미 →</a>
+          <a href="https://kess.kedi.re.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">교육통계(KESS) →</a>
+          <a href="https://data.go.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">공공데이터포털 →</a>
+        </div>`;
     }
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '추천받기 ✨'; }
@@ -5601,7 +5628,7 @@ function showSaveStatus(state) {
   }
 }
 
-async function checkForSavedProgress() {
+async function checkForSavedProgress(autoResume = false) {
   // 로컬스토리지 먼저 확인 (빠름)
   const local = loadTeamProgress();
   // 서버에서도 확인 (더 최신일 수 있음)
@@ -5617,9 +5644,14 @@ async function checkForSavedProgress() {
   }
   if (!data || !data.updatedAt) return;
   teamProgressData = data;
-  // 필드 값은 즉시 복원 (버튼 클릭 불필요) — 단계 이동은 "이어서 하기" 버튼으로만
   restoreSaveData(data);
-  showResumeBanner(data);
+  if (autoResume) {
+    // 새로고침 자동 복원: 바로 마지막 단계로 이동
+    setL4Step(data.currentL4Step || 1);
+  } else {
+    // 일반 로그인: "이어서 하기" 배너 표시
+    showResumeBanner(data);
+  }
 }
 
 function showResumeBanner(data) {
@@ -5687,6 +5719,38 @@ function showConfirmModal(html, onConfirm) {
   document.body.appendChild(overlay);
   overlay.querySelector('#_confirm_yes').onclick = () => { overlay.remove(); onConfirm(); };
 }
+
+// ── 세션 토스트 ──
+function showSessionToast(msg) {
+  const toast = document.createElement('div');
+  toast.textContent = msg || '✅ 이전 작업을 불러왔습니다';
+  toast.style.cssText = "position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(16,185,129,0.95);color:#fff;padding:10px 22px;border-radius:12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;z-index:9999;box-shadow:0 4px 18px rgba(0,0,0,0.22);opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;";
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity='1'; toast.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(() => { toast.style.opacity='0'; setTimeout(() => toast.remove(), 350); }, 2800);
+}
+
+// ── 세션 자동 복원 (새로고침 후 로그인 유지) ──
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const sess = JSON.parse(localStorage.getItem('hyfl_session') || 'null');
+    if (sess && sess.team && sess.ts && (Date.now() - sess.ts) < 86400000) {
+      currentTeam = sess.team;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('team-chip').textContent = currentTeam;
+      document.getElementById('app').classList.add('visible');
+      Object.keys(lessonMsgStore).forEach(k => delete lessonMsgStore[k]);
+      messages = []; histories = [];
+      completedProjectStepNums.clear(); completedProjectStepNums.add(1);
+      loadHistory();
+      updateProjFlow(currentL4Step || 1);
+      setLesson(0, document.getElementById('btn-free'));
+      // autoResume=true: 마지막 단계로 자동 이동
+      setTimeout(() => checkForSavedProgress(true), 300);
+      setTimeout(() => showSessionToast('✅ 이전 작업을 불러왔습니다'), 700);
+    }
+  } catch(e) {}
+});
 
 // 텍스트 입력 자동저장 (이벤트 위임)
 document.addEventListener('DOMContentLoaded', () => {
