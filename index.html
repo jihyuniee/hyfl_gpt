@@ -1420,44 +1420,6 @@ Chart.register(piePercentPlugin);
                 </div>
               </div>
 
-              <!-- ★ 활동지 자동 생성 -->
-              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.07),rgba(234,88,12,0.05));border:1.5px solid rgba(245,158,11,0.3);border-radius:14px;padding:16px 18px;margin-bottom:20px;">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                  <span style="font-size:18px;">📝</span>
-                  <div style="font-size:14px;font-weight:700;">데이터 탐색 활동지 자동 생성</div>
-                </div>
-                <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">문제 정의 단계에서 입력한 내용으로 활동지를 자동으로 만들어줍니다.</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-                  <div>
-                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">문제 정의</label>
-                    <textarea id="ws-problem" rows="2" placeholder="우리 팀이 해결하려는 문제" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;background:var(--bg);color:var(--text);resize:none;box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;"></textarea>
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">필요한 데이터</label>
-                    <textarea id="ws-data-needed" rows="2" placeholder="어떤 데이터가 필요한가?" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;background:var(--bg);color:var(--text);resize:none;box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;"></textarea>
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">데이터 출처</label>
-                    <input id="ws-source" type="text" placeholder="예) 학교알리미, KESS" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;background:var(--bg);color:var(--text);box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;">
-                  </div>
-                  <div>
-                    <label style="display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;">데이터 형태</label>
-                    <select id="ws-format" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px;background:var(--bg);color:var(--text);box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;">
-                      <option value="">선택하세요</option>
-                      <option value="CSV">CSV</option>
-                      <option value="XLSX">XLSX (엑셀)</option>
-                      <option value="API">API (URL)</option>
-                      <option value="HTML">HTML (웹 표)</option>
-                    </select>
-                  </div>
-                </div>
-                <div style="display:flex;gap:8px;">
-                  <button onclick="generateWorksheet()" style="flex:1;padding:10px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📝 활동지 미리보기</button>
-                  <button onclick="printWorksheet()" style="padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 인쇄</button>
-                </div>
-                <div id="worksheet-preview" style="display:none;margin-top:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;font-size:13px;line-height:1.9;white-space:pre-wrap;color:var(--text);"></div>
-              </div>
-
               <!-- 업로드 전 점검 -->
               <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
                 <div style="font-size:12px;font-weight:600;color:#10b981;margin-bottom:7px;">✅ 업로드 전에 확인하세요</div>
@@ -5509,22 +5471,17 @@ async function suggestDataByTopic() {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], lesson: 'data_suggest' })
+      body: JSON.stringify({ model: currentModel, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     if (result) {
       result.style.display = 'block';
-      result.innerHTML = `<div style="font-size:12px;font-weight:600;color:#0284c7;margin-bottom:8px;">📊 "${topic}" 데이터 추천 결과</div><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;">${escapeHtml(data.reply)}</div>
+      result.innerHTML = `<div style="font-size:12px;font-weight:600;color:#0284c7;margin-bottom:8px;">📊 "${escapeHtml(topic)}" 데이터 추천 결과</div><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;">${escapeHtml(data.reply)}</div>
         <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;">
-          <button onclick="prefillWorksheet('${escapeHtml(topic).replace(/'/g,"\\'")}','${escapeHtml(data.reply).replace(/'/g,"\\'").replace(/\n/g,' ')}')" style="font-size:11px;padding:5px 12px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:20px;color:#d97706;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📝 활동지에 반영하기</button>
           <button onclick="l4AskAndGo('${escapeHtml(topic)} 주제로 교육 데이터 프로젝트를 시작하려 해요. 어떤 공공데이터를 어디서 찾고, 어떻게 분석하면 좋을지 단계별로 알려주세요.')" style="font-size:11px;padding:5px 12px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI와 더 자세히 얘기하기 →</button>
         </div>`;
     }
-    // 활동지 문제 정의 자동 채우기
-    const wsProblem = document.getElementById('ws-problem');
-    const wsTopic = document.getElementById('ws-data-needed');
-    if (wsProblem && !wsProblem.value) wsProblem.value = topic + ' 관련 문제를 데이터로 탐구한다.';
   } catch(e) {
     if (result) {
       result.style.display = 'block';
@@ -5534,68 +5491,6 @@ async function suggestDataByTopic() {
     if (btn) { btn.disabled = false; btn.textContent = '추천받기 ✨'; }
     if (loading) loading.style.display = 'none';
   }
-}
-
-function prefillWorksheet(topic, suggestionText) {
-  const wsProblem = document.getElementById('ws-problem');
-  const wsNeeded = document.getElementById('ws-data-needed');
-  if (wsProblem && !wsProblem.value) wsProblem.value = topic;
-  // 사이트명 추출 시도
-  const siteMatch = suggestionText.match(/추천 데이터 사이트[^•]*•\s*([^:•\n]+)/);
-  const wsSource = document.getElementById('ws-source');
-  if (wsSource && !wsSource.value && siteMatch) wsSource.value = siteMatch[1].trim();
-  // 스크롤
-  const el = document.querySelector('#l4-view-2 .worksheet-area, [id="worksheet-preview"]');
-}
-
-function generateWorksheet() {
-  const problem = document.getElementById('ws-problem')?.value?.trim() || '';
-  const needed = document.getElementById('ws-data-needed')?.value?.trim() || '';
-  const source = document.getElementById('ws-source')?.value?.trim() || '';
-  const format = document.getElementById('ws-format')?.value || '';
-  const team = currentTeam || '우리 팀';
-  const today = new Date().toLocaleDateString('ko-KR');
-
-  const content = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 데이터 탐색 활동지
-팀명: ${team}   날짜: ${today}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-① 우리 팀이 해결하려는 문제
-${problem || '(작성 전)'}
-
-② 이 문제를 탐구하기 위해 필요한 데이터
-${needed || '(작성 전)'}
-
-③ 데이터를 찾을 곳 (출처)
-${source || '(작성 전)'}
-
-④ 다운로드할 파일 형태
-${format || '(작성 전)'}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ 체크리스트
-□ 데이터 사이트에 직접 접속해서 검색했다
-□ 파일을 다운로드했다
-□ 파일을 열어서 항목을 확인했다
-□ 위 플랫폼에 파일을 업로드했다
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-
-  const preview = document.getElementById('worksheet-preview');
-  if (preview) { preview.style.display = 'block'; preview.textContent = content; }
-}
-
-function printWorksheet() {
-  generateWorksheet();
-  const content = document.getElementById('worksheet-preview')?.textContent || '';
-  if (!content) return;
-  const win = window.open('', '_blank');
-  if (!win) return;
-  win.document.write(`<html><head><meta charset="UTF-8"><title>데이터 탐색 활동지</title>
-    <style>body{font-family:'Noto Sans KR',sans-serif;padding:32px;font-size:14px;line-height:2;color:#1a1a1a;white-space:pre-wrap;}
-    @media print{body{padding:16px;}}</style></head><body>${escapeHtml(content)}</body></html>`);
-  win.document.close();
-  setTimeout(() => win.print(), 300);
 }
 
 function escapeHtml(str) {
@@ -5645,6 +5540,8 @@ async function checkForSavedProgress() {
   }
   if (!data || !data.updatedAt) return;
   teamProgressData = data;
+  // 필드 값은 즉시 복원 (버튼 클릭 불필요) — 단계 이동은 "이어서 하기" 버튼으로만
+  restoreSaveData(data);
   showResumeBanner(data);
 }
 
@@ -5673,7 +5570,7 @@ function showResumeBanner(data) {
 function resumeProgress() {
   if (!teamProgressData) return;
   document.getElementById('l4-resume-banner').style.display = 'none';
-  restoreSaveData(teamProgressData);
+  // 필드는 이미 checkForSavedProgress에서 복원됨 — 여기서는 마지막 단계로 이동만
   setL4Step(teamProgressData.currentL4Step || 1);
   showSaveStatus('saved');
 }
