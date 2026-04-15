@@ -1679,10 +1679,12 @@ Chart.register(piePercentPlugin);
                     <div>
                       <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">정렬</div>
                       <select id="v3-sort" onchange="renderV3Chart()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;">
+                        <option value="original">원본 순서</option>
                         <option value="desc">값 내림차순 ↓</option>
                         <option value="asc">값 오름차순 ↑</option>
                         <option value="alpha">가나다순</option>
                       </select>
+                      <div id="v3-sort-hint" style="margin-top:4px;font-size:9px;color:var(--muted);line-height:1.5;max-width:155px;">엑셀 데이터 입력 순서 그대로</div>
                     </div>
                   </div>
                   <div style="display:flex;gap:5px;flex-wrap:wrap;">
@@ -4408,7 +4410,9 @@ function renderV3Chart() {
   const xCol = document.getElementById('v3-x-col')?.value;
   const yCol = document.getElementById('v3-y-col')?.value;
   const seriesCol = document.getElementById('v3-series-col')?.value || '';
-  const sortMode = document.getElementById('v3-sort')?.value || 'desc';
+  const sortMode = document.getElementById('v3-sort')?.value || 'original';
+  const sortHintEl = document.getElementById('v3-sort-hint');
+  if (sortHintEl) sortHintEl.textContent = {original:'엑셀 데이터 입력 순서 그대로',desc:'값이 큰 항목 먼저 표시',asc:'값이 작은 항목 먼저 표시',alpha:'가나다/ABC 순서로 표시'}[sortMode]||'';
   if (!xCol) return;
   const insightBox = document.getElementById('v3-insight-box');
   if (insightBox) insightBox.style.display = 'none';
@@ -4448,9 +4452,9 @@ function renderV3Chart() {
       const seriesVals=[...new Set(rows.map(r=>String(r[seriesCol]||'')))].filter(Boolean).slice(0,6);
       const xVals=[...new Set(rows.map(r=>fmtLabel(r[xCol])))].filter(Boolean);
       // sort xVals
-      let sortedX = xVals;
-      if (sortMode==='alpha') sortedX=xVals.sort((a,b)=>a.localeCompare(b,'ko'));
-      else sortedX=xVals.sort((a,b)=>a.localeCompare(b,'ko')); // default alpha for grouped
+      let sortedX = [...xVals]; // 원본 순서 보존을 위해 복사
+      if (sortMode==='alpha' || sortMode==='desc' || sortMode==='asc') sortedX.sort((a,b)=>a.localeCompare(b,'ko'));
+      // original: 정렬 없이 삽입 순서(=엑셀 원본 순서) 유지
       sortedX=sortedX.slice(0,15);
       // agg[xVal][seriesVal] = [values]
       const agg={};
@@ -4467,9 +4471,11 @@ function renderV3Chart() {
       const agg={};
       rows.forEach(r=>{ const k=fmtLabel(r[xCol]); if(aggMethod==='count'){ const v=r[yCol]; if(v!==null&&v!==undefined&&v!==''){if(!agg[k])agg[k]=[];agg[k].push(v);} } else { const v=parseFloat(r[yCol]); if(!isNaN(v)){if(!agg[k])agg[k]=[];agg[k].push(v);} } });
       let entries=Object.entries(agg).map(([k,v])=>[k,aggMethod==='count'?v.length:aggMethod==='sum'?+(v.reduce((a,b)=>a+b,0)).toFixed(2):aggMethod==='max'?Math.max(...v):aggMethod==='min'?Math.min(...v):+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)]);
+      // 원본 순서: 삽입 순서(=엑셀 행 순서) 유지, 나머지만 정렬
       if (sortMode==='asc') entries.sort((a,b)=>a[1]-b[1]);
       else if (sortMode==='alpha') entries.sort((a,b)=>a[0].localeCompare(b[0],'ko'));
-      else entries.sort((a,b)=>b[1]-a[1]); // 기본: 값 내림차순
+      else if (sortMode==='desc') entries.sort((a,b)=>b[1]-a[1]);
+      // original: 정렬 없음 — Object.entries 삽입 순서 = 엑셀 원본 순서
       const totalCount = entries.length;
       const topN = 15;
       const searchTerm = (document.getElementById('v3-search')?.value || '').trim().toLowerCase();
@@ -4483,12 +4489,14 @@ function renderV3Chart() {
       const isH = type==='hbar';
       const clr = isH ? 'rgba(96,165,250,0.75)' : 'rgba(108,99,255,0.7)';
       const bclr = isH ? 'rgba(96,165,250,1)' : 'rgba(108,99,255,1)';
-      const sortLabel = {desc:'값 내림차순',asc:'값 오름차순',alpha:'가나다순'}[sortMode]||'값 내림차순';
+      const sortLabel = {original:'원본 순서',desc:'값 내림차순',asc:'값 오름차순',alpha:'가나다순'}[sortMode]||'원본 순서';
       if (statusEl) {
         statusEl.style.display = 'block';
         statusEl.textContent = searchTerm
           ? `🔍 "${searchTerm}" 검색 결과 ${entries.length}개 표시 (전체 ${totalCount}개 중)`
-          : `전체 데이터 ${totalCount}개 중 상위 ${entries.length}개만 표시됩니다 (${sortLabel})`;
+          : sortMode==='original'
+            ? `원본 순서: 엑셀 데이터 입력 순서 그대로 표시됩니다 (전체 ${totalCount}개 중 ${entries.length}개)`
+            : `전체 데이터 ${totalCount}개 중 상위 ${entries.length}개만 표시됩니다 (${sortLabel})`;
       }
       if (hint) hint.textContent = `${isH?'가로막대':type==='bar'?'막대':'선'} 그래프: ${xCol} 별 ${yCol} ${aggLabel}`;
       const h = isH ? Math.max(300, labels.length * 28) : '';
