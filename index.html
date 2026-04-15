@@ -1649,13 +1649,27 @@ Chart.register(piePercentPlugin);
                     </div>
                     <div id="v3-y-wrap">
                       <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">
-                        Y축 (수치)
-                        <span style="font-size:9px;color:var(--accent2);margin-left:3px;">← 숫자 데이터만</span>
+                        Y축 (측정값)
+                        <span id="v3-y-numeric-note" style="font-size:9px;color:var(--accent2);margin-left:3px;">← 숫자 데이터만</span>
                       </div>
                       <select id="v3-y-col" onchange="renderV3Chart();checkYAxisWarning(this.value,'v3-y-warn')" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:155px;"></select>
                       <div id="v3-y-warn" style="display:none;margin-top:4px;padding:5px 8px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:7px;font-size:9px;color:#f59e0b;line-height:1.5;max-width:155px;"></div>
                       <div style="margin-top:4px;font-size:9px;color:var(--muted);line-height:1.5;max-width:155px;">
-                        💡 학생 수, 점수, 비율 같은<br>숫자를 골라야 의미 있어요
+                        💡 Y축 값은 선택한 집계 방식에 따라<br>계산됩니다
+                      </div>
+                    </div>
+                    <div>
+                      <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:1px;">집계 방식 <span style="font-weight:400;font-size:9px;color:var(--muted);">(Y값 계산법)</span></div>
+                      <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Y값을 어떻게 계산할지 골라요</div>
+                      <select id="v3-agg-method" onchange="onAggChange()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:2px solid var(--accent);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:155px;display:block;">
+                        <option value="mean">📊 평균 (mean)</option>
+                        <option value="count">🔢 개수 (count)</option>
+                        <option value="sum">➕ 합계 (sum)</option>
+                        <option value="max">⬆️ 최댓값 (max)</option>
+                        <option value="min">⬇️ 최솟값 (min)</option>
+                      </select>
+                      <div style="margin-top:4px;font-size:9px;color:var(--muted);line-height:1.5;max-width:155px;">
+                        💡 개수는 문자형에도 사용 가능
                       </div>
                     </div>
                     <div>
@@ -4423,6 +4437,8 @@ function renderV3Chart() {
     if (!yCol) return;
     // Multi-series grouped chart
     if (seriesCol) {
+      const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+      const aggLabel = {mean:'평균',count:'개수',sum:'합계',max:'최댓값',min:'최솟값'}[aggMethod]||'평균';
       const seriesVals=[...new Set(rows.map(r=>String(r[seriesCol]||'')))].filter(Boolean).slice(0,6);
       const xVals=[...new Set(rows.map(r=>fmtLabel(r[xCol])))].filter(Boolean);
       // sort xVals
@@ -4432,17 +4448,19 @@ function renderV3Chart() {
       sortedX=sortedX.slice(0,15);
       // agg[xVal][seriesVal] = [values]
       const agg={};
-      rows.forEach(r=>{const x=fmtLabel(r[xCol]);const s=String(r[seriesCol]||'');const v=parseFloat(r[yCol]);if(isNaN(v)||!sortedX.includes(x)||!seriesVals.includes(s))return;if(!agg[x])agg[x]={};if(!agg[x][s])agg[x][s]=[];agg[x][s].push(v);});
-      const datasets=seriesVals.map((s,i)=>({label:s,data:sortedX.map(x=>{const vals=agg[x]?.[s]||[];return vals.length?+(vals.reduce((a,b)=>a+b)/vals.length).toFixed(2):null;}),backgroundColor:palette[i]+'cc',borderColor:palette[i],borderWidth:1.5}));
-      if (hint) hint.textContent = `${type==='hbar'?'가로막대':'막대'} 그래프: ${xCol} × ${seriesCol} 별 ${yCol} 평균 (그룹 비교)`;
+      rows.forEach(r=>{const x=fmtLabel(r[xCol]);const s=String(r[seriesCol]||'');if(!sortedX.includes(x)||!seriesVals.includes(s))return;if(aggMethod==='count'){const v=r[yCol];if(v!==null&&v!==undefined&&v!==''){if(!agg[x])agg[x]={};if(!agg[x][s])agg[x][s]=[];agg[x][s].push(v);}}else{const v=parseFloat(r[yCol]);if(!isNaN(v)){if(!agg[x])agg[x]={};if(!agg[x][s])agg[x][s]=[];agg[x][s].push(v);}}});
+      const datasets=seriesVals.map((s,i)=>({label:s,data:sortedX.map(x=>{const vals=agg[x]?.[s]||[];if(!vals.length)return null;return aggMethod==='count'?vals.length:aggMethod==='sum'?+(vals.reduce((a,b)=>a+b,0)).toFixed(2):aggMethod==='max'?Math.max(...vals):aggMethod==='min'?Math.min(...vals):+(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2);}),backgroundColor:palette[i]+'cc',borderColor:palette[i],borderWidth:1.5}));
+      if (hint) hint.textContent = `${type==='hbar'?'가로막대':'막대'} 그래프: ${xCol} × ${seriesCol} 별 ${yCol} ${aggLabel} (그룹 비교)`;
       const isH = type==='hbar';
       const h = isH ? Math.max(300, sortedX.length * 36) : '';
       if (isH) { canvas.style.height=h+'px'; canvas.style.maxHeight=h+'px'; } else { canvas.style.height=''; canvas.style.maxHeight=''; }
       v3ChartInst = new Chart(canvas, { type:'bar', data:{labels:sortedX,datasets}, options:{ indexAxis:isH?'y':'x', plugins:{legend:{labels:{color:textColor,font:{size:11}}}}, scales:{ x:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11},maxRotation:isH?0:45}}, y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11}},beginAtZero:false} } } });
     } else {
+      const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+      const aggLabel = {mean:'평균',count:'개수',sum:'합계',max:'최댓값',min:'최솟값'}[aggMethod]||'평균';
       const agg={};
-      rows.forEach(r=>{ const k=fmtLabel(r[xCol]); const v=parseFloat(r[yCol]); if(!isNaN(v)){ if(!agg[k]) agg[k]=[]; agg[k].push(v); } });
-      let entries=Object.entries(agg).map(([k,v])=>[k,+(v.reduce((a,b)=>a+b)/v.length).toFixed(2)]);
+      rows.forEach(r=>{ const k=fmtLabel(r[xCol]); if(aggMethod==='count'){ const v=r[yCol]; if(v!==null&&v!==undefined&&v!==''){if(!agg[k])agg[k]=[];agg[k].push(v);} } else { const v=parseFloat(r[yCol]); if(!isNaN(v)){if(!agg[k])agg[k]=[];agg[k].push(v);} } });
+      let entries=Object.entries(agg).map(([k,v])=>[k,aggMethod==='count'?v.length:aggMethod==='sum'?+(v.reduce((a,b)=>a+b,0)).toFixed(2):aggMethod==='max'?Math.max(...v):aggMethod==='min'?Math.min(...v):+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)]);
       if (sortMode==='desc') entries.sort((a,b)=>b[1]-a[1]);
       else if (sortMode==='asc') entries.sort((a,b)=>a[1]-b[1]);
       else if (sortMode==='alpha') entries.sort((a,b)=>a[0].localeCompare(b[0],'ko'));
@@ -4453,10 +4471,10 @@ function renderV3Chart() {
       const isH = type==='hbar';
       const clr = isH ? 'rgba(96,165,250,0.75)' : 'rgba(108,99,255,0.7)';
       const bclr = isH ? 'rgba(96,165,250,1)' : 'rgba(108,99,255,1)';
-      if (hint) hint.textContent = `${isH?'가로막대':type==='bar'?'막대':'선'} 그래프: ${xCol} 별 ${yCol} 평균`;
+      if (hint) hint.textContent = `${isH?'가로막대':type==='bar'?'막대':'선'} 그래프: ${xCol} 별 ${yCol} ${aggLabel}`;
       const h = isH ? Math.max(300, labels.length * 28) : '';
       if (isH) { canvas.style.height=h+'px'; canvas.style.maxHeight=h+'px'; } else { canvas.style.height=''; canvas.style.maxHeight=''; }
-      v3ChartInst = new Chart(canvas, { type:isH?'bar':type, data:{labels,datasets:[{label:`${yCol} 평균`,data,backgroundColor:clr,borderColor:bclr,borderWidth:2,tension:0.3}]}, options:{indexAxis:isH?'y':'x', plugins:{legend:{labels:{color:textColor}}}, scales:{x:{grid:{color:gridColor},ticks:{color:textColor,maxRotation:isH?0:45,font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11}},beginAtZero:false}}} });
+      v3ChartInst = new Chart(canvas, { type:isH?'bar':type, data:{labels,datasets:[{label:`${xCol}별 ${yCol} ${aggLabel}`,data,backgroundColor:clr,borderColor:bclr,borderWidth:2,tension:0.3}]}, options:{indexAxis:isH?'y':'x', plugins:{legend:{labels:{color:textColor}}}, scales:{x:{grid:{color:gridColor},ticks:{color:textColor,maxRotation:isH?0:45,font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11}},beginAtZero:false}}} });
     }
   }
 }
@@ -4523,12 +4541,16 @@ function refreshV3Selectors() {
     const t = getColType(h, rows);
     return t==='num' ? `${h} [숫자]` : t==='date' ? `${h} [시간]` : `${h} [기준]`;
   }
+  const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+  const yNote = document.getElementById('v3-y-numeric-note');
   if(xSel) xSel.innerHTML=headers.map(h=>`<option value="${h}">${colLabel(h)}</option>`).join('');
-  if(ySel) ySel.innerHTML=(numCols.length?numCols:headers).map(h=>`<option value="${h}">${colLabel(h)}</option>`).join('');
+  const colsForY = aggMethod === 'count' ? headers : (numCols.length?numCols:headers);
+  if(ySel) ySel.innerHTML=colsForY.map(h=>`<option value="${h}">${colLabel(h)}</option>`).join('');
+  if(yNote) yNote.style.display = aggMethod === 'count' ? 'none' : '';
   if(xSel&&prevX&&[...xSel.options].some(o=>o.value===prevX)) xSel.value=prevX;
   else if(xSel&&headers.length) xSel.value=headers[0];
   if(ySel&&prevY&&[...ySel.options].some(o=>o.value===prevY)) ySel.value=prevY;
-  else if(ySel&&numCols.length) ySel.value=numCols[0];
+  else if(ySel&&colsForY.length) ySel.value=colsForY[0];
   // 축 추천 칩 업데이트
   setTimeout(updateAxisChips, 50);
   // Series selector
@@ -5137,13 +5159,41 @@ function selectAIType(el, type) {
 function checkYAxisWarning(colName, warnId) {
   const el = document.getElementById(warnId);
   if (!el) return;
+  const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+  if (aggMethod === 'count') { el.style.display = 'none'; return; }
   const bad = /코드|번호|ID|아이디|식별|일련|serial|code|index|idx/i.test(colName);
   if (bad) {
+    const verb = {sum:'합산',max:'최댓값 계산',min:'최솟값 계산'}[aggMethod] || '평균';
     el.style.display = 'block';
-    el.innerHTML = `⚠️ <b>${colName}</b>는 식별 코드예요!<br>코드 번호를 평균내면 의미가 없어요.<br>학생 수·점수·비율 같은 컬럼을 골라보세요.`;
+    el.innerHTML = `⚠️ <b>${colName}</b>는 식별 코드예요!<br>코드 번호를 ${verb}하면 의미가 없어요.<br>학생 수·점수·비율 같은 컬럼을 골라보세요.`;
   } else {
     el.style.display = 'none';
   }
+}
+
+// ── 집계 방식 변경 핸들러 ──
+function onAggChange() {
+  if (!lesson4Data) { renderV3Chart(); return; }
+  const { headers, rows } = lesson4Data;
+  const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+  const yNote = document.getElementById('v3-y-numeric-note');
+  const ySel = document.getElementById('v3-y-col');
+  const prevY = ySel?.value;
+  function colLabel(h) {
+    const t = getColType(h, rows);
+    return t==='num' ? `${h} [숫자]` : t==='date' ? `${h} [시간]` : `${h} [기준]`;
+  }
+  if (aggMethod === 'count') {
+    if (yNote) yNote.style.display = 'none';
+    if (ySel) ySel.innerHTML = headers.map(h => `<option value="${h}">${colLabel(h)}</option>`).join('');
+  } else {
+    if (yNote) yNote.style.display = '';
+    const numCols = getEffectiveNumCols(headers, rows);
+    if (ySel) ySel.innerHTML = (numCols.length ? numCols : headers).map(h => `<option value="${h}">${colLabel(h)}</option>`).join('');
+  }
+  if (ySel && prevY && [...ySel.options].some(o => o.value === prevY)) ySel.value = prevY;
+  checkYAxisWarning(ySel?.value || '', 'v3-y-warn');
+  renderV3Chart();
 }
 
 // ── Chat Mode Toggle ──
