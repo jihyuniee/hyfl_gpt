@@ -37,6 +37,7 @@ const piePercentPlugin = {
 Chart.register(piePercentPlugin);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
     --bg: #0f0f13;
@@ -162,13 +163,14 @@ Chart.register(piePercentPlugin);
     100%  { left: -50px; }
   }
   @keyframes pet-flip {
-    0%    { transform: scaleX(1); }
-    42%   { transform: scaleX(1); }
-    44%   { transform: scaleX(-1); }
-    86%   { transform: scaleX(-1); }
-    88%   { transform: scaleX(1); }
-    100%  { transform: scaleX(1); }
+    0%    { transform: scaleX(-1); }
+    42%   { transform: scaleX(-1); }
+    44%   { transform: scaleX(1); }
+    86%   { transform: scaleX(1); }
+    88%   { transform: scaleX(-1); }
+    100%  { transform: scaleX(-1); }
   }
+  #pet-mascot:hover { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15)) brightness(1.2); }
   @keyframes pet-hop {
     0%,100% { bottom: 8px; }
     25%     { bottom: 15px; }
@@ -190,6 +192,26 @@ Chart.register(piePercentPlugin);
     0%   { opacity:1; transform: translateY(0) scale(1); }
     100% { opacity:0; transform: translateY(-40px) scale(1.4); }
   }
+  /* ── 통일된 콘텐츠 카드 ── */
+  .step-card { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px; }
+  .step-card-title { font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px; }
+  .step-card-hint { font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.6; }
+  /* ── AI 코치 버튼 그리드 ── */
+  .coach-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+  .coach-btn { padding:10px 12px;border:1px solid rgba(108,99,255,0.22);border-radius:10px;background:rgba(108,99,255,0.05);color:var(--accent2);font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:left;line-height:1.5;transition:background 0.15s; }
+  .coach-btn:hover { background:rgba(108,99,255,0.12); }
+  .coach-btn-wide { grid-column:span 2; }
+  /* ── 구글 클래스룸 안내 배너 ── */
+  .gc-notice { background:linear-gradient(90deg,rgba(66,133,244,0.09),rgba(52,168,83,0.07));border-bottom:1px solid rgba(66,133,244,0.18);padding:9px 20px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text);flex-shrink:0; }
+  /* ── AI 유형 카드 ── */
+  .ai-type-card { cursor:pointer;border-radius:10px;text-align:center;transition:all 0.15s;padding:10px 6px; }
+  .ai-type-card:hover { transform:scale(1.04);filter:brightness(1.08); }
+  .ai-type-card.selected { border-width:2px !important;border-color:var(--accent2) !important;transform:scale(1.05);box-shadow:0 0 0 2px rgba(108,99,255,0.25); }
+  /* ── 축 추천 칩 ── */
+  .axis-chip { display:inline-block;font-size:9px;padding:2px 7px;border-radius:12px;cursor:pointer;margin:2px 2px 0 0;border:1px solid transparent;transition:all 0.1s;white-space:nowrap; }
+  .axis-chip:hover { opacity:0.85; }
+  .axis-chip-x { background:rgba(96,165,250,0.12);color:#60a5fa;border-color:rgba(96,165,250,0.3); }
+  .axis-chip-y { background:rgba(16,185,129,0.12);color:#10b981;border-color:rgba(16,185,129,0.3); }
   .top-logo { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600; }
   .top-logo span { color: var(--accent2); }
   .top-right { display: flex; align-items: center; gap: 12px; }
@@ -230,10 +252,10 @@ Chart.register(piePercentPlugin);
   .ps-row { display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;font-size:11px;transition:background 0.1s; }
   .ps-circle { width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0; }
   .ps-row.ps-done   { color:#10b981; }
-  .ps-row.ps-active { background:rgba(108,99,255,0.12);color:var(--accent2);font-weight:600; }
+  .ps-row.ps-active { background:rgba(108,99,255,0.18);color:var(--accent2);font-weight:700;border-left:3px solid var(--accent);padding-left:5px;border-radius:0 6px 6px 0; }
   .ps-row.ps-upcoming { color:var(--muted); }
   .ps-row.ps-done   .ps-circle { background:rgba(16,185,129,0.2);color:#10b981; }
-  .ps-row.ps-active .ps-circle { background:var(--accent);color:#fff; }
+  .ps-row.ps-active .ps-circle { background:var(--accent);color:#fff;box-shadow:0 0 0 3px rgba(108,99,255,0.25); }
   .ps-row.ps-upcoming .ps-circle { background:var(--surface2);color:var(--muted); }
   .ps-connector { width:2px;height:6px;margin-left:14px;border-radius:1px; }
   .ps-connector.done { background:rgba(16,185,129,0.35); }
@@ -242,8 +264,8 @@ Chart.register(piePercentPlugin);
   /* ── 본문 수평 서브탭 (6단계) ── */
   #l4-subtab-nav { display:flex;overflow-x:auto;flex-shrink:0;background:var(--surface);border-bottom:2px solid var(--border);scrollbar-width:none; }
   #l4-subtab-nav::-webkit-scrollbar { display:none; }
-  .l4-tab { flex-shrink:0;padding:10px 14px;font-size:11px;font-family:'Noto Sans KR',sans-serif;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap;display:flex;align-items:center;gap:5px; }
-  .l4-tab:hover { background:var(--surface2);color:var(--text); }
+  .l4-tab { flex-shrink:0;padding:10px 14px;font-size:11px;font-family:'Noto Sans KR',sans-serif;border:none;background:transparent;color:var(--muted);cursor:default;pointer-events:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap;display:flex;align-items:center;gap:5px; }
+  .l4-tab:hover { background:transparent;color:var(--muted); }
   .l4-tab.active { color:var(--accent2);border-bottom-color:var(--accent);font-weight:600; }
   .l4-tab.done { color:#10b981; }
   .l4-tab.done .l4-tab-num { background:rgba(16,185,129,0.2);color:#10b981; }
@@ -366,6 +388,9 @@ Chart.register(piePercentPlugin);
     0%,20% { content: '.'; }
     40% { content: '..'; }
     60%,100% { content: '...'; }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   /* ── Input ── */
@@ -780,6 +805,7 @@ Chart.register(piePercentPlugin);
     <div class="top-right">
       <div class="team-chip" id="team-chip">팀명</div>
       <div class="contest-chip">2026 공공교육데이터 AI활용대회</div>
+      <button onclick="showHelp()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 11px;cursor:pointer;font-size:12px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;line-height:1.4;" title="도움말">❓ 도움말</button>
       <button id="theme-btn" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:15px;line-height:1;" title="라이트/다크 모드">🌙</button>
       <button class="logout-btn" onclick="doLogout()">나가기</button>
     </div>
@@ -797,9 +823,9 @@ Chart.register(piePercentPlugin);
       <!-- 자유 대화 -->
       <button class="lesson-btn active" onclick="setLesson(0,this)" id="btn-free" style="margin-bottom:4px;">🏠 자유 대화</button>
 
-      <!-- ══ 프로젝트 전체 흐름 (7단계) ══ -->
+      <!-- ══ AI 코치 메뉴 ══ -->
       <div style="height:1px;background:var(--border);margin:8px 0;"></div>
-      <div class="sidebar-label">🗂️ 프로젝트 진행 현황</div>
+      <div class="sidebar-label">🤖 AI 코치 메뉴</div>
       <div id="sidebar-proj-flow">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
           <div id="sidebar-proj-label" style="font-size:9px;color:var(--muted);">1 / 7 완료</div>
@@ -1182,14 +1208,17 @@ Chart.register(piePercentPlugin);
         <!-- 오른쪽: 단계별 뷰 -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
 
-          <!-- 데이터 탐구 6단계 서브탭 -->
+          <!-- 진행 단계 표시 (클릭 불가 · 왼쪽 사이드바에서 이동) -->
           <nav id="l4-subtab-nav">
-            <button class="l4-tab active" id="l4-tab-1" onclick="setL4Step(1)"><span class="l4-tab-num">1</span>🔍 데이터 찾기</button>
-            <button class="l4-tab" id="l4-tab-2" onclick="setL4Step(2)"><span class="l4-tab-num">2</span>👀 이해하기</button>
-            <button class="l4-tab" id="l4-tab-3" onclick="setL4Step(3)"><span class="l4-tab-num">3</span>📊 분석하기</button>
-            <button class="l4-tab" id="l4-tab-4" onclick="setL4Step(4)"><span class="l4-tab-num">4</span>💡 인사이트</button>
-            <button class="l4-tab" id="l4-tab-5" onclick="setL4Step(5)"><span class="l4-tab-num">5</span>🚀 아이디어</button>
-            <button class="l4-tab" id="l4-tab-6" onclick="setL4Step(6)"><span class="l4-tab-num">6</span>📝 성찰 기록</button>
+            <span id="l4-subtab-progress" style="font-size:10px;color:var(--muted);padding:0 12px;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px;border-right:1px solid var(--border);margin-right:4px;">진행</span>
+            <button class="l4-tab active" id="l4-tab-1"><span class="l4-tab-num">1</span>🎯 문제 정의</button>
+            <button class="l4-tab" id="l4-tab-2"><span class="l4-tab-num">2</span>🔍 데이터 찾기</button>
+            <button class="l4-tab" id="l4-tab-3"><span class="l4-tab-num">3</span>👀 데이터 이해</button>
+            <button class="l4-tab" id="l4-tab-4"><span class="l4-tab-num">4</span>📊 데이터 분석</button>
+            <button class="l4-tab" id="l4-tab-5"><span class="l4-tab-num">5</span>💡 인사이트</button>
+            <button class="l4-tab" id="l4-tab-6"><span class="l4-tab-num">6</span>🚀 AI 아이디어</button>
+            <button class="l4-tab" id="l4-tab-7"><span class="l4-tab-num">7</span>🛠 서비스 기획</button>
+            <button class="l4-tab" id="l4-tab-8"><span class="l4-tab-num">8</span>📋 기획서 작성</button>
           </nav>
 
           <!-- 현재 단계 안내 배너 (단계 제목 + 진행률) -->
@@ -1198,150 +1227,249 @@ Chart.register(piePercentPlugin);
           <!-- 지난 기록 이어하기 배너 -->
           <div id="l4-resume-banner"></div>
 
-          <!-- ① STEP 1: 데이터 찾기 -->
+          <!-- 구글 클래스룸 안내 배너 -->
+          <div id="gc-notice-banner" class="gc-notice">
+            <span>✏️ <b>활동지</b>는 <span style="color:#4285F4;font-weight:600;">구글클래스룸</span>에서 작성하고,
+            이 플랫폼은 <b>막힐 때 AI 코치에게 도움받는 곳</b>으로 활용하세요.</span>
+            <button onclick="document.getElementById('gc-notice-banner').style.display='none'"
+              style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 12px;flex-shrink:0;">✕</button>
+          </div>
+
+          <!-- ① STEP 1: 문제 정의 -->
           <div id="l4-view-1" style="flex:1;overflow-y:auto;padding:24px 28px;">
+            <div style="max-width:640px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:24px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 1 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🎯 문제 정의</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">우리가 해결하고 싶은 문제가 무엇인지 명확하게 정의합니다. 좋은 문제 정의가 좋은 프로젝트의 출발점입니다.</div>
+              </div>
+
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 우리 주변에서 불편하거나 해결하고 싶은 문제를 적어봤다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 그 문제가 왜 중요한지 이유를 설명할 수 있다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 어떤 사람들이 이 문제를 겪고 있는지 생각해봤다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 데이터로 이 문제를 탐구할 수 있다고 생각한다</label>
+              </div>
+
+              <!-- AI 코치 도움 받기 -->
+              <div class="step-card" style="border:2px solid rgba(108,99,255,0.22);background:linear-gradient(135deg,rgba(108,99,255,0.04),rgba(118,75,162,0.03));">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div class="step-card-title" style="margin-bottom:0;">AI 코치에게 도움받기</div>
+                  <span style="font-size:10px;background:var(--accent2);color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI</span>
+                </div>
+                <p class="step-card-hint">활동지의 <b>문제 정의</b> 칸이 막히면 여기서 버튼 하나로 도움받으세요.<br>탐구 주제를 아래에 입력하면 더 맞춤화된 도움을 받을 수 있어요.</p>
+                <input type="text" id="coach-ctx-1"
+                  placeholder="우리 팀 탐구 주제를 한 줄로 입력 (예: 지역별 교육격차 문제)"
+                  style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;background:var(--bg);color:var(--text);box-sizing:border-box;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif;">
+                <div class="coach-grid">
+                  <button onclick="coachAsk(1,'우리 팀 탐구 주제: {ctx}. 이 주제로 활동지에 쓸 수 있는 문제 정의 문장을 만들어줘. 해결하려는 문제, 왜 중요한지, 누가 겪는지, 데이터로 어떻게 탐구할지 포함해서.')" class="coach-btn">📝 문제 정의 문장 만들기</button>
+                  <button onclick="coachAsk(1,'우리 팀 탐구 주제: {ctx}. 이 주제와 관련된 공공데이터를 찾을 수 있는 사이트와 검색 키워드를 추천해줘.')" class="coach-btn">📂 관련 데이터 찾기</button>
+                  <button onclick="coachAsk(1,'우리 팀 탐구 주제: {ctx}. 이 문제가 왜 중요한지 설득력 있는 이유 3가지를 활동지에 쓸 수 있는 문장으로 만들어줘.')" class="coach-btn">💡 중요성 이유 쓰기</button>
+                  <button onclick="coachAsk(1,'우리 팀 탐구 주제: {ctx}. 이 주제를 데이터로 탐구할 수 있는 질문 3가지를 만들어줘.')" class="coach-btn">🔍 탐구 질문 만들기</button>
+                  <button onclick="coachAsk(1,'다음 문장을 더 명확하고 자연스럽게 다듬어줘 (활동지용): {ctx}')" class="coach-btn coach-btn-wide">✍️ 활동지에 쓴 문장 다듬기</button>
+                </div>
+              </div>
+
+              <!-- 다음 단계 -->
+              <button class="l4-next-btn" onclick="setL4Step(2)">다음 단계: 🔍 데이터 찾기 →</button>
+            </div>
+          </div>
+
+          <!-- ② STEP 2: 공공데이터 찾기 -->
+          <div id="l4-view-2" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:620px;margin:0 auto;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">🔍</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 찾기</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 1</span>
-              </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">우리 팀의 연구 주제에 맞는 공공데이터를 찾아 업로드해요<br>파일을 올리면 자동으로 다음 단계로 안내해드려요 ✨</p>
-
-              <!-- 탐구 질문 카드 -->
-              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(96,165,250,0.07));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
-                <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;display:flex;align-items:center;gap:6px;">🧐 이 단계에서 생각해볼 질문</div>
-                <div style="display:flex;flex-direction:column;gap:7px;">
-                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
-                    <span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q1</span>
-                    <span>우리 팀이 탐구하려는 <b>교육 문제</b>와 가장 관련 있는 데이터는 무엇인가요?</span>
-                  </div>
-                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
-                    <span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q2</span>
-                    <span>아래 포털 중 <b>어디서</b> 데이터를 찾을 수 있나요? 직접 접속해서 검색해보세요.</span>
-                  </div>
-                  <div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--text);">
-                    <span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q3</span>
-                    <span>다운로드한 파일이 <b>CSV</b>인가요, <b>XLSX</b>인가요? 파일을 열면 어떤 항목이 있나요?</span>
-                  </div>
-                </div>
-                <div style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(108,99,255,0.2);">
-                  <button onclick="l4AskAndGo('우리 팀 주제에 맞는 공공데이터를 어디서 어떻게 찾으면 될까요? 단계별로 알려주세요.')" style="font-size:11px;padding:5px 12px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI에게 데이터 찾는 방법 물어보기 →</button>
-                </div>
+              <div style="background:linear-gradient(135deg,#06b6d4 0%,#0284c7 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 2 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🔍 공공데이터 찾기</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">우리 팀의 문제와 관련된 공공데이터를 찾아 다운로드하고 업로드합니다. 파일을 올리면 자동으로 다음 단계로 이동해요.</div>
               </div>
 
-              <div id="l4-view-1-uploaded" style="display:none;margin-bottom:16px;"></div>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 문제와 관련된 키워드로 공공데이터포털을 검색했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> CSV 또는 XLSX 파일을 다운로드했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 파일을 열어서 어떤 항목(컬럼)이 있는지 확인했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 아래에 파일을 업로드했다</label>
+              </div>
 
-              <!-- 예시 분석 카드 (바로 시작 가능) -->
+              <!-- ★ 데이터 찾기 도우미 -->
+              <div style="background:linear-gradient(135deg,rgba(6,182,212,0.08),rgba(2,132,199,0.06));border:2px solid rgba(6,182,212,0.3);border-radius:16px;padding:18px 20px;margin-bottom:20px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div style="font-size:15px;font-weight:700;">데이터 찾기 도우미</div>
+                  <span style="font-size:10px;background:#0284c7;color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI 추천</span>
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">찾고 싶은 주제나 문제를 입력하면, 관련 교육 데이터를 찾는 검색어와 사이트를 안내해드려요.</div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:12px;opacity:0.75;">예: 학교폭력, 고교학점제, 진로, 급식, 기초학력, 사교육비</div>
+
+                <div style="display:flex;gap:8px;margin-bottom:10px;">
+                  <input id="data-topic-input" type="text" placeholder="예) 지역별 급식 격차, 학교 폭력 현황, 특수교육 지원..."
+                    style="flex:1;padding:10px 14px;border:1.5px solid rgba(6,182,212,0.4);border-radius:10px;font-size:13px;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;"
+                    onkeydown="if(event.key==='Enter')suggestDataByTopic()">
+                  <button onclick="suggestDataByTopic()" id="data-suggest-btn"
+                    style="padding:10px 18px;background:linear-gradient(135deg,#06b6d4,#0284c7);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">
+                    추천받기 ✨
+                  </button>
+                </div>
+
+                <!-- 빠른 주제 태그 -->
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+                  <button onclick="setDataTopic('학교 급식 영양')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🍱 급식 영양</button>
+                  <button onclick="setDataTopic('지역별 학력 격차')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📚 학력 격차</button>
+                  <button onclick="setDataTopic('학교 폭력 현황')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚨 학교 폭력</button>
+                  <button onclick="setDataTopic('특수교육 지원')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">♿ 특수교육</button>
+                  <button onclick="setDataTopic('방과후 프로그램 참여율')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🎨 방과후</button>
+                  <button onclick="setDataTopic('교사 1인당 학생 수')" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👩‍🏫 교사 비율</button>
+                </div>
+
+                <!-- AI 추천 결과 -->
+                <div id="data-suggest-result" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.8;"></div>
+                <div id="data-suggest-loading" style="display:none;text-align:center;padding:16px;color:var(--muted);font-size:13px;">
+                  <div style="display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:#0284c7;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;vertical-align:middle;"></div>AI가 데이터를 추천하고 있어요...
+                </div>
+              </div>
+
+              <div id="l4-view-2-uploaded" style="display:none;margin-bottom:16px;"></div>
+
+              <!-- ★ 추천 사이트 5곳 -->
               <div style="margin-bottom:20px;">
-                <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:5px;">
-                  ⚡ 바로 시작할 수 있는 분석 예시
-                  <span style="font-size:10px;font-weight:400;">(클릭하면 AI가 방법을 알려줘요)</span>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-                  <div onclick="l4SampleCard('school_count')" style="cursor:pointer;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
-                    <div style="font-size:22px;margin-bottom:6px;">🏫</div>
-                    <div style="font-size:12px;font-weight:600;margin-bottom:4px;">학교별 학생 수</div>
-                    <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">지역·학교급별 규모 비교</div>
-                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(108,99,255,0.1);color:var(--accent2);border-radius:20px;">막대 그래프</span>
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(108,99,255,0.1);color:var(--accent2);border-radius:20px;">지역 비교</span>
+                <div style="font-size:13px;font-weight:700;margin-bottom:10px;">📥 교육 데이터 추천 사이트</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <a href="https://edss.moe.go.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#06b6d4'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">🗃️</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">교육데이터 플랫폼 <span style="font-size:10px;background:rgba(6,182,212,0.12);color:#0284c7;padding:1px 7px;border-radius:20px;font-weight:500;margin-left:4px;">추천</span></div>
+                      <div style="font-size:11px;color:var(--muted);">교육부 공식 데이터 허브 · 학교·학생·교원 통합 데이터셋</div>
                     </div>
-                  </div>
-                  <div onclick="l4SampleCard('participation')" style="cursor:pointer;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='var(--border)'">
-                    <div style="font-size:22px;margin-bottom:6px;">📈</div>
-                    <div style="font-size:12px;font-weight:600;margin-bottom:4px;">학년별 참여율</div>
-                    <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">연도별 변화 추이 분석</div>
-                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(16,185,129,0.1);color:#10b981;border-radius:20px;">선 그래프</span>
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(16,185,129,0.1);color:#10b981;border-radius:20px;">시계열</span>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                  <a href="https://edudata.keris.or.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#8b5cf6'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">🗺️</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">교육데이터맵 (KERIS)</div>
+                      <div style="font-size:11px;color:var(--muted);">학교 정보시스템 연구원 · 교육정보 데이터 지도</div>
                     </div>
-                  </div>
-                  <div onclick="l4SampleCard('regional')" style="cursor:pointer;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='var(--border)'">
-                    <div style="font-size:22px;margin-bottom:6px;">🗺️</div>
-                    <div style="font-size:12px;font-weight:600;margin-bottom:4px;">지역별 차이 분석</div>
-                    <div style="font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px;">교육 기회 격차 탐구</div>
-                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(245,158,11,0.1);color:#f59e0b;border-radius:20px;">가로막대</span>
-                      <span style="font-size:9px;padding:2px 7px;background:rgba(245,158,11,0.1);color:#f59e0b;border-radius:20px;">격차 분석</span>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                  <a href="https://schoolinfo.go.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">🏫</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">학교알리미</div>
+                      <div style="font-size:11px;color:var(--muted);">학교별 급식·성적·진로·예산 공시 데이터</div>
                     </div>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                  <a href="https://kess.kedi.re.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">📊</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">교육통계서비스 (KESS)</div>
+                      <div style="font-size:11px;color:var(--muted);">학생 수·교원·학교 현황 통계 · CSV 다운로드 가능</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                  <a href="https://open.neis.go.kr" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:border-color 0.15s;" onmouseover="this.style.borderColor='#ec4899'" onmouseout="this.style.borderColor='var(--border)'">
+                    <span style="font-size:24px;flex-shrink:0;">📅</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">나이스 개방포털 (NEIS)</div>
+                      <div style="font-size:11px;color:var(--muted);">급식 메뉴·학사일정·행사 정보 API 제공</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:12px;color:var(--muted);flex-shrink:0;">→</span>
+                  </a>
+                </div>
+              </div>
+
+              <!-- ★ 데이터 유형 안내 -->
+              <div style="margin-bottom:20px;">
+                <div style="font-size:13px;font-weight:700;margin-bottom:10px;">📁 데이터 파일 종류 알아보기</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div style="background:rgba(16,185,129,0.07);border:1.5px solid rgba(16,185,129,0.25);border-radius:12px;padding:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                      <span style="font-size:22px;">📄</span>
+                      <div>
+                        <div style="font-size:13px;font-weight:700;color:#059669;">CSV</div>
+                        <div style="font-size:10px;color:var(--muted);">가장 쉬운 형태</div>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);line-height:1.7;">쉼표로 구분된 텍스트 파일. 용량이 작고 어떤 프로그램에서도 열 수 있어요. <b style="color:var(--text);">공공데이터에서 가장 많이 쓰여요!</b></div>
+                  </div>
+                  <div style="background:rgba(108,99,255,0.07);border:1.5px solid rgba(108,99,255,0.25);border-radius:12px;padding:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                      <span style="font-size:22px;">📊</span>
+                      <div>
+                        <div style="font-size:13px;font-weight:700;color:#6C63FF;">XLSX</div>
+                        <div style="font-size:10px;color:var(--muted);">엑셀 파일</div>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);line-height:1.7;">엑셀(스프레드시트) 형식. 여러 시트가 있을 수 있어요. <b style="color:var(--text);">학교알리미, KESS에서 많이 제공해요.</b></div>
+                  </div>
+                  <div style="background:rgba(96,165,250,0.07);border:1.5px solid rgba(96,165,250,0.25);border-radius:12px;padding:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                      <span style="font-size:22px;">🌐</span>
+                      <div>
+                        <div style="font-size:13px;font-weight:700;color:#3b82f6;">API</div>
+                        <div style="font-size:10px;color:var(--muted);">실시간 데이터</div>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);line-height:1.7;">URL로 데이터를 실시간으로 받아오는 방식. NEIS 급식 데이터 등. <b style="color:var(--text);">아래 XML 가져오기로 바로 연결!</b></div>
+                  </div>
+                  <div style="background:rgba(245,158,11,0.07);border:1.5px solid rgba(245,158,11,0.25);border-radius:12px;padding:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                      <span style="font-size:22px;">🖥️</span>
+                      <div>
+                        <div style="font-size:13px;font-weight:700;color:#d97706;">HTML</div>
+                        <div style="font-size:10px;color:var(--muted);">웹 표에서 복사</div>
+                      </div>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);line-height:1.7;">웹사이트의 표를 복사해서 스프레드시트에 붙여넣기. <b style="color:var(--text);">CSV로 저장해서 업로드하세요!</b></div>
                   </div>
                 </div>
               </div>
 
-              <!-- 개념 카드 -->
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
-                <div style="background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:18px;margin-bottom:5px;">🔢</div>
-                  <div style="font-size:11px;font-weight:600;margin-bottom:4px;">수치형 변수</div>
-                  <div style="font-size:10px;color:var(--muted);line-height:1.7;">계산 가능한 숫자<br><span style="color:var(--accent2);">예) 칼로리, 학생 수, 점수</span></div>
-                </div>
-                <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:18px;margin-bottom:5px;">🏷️</div>
-                  <div style="font-size:11px;font-weight:600;margin-bottom:4px;">범주형 변수</div>
-                  <div style="font-size:10px;color:var(--muted);line-height:1.7;">그룹을 나타내는 값<br><span style="color:#10b981;">예) 지역, 성별, 학교유형</span></div>
-                </div>
-                <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:12px;">
-                  <div style="font-size:18px;margin-bottom:5px;">📅</div>
-                  <div style="font-size:11px;font-weight:600;margin-bottom:4px;">시계열 변수</div>
-                  <div style="font-size:10px;color:var(--muted);line-height:1.7;">시간 순서의 데이터<br><span style="color:#f59e0b;">예) 연도별, 월별 변화</span></div>
+              <!-- 업로드 전 점검 -->
+              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+                <div style="font-size:12px;font-weight:600;color:#10b981;margin-bottom:7px;">✅ 업로드 전에 확인하세요</div>
+                <div style="font-size:12px;color:var(--muted);line-height:2.1;">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" style="accent-color:#10b981;"> 데이터가 CSV 또는 XLSX 형식이다</label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" style="accent-color:#10b981;"> 1행이 헤더(항목 이름)으로 되어 있다</label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" style="accent-color:#10b981;"> 빈 셀이 최소화되어 있다</label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" style="accent-color:#10b981;"> 우리 문제와 관련 있는 항목이 포함되어 있다</label>
                 </div>
               </div>
 
-              <!-- 행/열 개념 -->
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-                <div style="font-size:11px;font-weight:600;margin-bottom:8px;">📋 Ch.06 · 데이터 구조 이해 — 구글 스프레드시트 정리법</div>
-                <div style="overflow-x:auto;">
-                  <table style="border-collapse:collapse;width:100%;font-size:10px;">
-                    <thead><tr>
-                      <th style="padding:5px 10px;background:rgba(108,99,255,0.15);border:1px solid var(--border2);color:var(--accent2);">지역 ← 범주형</th>
-                      <th style="padding:5px 10px;background:rgba(16,185,129,0.12);border:1px solid var(--border2);color:#10b981;">학생수 ← 수치형</th>
-                      <th style="padding:5px 10px;background:rgba(245,158,11,0.12);border:1px solid var(--border2);color:#f59e0b;">연도 ← 시계열</th>
-                    </tr></thead>
-                    <tbody>
-                      <tr><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">서울</td><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">277,824</td><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">2023</td></tr>
-                      <tr><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">경기</td><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">384,210</td><td style="padding:4px 10px;border:1px solid var(--border);color:var(--muted);text-align:center;">2023</td></tr>
-                    </tbody>
-                  </table>
+              <!-- XML 데이터 가져오기 -->
+              <div style="background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:6px;">🌐 XML / API 데이터 가져오기 <span style="font-size:10px;font-weight:400;color:var(--muted);">(선택)</span></div>
+                <p style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.7;">공공데이터 API URL을 입력하면 XML 데이터를 자동으로 불러와 표로 변환합니다</p>
+                <div style="display:flex;gap:7px;margin-bottom:8px;">
+                  <input type="text" id="xml-url-input" placeholder="https://... (공공데이터 API URL 입력)" style="flex:1;font-size:11px;padding:7px 10px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;min-width:0;">
+                  <button onclick="fetchXmlData()" style="padding:7px 14px;background:#60a5fa;color:white;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;font-weight:600;">불러오기</button>
                 </div>
-                <div style="font-size:10px;color:var(--muted);margin-top:7px;line-height:1.8;">
-                  ↑ <b style="color:var(--text);">1행 = 헤더(변수명)</b> · 이후 각 행 = 데이터 1건 · 빈칸 없이 정리 후 CSV로 내보내기
-                </div>
-              </div>
-
-              <!-- 데이터 포털 -->
-              <div style="background:rgba(108,99,255,0.06);border:1px solid rgba(108,99,255,0.15);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-                <div style="font-size:11px;font-weight:600;color:var(--accent2);margin-bottom:8px;">📥 Ch.05 · 어디서 데이터를 받나요?</div>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <a href="https://schoolinfo.go.kr" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;">🏫 <b>학교알리미</b> <span style="color:var(--muted);">급식·성적·진로·예산</span></a>
-                  <a href="https://data.go.kr" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;">🗂️ <b>공공데이터포털</b> <span style="color:var(--muted);">교육부 전체 공개 데이터</span></a>
-                  <a href="https://kess.kedi.re.kr" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;">📊 <b>교육통계서비스(KESS)</b> <span style="color:var(--muted);">학생수·교원·학교 통계</span></a>
-                  <a href="https://open.neis.go.kr" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;">📅 <b>NEIS 개방포털</b> <span style="color:var(--muted);">급식·학사·행사 정보</span></a>
-                </div>
-              </div>
-
-              <!-- 중간점검 Ch.07 -->
-              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 14px;">
-                <div style="font-size:11px;font-weight:600;color:#10b981;margin-bottom:7px;">✅ Ch.07 · 중간 점검 — 업로드 전에 확인하세요</div>
-                <div style="font-size:11px;color:var(--muted);line-height:2.1;">
-                  □ 데이터가 CSV 또는 XLSX 형식인가요?<br>
-                  □ 1행이 헤더(변수명)으로 되어 있나요?<br>
-                  □ 빈 셀이 최소화되어 있나요?<br>
-                  □ 내 연구 주제와 관련 있는 컬럼이 포함되어 있나요?
-                </div>
+                <div id="xml-status" style="display:none;font-size:11px;color:var(--muted);margin-bottom:6px;"></div>
+                <div style="font-size:10px;color:var(--muted);line-height:1.7;">💡 CORS 오류 발생 시: 공공데이터포털에서 CSV로 직접 다운로드해 업로드해 주세요</div>
               </div>
             </div>
           </div>
 
-          <!-- ② STEP 2: 데이터 이해하기 -->
-          <div id="l4-view-2" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
+          <!-- ③ STEP 3: 데이터 이해하기 -->
+          <div id="l4-view-3" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:640px;margin:0 auto;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">👀</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 이해하기</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 2</span>
+              <div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 3 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">👀 데이터 이해</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">데이터가 어떻게 구성되어 있는지 파악합니다. 어떤 항목이 있고, 빠진 값이나 이상한 값은 없는지 확인해요.</div>
               </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">데이터가 어떻게 구성되어 있는지 파악하는 단계예요<br>어떤 항목이 있고, 빠진 값은 없는지 확인해봐요</p>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 데이터에 몇 개의 행(관측값)과 열(항목)이 있는지 확인했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 각 열이 어떤 데이터 타입인지(숫자/텍스트/날짜) 확인했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 빈 값(결측치)이 많은 열이 있는지 확인했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 분석에 사용할 핵심 열을 선택했다</label>
+              </div>
 
               <!-- 탐구 질문 카드 -->
               <div style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(96,165,250,0.06));border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
@@ -1433,21 +1561,29 @@ Chart.register(piePercentPlugin);
 
               <!-- 자동 분석 결과 -->
               <div id="l4-preprocess-content"></div>
-              <button class="l4-next-btn" onclick="setL4Step(3)">다음 단계: 📊 데이터 분석하기 →</button>
+              <button class="l4-next-btn" onclick="setL4Step(4)">다음 단계: 📊 데이터 분석하기 →</button>
             </div>
           </div>
 
-          <!-- ③ STEP 3: 시각화 (Ch.09~13) -->
-          <div id="l4-view-3" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
+          <!-- ④ STEP 4: 데이터 분석 -->
+          <div id="l4-view-4" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:720px;margin:0 auto;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">📊</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">데이터 분석하기</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 3</span>
+              <div style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 4 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">📊 데이터 분석</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">데이터를 직접 시각화하고 비교하면서 패턴과 특징을 발견합니다. 그래프를 만들고 "왜?"라는 질문을 계속 던져보세요.</div>
+              </div>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 막대 또는 꺾은선 그래프를 하나 만들었다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 그래프에서 가장 눈에 띄는 부분을 발견했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 두 항목 이상을 비교하는 분석을 해봤다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> AI에게 분석 결과를 설명하고 피드백을 받았다</label>
               </div>
 
               <!-- 학생 격려 배너 -->
-              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(108,99,255,0.07));border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px 18px;margin:10px 0 14px;display:flex;align-items:flex-start;gap:12px;">
+              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(108,99,255,0.07));border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:14px 18px;margin:0 0 14px;display:flex;align-items:flex-start;gap:12px;">
                 <span style="font-size:24px;flex-shrink:0;">💪</span>
                 <div>
                   <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">데이터 분석은 어렵지 않습니다.</div>
@@ -1476,8 +1612,13 @@ Chart.register(piePercentPlugin);
 
               <!-- ── 시각화 탭 ── -->
               <div id="v3-tab-viz">
-                <!-- 차트 선택 가이드 (5종) -->
-                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;">
+                <!-- 차트 선택 가이드 (접기 가능) -->
+                <details open style="margin-bottom:12px;">
+                  <summary style="cursor:pointer;font-size:11px;color:var(--muted);padding:4px 2px;user-select:none;list-style:none;display:flex;align-items:center;gap:5px;">
+                    <span>📊 그래프 종류 선택</span>
+                    <span style="font-size:9px;opacity:0.6;">(클릭해서 접기)</span>
+                  </summary>
+                  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px;">
                   <div onclick="setV3Type('bar')" style="cursor:pointer;padding:8px 5px;background:rgba(108,99,255,0.08);border:2px solid rgba(108,99,255,0.25);border-radius:10px;text-align:center;" id="viz-guide-bar">
                     <div style="font-size:18px;margin-bottom:3px;">📊</div>
                     <div style="font-size:10px;font-weight:600;margin-bottom:2px;">막대 Ch.10</div>
@@ -1503,24 +1644,41 @@ Chart.register(piePercentPlugin);
                     <div style="font-size:10px;font-weight:600;margin-bottom:2px;">산점도 Ch.12</div>
                     <div style="font-size:9px;color:var(--muted);">두변수관계</div>
                   </div>
-                </div>
+                  </div>
+                </details>
 
                 <!-- 축 선택 + 정렬 + 차트 종류 -->
                 <div style="padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;">
-                  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px;">
+                  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start;margin-bottom:10px;">
                     <div>
-                      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">X축 (범주)</div>
-                      <select id="v3-x-col" onchange="renderV3Chart()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:155px;"></select>
+                      <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:1px;">X축 <span style="color:#60a5fa;">비교 기준</span></div>
+                      <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">비교할 대상을 골라요 (지역·학교·학년)</div>
+                      <select id="v3-x-col" onchange="renderV3Chart();updateAxisChips()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:155px;display:block;"></select>
+                      <div id="v3-x-recs" style="margin-top:4px;"></div>
                     </div>
                     <div id="v3-y-wrap">
                       <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">
-                        Y축 (수치)
-                        <span style="font-size:9px;color:var(--accent2);margin-left:3px;">← 숫자 데이터만</span>
+                        Y축 (측정값)
+                        <span id="v3-y-numeric-note" style="font-size:9px;color:var(--accent2);margin-left:3px;">← 숫자 데이터만</span>
                       </div>
                       <select id="v3-y-col" onchange="renderV3Chart();checkYAxisWarning(this.value,'v3-y-warn')" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:155px;"></select>
                       <div id="v3-y-warn" style="display:none;margin-top:4px;padding:5px 8px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:7px;font-size:9px;color:#f59e0b;line-height:1.5;max-width:155px;"></div>
                       <div style="margin-top:4px;font-size:9px;color:var(--muted);line-height:1.5;max-width:155px;">
-                        💡 학생 수, 점수, 비율 같은<br>숫자를 골라야 의미 있어요
+                        💡 Y축 값은 선택한 집계 방식에 따라<br>계산됩니다
+                      </div>
+                    </div>
+                    <div>
+                      <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:1px;">집계 방식 <span style="font-weight:400;font-size:9px;color:var(--muted);">(Y값 계산법)</span></div>
+                      <div style="font-size:9px;color:var(--muted);margin-bottom:4px;">Y값을 어떻게 계산할지 골라요</div>
+                      <select id="v3-agg-method" onchange="onAggChange()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:2px solid var(--accent);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;max-width:155px;display:block;">
+                        <option value="mean">📊 평균 (mean)</option>
+                        <option value="count">🔢 개수 (count)</option>
+                        <option value="sum">➕ 합계 (sum)</option>
+                        <option value="max">⬆️ 최댓값 (max)</option>
+                        <option value="min">⬇️ 최솟값 (min)</option>
+                      </select>
+                      <div style="margin-top:4px;font-size:9px;color:var(--muted);line-height:1.5;max-width:155px;">
+                        💡 개수는 문자형에도 사용 가능
                       </div>
                     </div>
                     <div>
@@ -1530,11 +1688,12 @@ Chart.register(piePercentPlugin);
                     <div>
                       <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">정렬</div>
                       <select id="v3-sort" onchange="renderV3Chart()" style="font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;">
-                        <option value="freq">빈도순</option>
-                        <option value="desc">값 내림차순</option>
-                        <option value="asc">값 오름차순</option>
+                        <option value="original">원본 순서</option>
+                        <option value="desc">값 내림차순 ↓</option>
+                        <option value="asc">값 오름차순 ↑</option>
                         <option value="alpha">가나다순</option>
                       </select>
+                      <div id="v3-sort-hint" style="margin-top:4px;font-size:9px;color:var(--muted);line-height:1.5;max-width:155px;">엑셀 데이터 입력 순서 그대로</div>
                     </div>
                   </div>
                   <div style="display:flex;gap:5px;flex-wrap:wrap;">
@@ -1555,7 +1714,12 @@ Chart.register(piePercentPlugin);
                   </div>
                 </details>
 
-                <div id="v3-chart-hint" style="font-size:11px;color:var(--muted);margin-bottom:8px;"></div>
+                <div id="v3-chart-hint" style="font-size:11px;color:var(--muted);margin-bottom:4px;"></div>
+                <div id="v3-chart-status" style="display:none;font-size:10px;color:var(--muted);background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.18);border-radius:7px;padding:5px 10px;margin-bottom:8px;"></div>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                  <input id="v3-search" type="text" placeholder="🔍 항목 검색 (예: 서울역, 서울, 초등학교…)" oninput="renderV3Chart()" style="flex:1;font-size:12px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'Noto Sans KR',sans-serif;min-width:0;outline:none;" />
+                  <button onclick="document.getElementById('v3-search').value='';renderV3Chart();" style="font-size:11px;padding:5px 10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);border-radius:8px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">초기화</button>
+                </div>
                 <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;min-height:300px;">
                   <canvas id="l4-chart-canvas-v3"></canvas>
                 </div>
@@ -1591,17 +1755,17 @@ Chart.register(piePercentPlugin);
                 <div id="v3-desc-stats"></div>
               </div>
 
-              <button class="l4-next-btn" onclick="setL4Step(4)" style="margin-top:16px;">다음 단계: 💡 인사이트 찾기 →</button>
+              <button class="l4-next-btn" onclick="setL4Step(5)" style="margin-top:16px;">다음 단계: 💡 인사이트 도출 →</button>
             </div>
           </div>
 
-          <!-- ④ STEP 4: 인사이트 찾기 -->
-          <div id="l4-view-4" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+          <!-- ⑤ STEP 5: 인사이트 도출 -->
+          <div id="l4-view-5" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
             <div style="padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                 <span style="font-size:18px;">💡</span>
-                <div style="font-size:14px;font-weight:700;">인사이트 찾기</div>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 4</span>
+                <div style="font-size:14px;font-weight:700;">인사이트 도출</div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.4;margin-left:4px;">STEP 5 · 데이터 분석 결과에서 의미 있는 발견을 언어로 정리합니다</div>
               </div>
               <!-- 탐구 질문 + 빠른 실행 -->
               <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
@@ -1626,101 +1790,198 @@ Chart.register(piePercentPlugin);
                 <button onclick="l4QuickSend('이 데이터의 핵심 인사이트를 3가지로 요약해줘. 각각 한 문장으로 쓰고 왜 중요한지도 써줘.')" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 인사이트 찾기</button>
                 <button onclick="l4QuickSend('이 데이터가 보여주는 교육 문제를 해결할 AI 서비스 아이디어를 3가지 제안해줘. 서비스명, 대상, 주요 기능 포함.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">서비스 아이디어</button>
                 <button onclick="l4QuickSend('이 데이터 분석 결과를 발표자료에 쓸 수 있는 문장으로 작성해줘. ① 문제 제기 ② 데이터 근거 ③ 결론 순서로.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">발표자료 생성</button>
-                <button onclick="setL4Step(5)" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚀 서비스 아이디어 →</button>
+                <button onclick="setL4Step(6)" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚀 AI 아이디어 →</button>
               </div>
             </div>
           </div>
 
-          <!-- ⑤ STEP 5: 서비스 아이디어 연결 -->
-          <div id="l4-view-5" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
-            <div style="max-width:600px;margin:0 auto;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">🚀</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">서비스 아이디어 연결</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 5</span>
-              </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">데이터에서 발견한 문제를 해결할 AI 서비스를 구상해볼게요</p>
+          <!-- ⑥ STEP 6: AI 활용 아이디어 정하기 -->
+          <div id="l4-view-6" style="display:none;flex:1;overflow-y:auto;padding:18px 22px;">
+            <div style="max-width:620px;margin:0 auto;">
 
-              <!-- 탐구 질문 카드 -->
-              <div style="background:linear-gradient(135deg,rgba(245,158,11,0.07),rgba(96,165,250,0.07));border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:12px 16px;margin-bottom:16px;">
-                <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:8px;">🧐 이 단계에서 생각해볼 질문</div>
-                <div style="display:flex;flex-direction:column;gap:6px;">
-                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:#f59e0b;font-weight:600;flex-shrink:0;">Q1</span><span>데이터가 보여준 <b>문제</b>를 해결하려면 어떤 서비스가 필요할까요?</span></div>
-                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:#f59e0b;font-weight:600;flex-shrink:0;">Q2</span><span>누가, 언제, 어떻게 사용할까요? <b>사용자</b>를 구체적으로 그려보세요.</span></div>
-                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:#f59e0b;font-weight:600;flex-shrink:0;">Q3</span><span>이 서비스가 실제로 만들어지면 <b>어떤 변화</b>가 생길까요?</span></div>
+              <div style="background:linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:16px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 6 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🚀 AI 활용 아이디어</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">인사이트를 바탕으로 AI 기술을 활용한 서비스 아이디어를 구체화합니다. 어떤 AI를 어떻게 쓸지 정해봐요.</div>
+              </div>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 어떤 문제를 AI로 해결할지 명확히 정했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 사용할 AI 유형(분류/예측/추천/생성 등)을 선택했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> AI 서비스의 입력·출력·사용자를 설명할 수 있다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> AI를 이용해 피드백을 받고 아이디어를 다듬었다</label>
+              </div>
+
+              <!-- ① AI 유형 선택 -->
+              <div class="step-card">
+                <div class="step-card-title">① 어떤 AI를 활용할까요?</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;" id="ai-type-grid">
+                  <div class="ai-type-card" onclick="selectAIType(this,'예측')" style="background:rgba(96,165,250,0.07);border:2px solid rgba(96,165,250,0.2);">
+                    <div style="font-size:18px;margin-bottom:4px;">📈</div>
+                    <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-bottom:2px;">예측</div>
+                    <div style="font-size:9px;color:var(--muted);line-height:1.4;">앞으로 어떻게<br>될지 예상해요</div>
+                  </div>
+                  <div class="ai-type-card" onclick="selectAIType(this,'분류')" style="background:rgba(16,185,129,0.07);border:2px solid rgba(16,185,129,0.2);">
+                    <div style="font-size:18px;margin-bottom:4px;">🗂️</div>
+                    <div style="font-size:11px;font-weight:700;color:#10b981;margin-bottom:2px;">분류</div>
+                    <div style="font-size:9px;color:var(--muted);line-height:1.4;">종류를 자동으로<br>나눠요</div>
+                  </div>
+                  <div class="ai-type-card" onclick="selectAIType(this,'추천')" style="background:rgba(245,158,11,0.07);border:2px solid rgba(245,158,11,0.2);">
+                    <div style="font-size:18px;margin-bottom:4px;">🎯</div>
+                    <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:2px;">추천</div>
+                    <div style="font-size:9px;color:var(--muted);line-height:1.4;">맞춤 정보를<br>제안해요</div>
+                  </div>
+                  <div class="ai-type-card" onclick="selectAIType(this,'생성형 AI')" style="background:rgba(108,99,255,0.07);border:2px solid rgba(108,99,255,0.2);">
+                    <div style="font-size:18px;margin-bottom:4px;">✨</div>
+                    <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:2px;">생성형 AI</div>
+                    <div style="font-size:9px;color:var(--muted);line-height:1.4;">글·이미지를<br>만들어요</div>
+                  </div>
+                  <div class="ai-type-card" onclick="selectAIType(this,'챗봇')" style="background:rgba(236,72,153,0.07);border:2px solid rgba(236,72,153,0.2);">
+                    <div style="font-size:18px;margin-bottom:4px;">💬</div>
+                    <div style="font-size:11px;font-weight:700;color:#ec4899;margin-bottom:2px;">챗봇</div>
+                    <div style="font-size:9px;color:var(--muted);line-height:1.4;">대화로 질문에<br>답해줘요</div>
+                  </div>
+                  <div class="ai-type-card" onclick="selectAIType(this,'이상탐지')" style="background:rgba(248,113,113,0.07);border:2px solid rgba(248,113,113,0.2);">
+                    <div style="font-size:18px;margin-bottom:4px;">🔍</div>
+                    <div style="font-size:11px;font-weight:700;color:#f87171;margin-bottom:2px;">이상탐지</div>
+                    <div style="font-size:9px;color:var(--muted);line-height:1.4;">이상 패턴을<br>찾아내요</div>
+                  </div>
                 </div>
-                <div style="margin-top:10px;padding-top:8px;border-top:1px dashed rgba(245,158,11,0.25);">
-                  <button onclick="l4AskAndGo('우리가 발견한 교육 문제를 해결하는 AI 서비스 아이디어를 3가지 제안해줘. 각각 서비스명, 대상, 기능을 포함해서.')" style="font-size:11px;padding:5px 12px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:20px;color:#f59e0b;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💡 AI가 서비스 아이디어 제안해줘</button>
+                <div id="ai-type-selected" style="display:none;padding:8px 12px;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.25);border-radius:8px;font-size:11px;color:var(--accent2);"></div>
+                <button onclick="l4AskAndGo('우리 팀 주제에 어울리는 AI 활용 방식을 추천해줘. 예측/분류/추천/생성형AI/챗봇/이상탐지 중 어떤 게 맞을지 이유와 함께 알려줘.')" style="margin-top:10px;font-size:11px;padding:5px 12px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:20px;color:#f59e0b;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💡 우리 팀에 맞는 AI 방식 추천받기</button>
+              </div>
+
+              <!-- ② AI 코치 도움 받기 -->
+              <div class="step-card" style="border:2px solid rgba(108,99,255,0.22);background:linear-gradient(135deg,rgba(108,99,255,0.04),rgba(118,75,162,0.03));">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div class="step-card-title" style="margin-bottom:0;">AI 코치에게 도움받기</div>
+                  <span style="font-size:10px;background:var(--accent2);color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI</span>
+                </div>
+                <p class="step-card-hint">활동지의 <b>AI 아이디어</b> 칸이 막히면 여기서 도움받으세요.<br>우리 팀 AI 서비스 아이디어를 한 줄로 입력하면 더 정확한 피드백을 받을 수 있어요.</p>
+                <input type="text" id="coach-ctx-6"
+                  placeholder="우리 팀 AI 서비스 아이디어 (예: 학교 급식 잔반 예측 AI)"
+                  style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;background:var(--bg);color:var(--text);box-sizing:border-box;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif;">
+                <div class="coach-grid">
+                  <button onclick="coachAsk(6,'우리 팀 AI 서비스 아이디어: {ctx}. 이 아이디어의 강점, 보완할 점, 실현 가능성을 피드백해줘.')" class="coach-btn">🤖 아이디어 피드백 받기</button>
+                  <button onclick="coachAsk(6,'우리 팀 탐구 주제: {ctx}. 데이터로 해결할 수 있는 AI 서비스 아이디어를 3가지 제안해줘. 서비스명, 대상, 핵심 기능 포함.')" class="coach-btn">💡 AI 아이디어 3가지 제안</button>
+                  <button onclick="coachAsk(6,'우리 팀 AI 서비스: {ctx}. 이 서비스에 가장 잘 맞는 AI 유형(예측/분류/추천/생성형/챗봇/이상탐지)을 추천하고 이유를 설명해줘.')" class="coach-btn">🎯 AI 유형 추천받기</button>
+                  <button onclick="coachAsk(6,'우리 팀 AI 서비스: {ctx}. 사용자 → 입력 데이터 → AI 처리 → 출력 결과 구조로 서비스 흐름을 설명해줘.')" class="coach-btn">🔧 서비스 구조 설명하기</button>
                 </div>
               </div>
-              <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
-                  <div style="font-size:11px;color:var(--accent2);margin-bottom:5px;">📥 입력 데이터 — AI가 무엇을 받나요?</div>
-                  <textarea id="l4-svc-input" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;min-height:48px;line-height:1.7;" placeholder="예) 학교 급식 영양정보 CSV, 학생 건강 설문 데이터" oninput="autoResize(this)"></textarea>
-                </div>
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
-                  <div style="font-size:11px;color:#f59e0b;margin-bottom:5px;">🔍 AI 처리 — AI가 무엇을 하나요?</div>
-                  <textarea id="l4-svc-process" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;min-height:48px;line-height:1.7;" placeholder="예) 칼로리-나트륨 상관관계 분석 → 개인 맞춤 식단 패턴 추천" oninput="autoResize(this)"></textarea>
-                </div>
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
-                  <div style="font-size:11px;color:#10b981;margin-bottom:5px;">📤 출력 결과 — 무엇을 주나요?</div>
-                  <textarea id="l4-svc-output" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;min-height:48px;line-height:1.7;" placeholder="예) 오늘의 건강 점수 + 내일 추천 메뉴" oninput="autoResize(this)"></textarea>
-                </div>
-                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
-                  <div style="font-size:11px;color:#60a5fa;margin-bottom:5px;">👤 사용자 — 누가 쓰나요?</div>
-                  <textarea id="l4-svc-user" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:none;min-height:36px;line-height:1.7;" placeholder="예) 건강을 신경 쓰는 고등학생" oninput="autoResize(this)"></textarea>
-                </div>
-              </div>
-              <button onclick="l4ValidateService()" style="width:100%;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:10px;">🤖 AI에게 우리 아이디어 피드백 받기</button>
-              <button class="l4-next-btn" onclick="setL4Step(6)">다음 단계: 📝 자기 성찰 기록 →</button>
+              <button class="l4-next-btn" onclick="setL4Step(7)">다음 단계: 🛠 서비스 기획 →</button>
             </div>
           </div>
 
-          <!-- ⑥ STEP 6: 자기 성찰 기록 -->
-          <div id="l4-view-6" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
-            <div style="max-width:560px;margin:0 auto;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                <span style="font-size:22px;">📝</span>
-                <h3 style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;">자기 성찰 기록</h3>
-                <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:20px;">STEP 6</span>
+          <!-- ⑦ STEP 7: 서비스 기획 -->
+          <div id="l4-view-7" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
+            <div style="max-width:640px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#ec4899 0%,#be185d 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 7 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🛠 서비스 기획</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">AI 아이디어를 실제 서비스로 구체화합니다. 서비스 구조, 주요 기능, 사용 흐름을 설계해봐요.</div>
               </div>
-              <p style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.7;">오늘 우리 팀이 발견한 것들을 정리하고 솔직하게 돌아볼게요<br>이 기록은 수업 평가에 반영됩니다</p>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 서비스 이름을 정했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 누가 어떻게 사용하는지 사용 흐름을 그렸다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 주요 기능 3가지 이상을 정했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 서비스가 문제를 어떻게 해결하는지 설명할 수 있다</label>
+              </div>
 
-              <!-- 탐구 질문 카드 -->
-              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(96,165,250,0.07));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
-                <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:10px;">🧐 오늘 수업을 돌아보며</div>
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q1</span><span>오늘 우리 팀이 데이터에서 찾은 <b>핵심 발견</b>은 무엇인가요?</span></div>
-                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q2</span><span>오늘 <b>부족했던 점</b>이나 더 알고 싶은 것은 무엇인가요?</span></div>
-                  <div style="display:flex;gap:8px;font-size:12px;"><span style="color:var(--accent2);font-weight:600;flex-shrink:0;">Q3</span><span>다음 시간에 <b>무엇을 보완</b>해야 할까요?</span></div>
+              <!-- AI 코치 도움 받기 -->
+              <div class="step-card" style="border:2px solid rgba(236,72,153,0.22);background:linear-gradient(135deg,rgba(236,72,153,0.04),rgba(168,85,247,0.03));">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div class="step-card-title" style="margin-bottom:0;">AI 코치에게 도움받기</div>
+                  <span style="font-size:10px;background:#be185d;color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI</span>
+                </div>
+                <p class="step-card-hint">활동지의 <b>서비스 기획</b> 칸이 막히면 여기서 도움받으세요.<br>서비스 이름이나 핵심 아이디어를 입력하면 더 구체적인 도움을 받을 수 있어요.</p>
+                <input type="text" id="coach-ctx-7"
+                  placeholder="우리 팀 서비스 이름 또는 핵심 아이디어 (예: 급식 잔반 예측 앱)"
+                  style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;background:var(--bg);color:var(--text);box-sizing:border-box;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif;">
+                <div class="coach-grid">
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 이 서비스의 주요 기능 5가지를 구체적으로 제안해줘. 활동지에 쓸 수 있는 형식으로.')" class="coach-btn">🔧 기능 목록 제안받기</button>
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 사용자가 이 서비스를 사용하는 흐름을 단계별로 설명해줘. 활동지 시나리오 작성용으로.')" class="coach-btn">👣 사용 흐름 만들기</button>
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 이 서비스의 기대 효과를 수치나 구체적 사례를 들어 설명해줘.')" class="coach-btn">📈 기대 효과 작성하기</button>
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 이 서비스 기획의 강점과 보완할 점을 피드백해줘. 실현 가능성도 평가해줘.')" class="coach-btn">💬 기획 피드백 받기</button>
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 이 서비스를 PPT 발표용 슬라이드 구조로 정리해줘. 각 슬라이드 제목과 핵심 내용 포함.')" class="coach-btn coach-btn-wide">🖥️ PPT 발표 구조 만들기</button>
                 </div>
               </div>
 
-              <!-- 오늘의 성과 체크 -->
-              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;">
+              <!-- 다음 단계 -->
+              <button class="l4-next-btn" onclick="setL4Step(8)">다음 단계: 📋 기획서 작성 →</button>
+            </div>
+          </div>
+
+          <!-- ⑧ STEP 8: 기획서 작성 -->
+          <div id="l4-view-8" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
+            <div style="max-width:640px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
+                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 8 · 이 단계에서 하는 일</div>
+                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">📋 기획서 작성</div>
+                <div style="font-size:13px;opacity:.9;line-height:1.5;">지금까지 분석하고 기획한 내용을 하나의 기획서로 완성합니다. AI의 도움을 받아 완성도 높은 기획서를 만들어봐요.</div>
+              </div>
+              <!-- 학생 체크리스트 -->
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+                <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 모든 항목을 채워 기획서를 작성했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> AI로 기획서 초안을 자동 생성했다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;margin-bottom:6px;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 기획서를 읽어보고 수정할 부분을 찾았다</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 팀원 모두가 기획서 내용을 발표할 수 있다</label>
+              </div>
+
+              <!-- 안내 박스 -->
+              <div style="background:linear-gradient(135deg,rgba(108,99,255,0.07),rgba(16,185,129,0.05));border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:12px 16px;margin-bottom:16px;">
+                <div style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:7px;">📋 기획서 포함 항목</div>
+                <div style="font-size:11px;color:var(--muted);line-height:2;">
+                  ① 문제 정의 &nbsp;② 데이터 분석 결과 &nbsp;③ AI 활용 아이디어<br>④ 서비스 구조 &nbsp;⑤ 기대 효과
+                </div>
+              </div>
+
+              <!-- AI 코치: 기획서 도움 + 자동 생성 통합 카드 -->
+              <div class="step-card" style="border:2px solid rgba(29,78,216,0.22);background:linear-gradient(135deg,rgba(29,78,216,0.04),rgba(108,99,255,0.03));">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div class="step-card-title" style="margin-bottom:0;">AI 코치에게 도움받기</div>
+                  <span style="font-size:10px;background:#1d4ed8;color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI</span>
+                </div>
+                <p class="step-card-hint">활동지의 <b>기획서</b> 칸이 막히면 여기서 도움받거나, 우리 팀 내용을 요약해서 입력하면 AI가 기획서 초안을 자동으로 생성해줘요.</p>
+                <input type="text" id="coach-ctx-8"
+                  placeholder="우리 팀 프로젝트 핵심 요약 (예: 급식 잔반 예측 AI로 교육청 예산 절감)"
+                  style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;background:var(--bg);color:var(--text);box-sizing:border-box;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                  <button onclick="generatePlan()" style="flex:1;min-width:150px;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 기획서 자동 생성</button>
+                  <button onclick="coachAsk(8,'우리 팀 프로젝트: {ctx}. 이 내용으로 AI 서비스 기획서를 PPT 슬라이드용으로 작성해줘. ① 문제 정의 ② 데이터 분석 결과 ③ AI 활용 아이디어 ④ 서비스 구조 ⑤ 기대 효과 형식으로.')" style="flex:1;min-width:150px;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI에게 기획서 작성 요청</button>
+                </div>
+                <div class="coach-grid" style="margin-bottom:0;">
+                  <button onclick="coachAsk(8,'우리 팀 프로젝트: {ctx}. 이 내용을 발표할 때 쓸 PPT 슬라이드 구조를 10장 이내로 만들어줘. 각 슬라이드 제목과 핵심 내용 포함.')" class="coach-btn">🖥️ PPT 구조 만들기</button>
+                  <button onclick="coachAsk(8,'우리 팀 프로젝트: {ctx}. 발표 대본을 3분 분량으로 만들어줘.')" class="coach-btn">🎤 발표 대본 만들기</button>
+                  <button onclick="coachAsk(8,'우리 팀 프로젝트: {ctx}. 기획서에서 보완해야 할 부분을 피드백해줘. 논리 흐름, 데이터 근거, 실현 가능성 중심으로.')" class="coach-btn">🔍 기획서 피드백 받기</button>
+                  <button onclick="coachAsk(8,'다음 기획서 문장을 더 설득력 있고 명확하게 다듬어줘 (PPT/보고서용): {ctx}')" class="coach-btn">✍️ 기획서 문장 다듬기</button>
+                </div>
+                <div id="plan-generated" style="display:none;margin-top:12px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--text);"></div>
+                <div id="plan-copy-btn-wrap" style="display:none;margin-top:8px;">
+                  <button onclick="copyPlan()" style="font-size:11px;padding:5px 14px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 기획서 텍스트 복사</button>
+                </div>
+              </div>
+
+              <!-- 완료 체크리스트 -->
+              <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 16px;">
                 <div style="font-size:11px;font-weight:600;color:#10b981;margin-bottom:8px;">✅ 오늘 완료한 단계를 체크하세요</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-1"> 🔍 데이터 찾기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-2"> 👀 데이터 이해하기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-3"> 📊 데이터 분석하기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-4"> 💡 인사이트 찾기</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-5"> 🚀 서비스 아이디어</label>
-                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-6"> 📝 자기 성찰 기록</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-1"> 🎯 문제 정의</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-2"> 🔍 데이터 찾기</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-3"> 👀 데이터 이해</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-4"> 📊 데이터 분석</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-5"> 💡 인사이트 도출</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-6"> 🚀 AI 아이디어</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-7"> 🛠 서비스 기획</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;"><input type="checkbox" id="l4-chk-8"> 📋 기획서 작성</label>
                 </div>
               </div>
-
-              <!-- AI 기록 구분 안내 -->
-              <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.8;">
-                📋 <b style="color:var(--text);">AI가 쓴 것 vs 내가 직접 쓴 것</b>을 구분해서 기록해두세요<br>
-                💡 AI 대화 중 <b style="color:var(--text);">내 생각이 바뀌거나 새로운 것을 발견한 순간</b>을 기억해두면 좋아요
-              </div>
-
-              <button onclick="setLesson(7, document.querySelector('.lesson-btn:nth-child(9)'))" style="display:block;width:100%;padding:12px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Sans KR',sans-serif;margin-bottom:10px;">
-                📝 자기 성찰 기록 탭으로 이동 →
-              </button>
-              <button onclick="l4AskAndGo('오늘 우리 팀의 데이터 분석 과정을 짧게 정리해줘. 우리가 발견한 것과 앞으로 보완할 점을 포함해서.')" style="display:block;width:100%;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
-                💬 AI와 오늘 수업 회고 정리하기
-              </button>
             </div>
           </div>
 
@@ -2081,7 +2342,7 @@ Chart.register(piePercentPlugin);
             <button id="improve-btn" onclick="improvePrompt()" style="font-size:12px;padding:5px 12px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.35);border-radius:8px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 프롬프트 개선</button>
             <label style="font-size:12px;padding:5px 12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;color:#10b981;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
               📁 파일 업로드
-              <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt" multiple style="display:none" onchange="handleFileUpload(this)">
+              <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt,.pdf" multiple style="display:none" onchange="handleFileUpload(this)">
             </label>
           </div>
           <div style="position:relative;" id="model-dropdown-wrap">
@@ -2172,15 +2433,74 @@ Chart.register(piePercentPlugin);
 
 <!-- ── 데이터 전체 보기 모달 ── -->
 <div id="l4-preview-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:24px;width:min(900px,97vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column;gap:12px;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:24px;width:min(960px,97vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column;gap:10px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
       <div style="font-size:15px;font-weight:600;font-family:'Space Grotesk',sans-serif;">🔍 데이터 전체 보기</div>
-      <button onclick="document.getElementById('l4-preview-modal').style.display='none'" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">✕</button>
+      <button onclick="closePreviewModal()" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">✕</button>
     </div>
-    <div id="l4-preview-info" style="font-size:12px;color:var(--muted);flex-shrink:0;"></div>
-    <div style="overflow:auto;flex:1;">
-      <table id="l4-preview-table-full" style="font-size:12px;border-collapse:collapse;white-space:nowrap;"></table>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:8px;">
+      <div id="l4-preview-info" style="font-size:12px;color:var(--muted);"></div>
+      <button id="l4-filter-reset-btn" onclick="resetPreviewFilters()" style="display:none;font-size:11px;padding:4px 10px;background:transparent;border:1px solid var(--border2);border-radius:6px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✕ 필터 초기화</button>
     </div>
+    <div style="overflow:auto;flex:1;" id="l4-preview-scroll">
+      <table id="l4-preview-table-full" style="font-size:12px;border-collapse:collapse;white-space:nowrap;min-width:100%;"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ── 도움말 모달 ── -->
+<div id="help-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:24px;width:min(680px,95vw);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="font-size:15px;font-weight:600;font-family:'Space Grotesk',sans-serif;">❓ 도움말</div>
+      <button onclick="document.getElementById('help-modal').style.display='none'" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">✕</button>
+    </div>
+    <!-- 데이터 분석 방법 -->
+    <div style="background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.25);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:12px;font-weight:700;color:#60a5fa;margin-bottom:10px;">📊 데이터 분석 방법</div>
+      <div style="font-size:11px;color:var(--muted);line-height:2;">
+        <b style="color:var(--text);">1. 비교하기</b> — 가장 높은 값과 낮은 값을 찾아보세요<br>
+        <b style="color:var(--text);">2. 변화 보기</b> — 시간에 따라 증가/감소하는 경향을 확인하세요<br>
+        <b style="color:var(--text);">3. 패턴 찾기</b> — 반복되는 특징이나 규칙이 있는지 살펴보세요<br>
+        <b style="color:var(--text);">4. 차이 찾기</b> — 지역별·집단별로 큰 차이가 있는지 확인하세요<br>
+        <b style="color:var(--text);">5. 이상값 탐지</b> — 튀는 값(이상치)이 있으면 이유를 생각해보세요
+      </div>
+    </div>
+    <!-- 그래프 설명 -->
+    <div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:10px;">📈 그래프 읽는 방법</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:11px;color:var(--muted);line-height:1.8;">
+        <div><b style="color:#60a5fa;">X축 (가로)</b><br>비교할 대상<br>예) 지역명, 학교명, 연도</div>
+        <div><b style="color:#10b981;">Y축 (세로)</b><br>비교할 숫자 값<br>예) 학생 수, 점수, 비율(%)</div>
+        <div><b style="color:var(--text);">막대 그래프</b><br>여러 항목을 한눈에 비교<br>→ 지역 간 차이 파악</div>
+        <div><b style="color:var(--text);">선 그래프</b><br>시간에 따른 변화 추이<br>→ 연도별 증감 확인</div>
+        <div><b style="color:var(--text);">원 그래프</b><br>전체에서 각 부분의 비율<br>→ 구성 비율 한눈에 파악</div>
+        <div><b style="color:var(--text);">산점도</b><br>두 수치 간 관계 확인<br>→ 상관관계 탐색</div>
+      </div>
+    </div>
+    <!-- AI 아이디어 작성 -->
+    <div style="background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.25);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:10px;">🤖 AI 아이디어 작성 방법</div>
+      <div style="font-size:11px;color:var(--muted);line-height:2;">
+        <b style="color:var(--text);">1. 문제 찾기</b> — 데이터에서 어떤 문제가 보이나요?<br>
+        <b style="color:var(--text);">2. 해결 대상</b> — 누가 이 문제를 겪고 있나요?<br>
+        <b style="color:var(--text);">3. AI 역할</b> — 예측·분류·추천·챗봇 중 무엇이 맞나요?<br>
+        <b style="color:var(--text);">4. 데이터 연결</b> — 어떤 데이터를 AI에 입력하나요?<br>
+        <b style="color:var(--text);">5. 기대 효과</b> — 이 AI 서비스가 생기면 어떤 점이 좋아지나요?
+      </div>
+    </div>
+    <!-- 기획서 작성 -->
+    <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:12px;font-weight:700;color:#10b981;margin-bottom:10px;">📝 기획서 작성 방법</div>
+      <div style="font-size:11px;color:var(--muted);line-height:2;">
+        <b style="color:var(--text);">① 문제 정의</b> — 우리가 해결하려는 사회 문제는 무엇인가?<br>
+        <b style="color:var(--text);">② 데이터 근거</b> — 데이터 분석으로 발견한 핵심 사실은?<br>
+        <b style="color:var(--text);">③ AI 아이디어</b> — 어떤 AI 기술로 문제를 해결할 것인가?<br>
+        <b style="color:var(--text);">④ 서비스 구조</b> — 사용자 → 입력 → AI 처리 → 출력 흐름<br>
+        <b style="color:var(--text);">⑤ 기대 효과</b> — 이 서비스가 사회에 미칠 긍정적 변화
+      </div>
+    </div>
+    <button onclick="document.getElementById('help-modal').style.display='none'" style="align-self:center;padding:8px 24px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-weight:500;">확인</button>
   </div>
 </div>
 
@@ -2451,6 +2771,16 @@ async function doLogin() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('team-chip').textContent = currentTeam;
   document.getElementById('app').classList.add('visible');
+  // 세션 저장 (새로고침 후 자동 복원)
+  try { localStorage.setItem('hyfl_session', JSON.stringify({ team: currentTeam, ts: Date.now() })); } catch(e) {}
+
+  // 이전 팀의 메모리 캐시를 초기화 (다른 팀으로 재로그인 시 데이터 혼재 방지)
+  Object.keys(lessonMsgStore).forEach(k => delete lessonMsgStore[k]);
+  messages = [];
+  histories = [];
+  completedProjectStepNums.clear();
+  completedProjectStepNums.add(1);
+
   loadHistory();
   updateProjFlow(currentL4Step || 1);  // 사이드바 7단계 초기 렌더
   setLesson(0, document.getElementById('btn-free'));  // 첫 화면: 자유 대화
@@ -2487,6 +2817,7 @@ async function doRegister() {
 }
 
 function doLogout() {
+  try { localStorage.removeItem('hyfl_session'); } catch(e) {}
   currentTeam = null; messages = []; histories = [];
   document.getElementById('app').classList.remove('visible');
   document.getElementById('login-screen').style.display = 'flex';
@@ -2643,8 +2974,11 @@ function saveLessonState(idx) {
     const msgDiv = document.getElementById(panelKey + '-messages');
     lessonMsgStore[idx] = { html: msgDiv?.innerHTML || '', msgs: [...(specialChatMsgs[panelKey] || [])] };
   } else if (idx === 0 || idx === 1) {
-    lessonMsgStore[idx] = { msgs: [...messages] };
-    try { sessionStorage.setItem(`lmsgs_${currentTeam}_${idx}`, JSON.stringify(messages)); } catch(e) {}
+    // 빈 메시지 배열로 이전에 저장된 대화를 덮어쓰지 않도록 보호
+    if (messages.length > 0) {
+      lessonMsgStore[idx] = { msgs: [...messages] };
+      try { localStorage.setItem(`lmsgs_${currentTeam}_${idx}`, JSON.stringify(messages)); } catch(e) {}
+    }
   }
 }
 
@@ -2652,7 +2986,7 @@ function restoreLessonState(idx) {
   let store = lessonMsgStore[idx];
   if (!store && currentTeam) {
     try {
-      const s = sessionStorage.getItem(`lmsgs_${currentTeam}_${idx}`);
+      const s = localStorage.getItem(`lmsgs_${currentTeam}_${idx}`);
       if (s) store = { msgs: JSON.parse(s) };
     } catch(e) {}
   }
@@ -2662,7 +2996,7 @@ function restoreLessonState(idx) {
     if (store.active) {
       const md = document.getElementById('l4-messages');
       if (md) md.innerHTML = store.l4html || '';
-      setL4Step(4);
+      setL4Step(5);
     }
     return !!store.active;
   } else {
@@ -2842,8 +3176,9 @@ function createWelcome() {
 function newChat() {
   if (messages.length > 0) {
     histories.unshift({ model: currentModel, messages: [...messages], preview: messages[0]?.content?.slice(0,30) || '대화' });
-    if (histories.length > 10) histories.pop();
+    if (histories.length > 15) histories.pop();
     renderHistory();
+    scheduleAutosave();
   }
   messages = [];
   const msgDiv = document.getElementById('messages');
@@ -2853,7 +3188,7 @@ function newChat() {
 
 function loadHistory() {
   try {
-    histories = JSON.parse(sessionStorage.getItem('chat_history_' + currentTeam) || '[]');
+    histories = JSON.parse(localStorage.getItem('chat_history_' + currentTeam) || '[]');
   } catch { histories = []; }
   renderHistory();
 }
@@ -2862,7 +3197,7 @@ function renderHistory() {
   list.innerHTML = histories.map((h, i) =>
     `<div class="history-item" onclick="loadChat(${i})">${h.preview || '대화 '+(i+1)}</div>`
   ).join('');
-  sessionStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
+  localStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
 }
 function loadChat(idx) {
   const h = histories[idx];
@@ -2882,6 +3217,11 @@ function handleKey(e) {
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+// 폼 입력창용 — 높이 제한 없이 내용에 맞게 자동 확장
+function autoResizeForm(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
 }
 
 function addBubble(type, text, isMarkdown=false) {
@@ -3004,7 +3344,7 @@ async function sendMessage() {
   colDiv.appendChild(copyBtn);
   msgDiv.scrollTop = 99999;
   // 차시별 대화 세션 저장
-  try { sessionStorage.setItem(`lmsgs_${currentTeam}_${currentLesson}`, JSON.stringify(messages)); } catch(e) {}
+  try { localStorage.setItem(`lmsgs_${currentTeam}_${currentLesson}`, JSON.stringify(messages)); } catch(e) {}
 }
 
 async function callAI(model, msgs) {
@@ -3034,20 +3374,104 @@ async function handleFileUpload(input) {
   previewEl.style.display = 'flex';
   chipsEl.innerHTML = '';
   const parts = [];
+
   for (const file of files) {
+    const isPdf = file.name.toLowerCase().endsWith('.pdf');
+    const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+
+    // 칩 생성
     const chip = document.createElement('span');
-    chip.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);border-radius:20px;color:#10b981;font-size:11px;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;';
-    chip.textContent = '📄 ' + file.name;
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);border-radius:20px;color:#10b981;font-size:11px;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;cursor:default;';
     chip.title = file.name;
     chipsEl.appendChild(chip);
-    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+
+    if (isPdf) {
+      // PDF: pdf.js로 텍스트 추출
+      chip.textContent = '⏳ ' + file.name + ' (읽는 중...)';
+      try {
+        const result = await extractPdfText(file);
+        if (result.text && result.text.trim().length > 20) {
+          chip.textContent = `📄 ${file.name} (${result.pages}쪽 · 텍스트 추출됨)`;
+          chip.style.background = 'rgba(108,99,255,0.15)';
+          chip.style.borderColor = 'rgba(108,99,255,0.4)';
+          chip.style.color = '#6C63FF';
+          parts.push(
+            `--- PDF: ${file.name} (총 ${result.pages}쪽) ---\n` +
+            `[텍스트 추출 성공 · 상위 ${Math.min(result.pages, 20)}쪽]\n\n` +
+            result.text.slice(0, 8000)
+          );
+        } else {
+          // 텍스트 레이어 없음 → 스캔본 가능성
+          chip.textContent = `⚠️ ${file.name} (텍스트 없음 - 스캔본?)`;
+          chip.style.background = 'rgba(245,158,11,0.15)';
+          chip.style.borderColor = 'rgba(245,158,11,0.4)';
+          chip.style.color = '#f59e0b';
+          parts.push(
+            `[PDF: ${file.name}]\n` +
+            `텍스트 추출 불가 — 이미지/스캔본 PDF이거나 텍스트 레이어가 없습니다.\n` +
+            `OCR 처리가 필요하면 Adobe Acrobat 또는 온라인 OCR 서비스를 이용해주세요.`
+          );
+        }
+      } catch (e) {
+        chip.textContent = `❌ ${file.name} (PDF 오류)`;
+        chip.style.background = 'rgba(239,68,68,0.15)';
+        chip.style.borderColor = 'rgba(239,68,68,0.4)';
+        chip.style.color = '#ef4444';
+        chip.title = e.message;
+        parts.push(`[PDF: ${file.name}] 읽기 실패: ${e.message}`);
+        console.error('PDF 파싱 오류:', e);
+      }
+    } else if (isExcel) {
+      chip.textContent = '📊 ' + file.name;
       parts.push(`[엑셀: ${file.name}] (CSV로 변환하면 더 정확히 분석됩니다)`);
     } else {
+      chip.textContent = '📄 ' + file.name;
       const content = await readFileWithEncoding(file);
       parts.push(`--- ${file.name} ---\n${content.slice(0, 4000)}`);
     }
   }
   uploadedFileContent = parts.join('\n\n');
+}
+
+/**
+ * pdf.js를 사용해 PDF 파일에서 텍스트를 추출합니다.
+ * @param {File} file - PDF 파일 객체
+ * @returns {Promise<{text: string, pages: number}>}
+ */
+async function extractPdfText(file) {
+  // pdf.js 워커 경로 설정 (CDN)
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error('pdf.js 라이브러리를 불러오지 못했습니다');
+  }
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const totalPages = pdf.numPages;
+  // 성능 및 토큰 제한 고려: 최대 20페이지 추출
+  const maxPages = Math.min(totalPages, 20);
+  const pageParts = [];
+
+  for (let i = 1; i <= maxPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    // items 배열에서 텍스트 문자열만 추출 후 합치기
+    const pageText = content.items
+      .map(item => item.str)
+      .join(' ')
+      .replace(/\s{3,}/g, '  ') // 과도한 공백 정리
+      .trim();
+    if (pageText) pageParts.push(`[${i}/${totalPages}쪽]\n${pageText}`);
+  }
+
+  const text = pageParts.join('\n\n');
+  // 총 페이지 수가 20을 초과하면 안내 문구 추가
+  const suffix = totalPages > maxPages
+    ? `\n\n[주의: 총 ${totalPages}쪽 중 앞 ${maxPages}쪽만 추출했습니다. 전체 내용이 필요하면 PDF를 분리해 다시 업로드해주세요.]`
+    : '';
+
+  return { text: text + suffix, pages: totalPages };
 }
 function clearFile() {
   uploadedFileContent = null;
@@ -3227,14 +3651,14 @@ function applyHeaderSelection() {
     lesson4Data = allData[0];
     const f0 = allData[0];
     renderLesson4Stats(f0.headers, f0.rows, rawPendingFiles[0].filename.endsWith('.xlsx')||rawPendingFiles[0].filename.endsWith('.xls'));
-    const uploadedBox = document.getElementById('l4-view-1-uploaded');
+    const uploadedBox = document.getElementById('l4-view-2-uploaded');
     if (uploadedBox) {
       uploadedBox.style.display = 'block';
       uploadedBox.innerHTML = `<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 14px;font-size:12px;color:#10b981;">✅ ${allData.map(d=>`<b>${d.filename}</b> (${d.rows.length}행 × ${d.headers.length}열)`).join(', ')} 업로드 완료</div>`;
     }
     l4Messages = [];
     document.getElementById('l4-messages').innerHTML = '';
-    setL4Step(2);
+    setL4Step(3);
   } catch(e) {
     alert('데이터 처리 오류: ' + e.message);
   }
@@ -3264,20 +3688,233 @@ function rawDataToStructured(rawData, headerOpt) {
   return { headers, rows };
 }
 
-// ── 데이터 전체 보기 모달 ──
+// ── 데이터 전체 보기 모달 (컬럼 필터 기능 포함) ──
+
+// 모달에 로드된 원본 데이터 (필터 동안 변경되지 않음)
+let _previewData = null;
+// 컬럼별 현재 필터 값 { colName: { text|min|max|select|dateFrom|dateTo: value } }
+let _previewFilters = {};
+// 디바운스 타이머 핸들
+let _previewDebounce = null;
+// 컬럼 타입 캐시 { colName: 'number'|'date'|'text' }
+let _previewColTypes = {};
+// 컬럼 고유값 캐시 { colName: string[]|null } — null이면 드롭다운 미사용
+let _previewColUniq = {};
+
+/** 모달 닫기 */
+function closePreviewModal() {
+  document.getElementById('l4-preview-modal').style.display = 'none';
+}
+
+/**
+ * 샘플 행을 보고 컬럼 타입 추정
+ * @returns {'number'|'date'|'text'}
+ */
+function _detectPreviewColType(header, rows) {
+  const sample = rows.slice(0, 60).map(r => String(r[header] ?? '')).filter(v => v.trim() !== '');
+  if (!sample.length) return 'text';
+  const numHits = sample.filter(v => !isNaN(parseFloat(v)) && isFinite(Number(v))).length;
+  if (numHits / sample.length > 0.8) return 'number';
+  const dateHits = sample.filter(v => /^\d{4}[-./년]\d{1,2}/.test(v)).length;
+  if (dateHits / sample.length > 0.6) return 'date';
+  return 'text';
+}
+
+/**
+ * 데이터 전체 보기 모달 열기
+ * - 헤더 sticky, 필터 행 sticky (헤더 바로 아래)
+ * - 컬럼 타입에 맞는 필터 UI 자동 생성
+ * - 성능: 최대 1000행 렌더링, 300ms debounce
+ */
 function showL4Preview() {
   if (!lesson4Data) return;
   const { headers, rows } = lesson4Data;
-  const preview = rows.slice(0, 200);
-  document.getElementById('l4-preview-info').textContent =
-    `총 ${rows.length.toLocaleString()}행 × ${headers.length}열  (상위 ${preview.length}행 표시)`;
+  _previewData = { headers, rows };
+  _previewFilters = {};
+
+  // 컬럼 타입 및 고유값 탐지 (한 번만)
+  _previewColTypes = {};
+  _previewColUniq = {};
+  headers.forEach(h => {
+    _previewColTypes[h] = _detectPreviewColType(h, rows);
+    if (_previewColTypes[h] === 'text') {
+      // 20개 이하 고유값이면 드롭다운, 초과면 텍스트 검색
+      const uniq = [...new Set(rows.map(r => String(r[h] ?? '')).filter(v => v !== ''))].sort();
+      _previewColUniq[h] = uniq.length <= 20 ? uniq : null;
+    } else {
+      _previewColUniq[h] = null;
+    }
+  });
+
+  // ── 헤더 행 생성 ──
+  const thBase = 'padding:6px 8px;background:var(--surface2);border:1px solid var(--border2);color:var(--accent2);font-size:11px;font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:3;';
+  const filterBase = 'padding:4px 6px;background:var(--surface2);border:1px solid var(--border2);position:sticky;top:28px;z-index:2;';
+
+  /** HTML 특수문자 이스케이프 */
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  /** 컬럼 타입별 필터 입력 위젯 생성 */
+  function buildFilter(h) {
+    const type = _previewColTypes[h];
+    const inputStyle = 'font-size:10px;padding:2px 5px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:inherit;';
+
+    if (type === 'number') {
+      return `<div style="display:flex;gap:3px;align-items:center;">
+        <input type="number" placeholder="최소" data-col="${esc(h)}" data-ftype="min"
+          oninput="updatePreviewFilter(this)" style="${inputStyle}width:55px;">
+        <span style="font-size:9px;color:var(--muted);">~</span>
+        <input type="number" placeholder="최대" data-col="${esc(h)}" data-ftype="max"
+          oninput="updatePreviewFilter(this)" style="${inputStyle}width:55px;">
+      </div>`;
+    }
+    if (type === 'date') {
+      return `<div style="display:flex;gap:3px;align-items:center;flex-wrap:wrap;">
+        <input type="date" data-col="${esc(h)}" data-ftype="dateFrom"
+          oninput="updatePreviewFilter(this)" style="${inputStyle}width:110px;">
+        <span style="font-size:9px;color:var(--muted);">~</span>
+        <input type="date" data-col="${esc(h)}" data-ftype="dateTo"
+          oninput="updatePreviewFilter(this)" style="${inputStyle}width:110px;">
+      </div>`;
+    }
+    if (_previewColUniq[h]) {
+      // 값 종류 ≤ 20: 드롭다운
+      const opts = _previewColUniq[h].map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      return `<select data-col="${esc(h)}" data-ftype="select"
+        onchange="updatePreviewFilter(this)"
+        style="${inputStyle}max-width:130px;">
+        <option value="">전체</option>${opts}
+      </select>`;
+    }
+    // 문자열 부분 검색
+    return `<input type="text" placeholder="검색..." data-col="${esc(h)}" data-ftype="text"
+      oninput="updatePreviewFilter(this)" style="${inputStyle}width:100px;">`;
+  }
+
+  const headerRow = `<tr>${headers.map(h => `<th style="${thBase}">${esc(h)}</th>`).join('')}</tr>`;
+  const filterRow = `<tr id="preview-filter-row">${headers.map(h => `<th style="${filterBase}">${buildFilter(h)}</th>`).join('')}</tr>`;
+
   const table = document.getElementById('l4-preview-table-full');
-  const thStyle = 'padding:6px 10px;background:var(--surface2);border:1px solid var(--border2);color:var(--accent2);font-size:11px;position:sticky;top:0;';
-  const tdStyle = 'padding:5px 10px;border:1px solid var(--border);font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;';
-  table.innerHTML =
-    `<thead><tr>${headers.map(h=>`<th style="${thStyle}">${h}</th>`).join('')}</tr></thead>` +
-    `<tbody>${preview.map(r=>`<tr>${headers.map(h=>`<td style="${tdStyle}" title="${String(r[h]??'')}">${String(r[h]??'').slice(0,40)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  table.innerHTML = `<thead>${headerRow}${filterRow}</thead><tbody id="preview-tbody"></tbody>`;
+
+  // 전체 행 초기 렌더링
+  _renderPreviewRows(rows);
+  _updatePreviewInfo(rows.length, rows.length);
+
   document.getElementById('l4-preview-modal').style.display = 'flex';
+  document.getElementById('l4-filter-reset-btn').style.display = 'none';
+}
+
+/**
+ * 정보 표시줄 업데이트 (총 행수 / 필터 결과 행수)
+ */
+function _updatePreviewInfo(total, filtered) {
+  const { headers } = _previewData;
+  const info = document.getElementById('l4-preview-info');
+  const resetBtn = document.getElementById('l4-filter-reset-btn');
+  if (filtered < total) {
+    info.innerHTML = `총 <b>${total.toLocaleString()}</b>행 × ${headers.length}열 &nbsp;|&nbsp; <span style="color:var(--accent2);font-weight:600;">필터 결과 ${filtered.toLocaleString()}행 표시</span>`;
+    resetBtn.style.display = 'inline-block';
+  } else {
+    info.innerHTML = `총 <b>${total.toLocaleString()}</b>행 × ${headers.length}열`;
+    resetBtn.style.display = 'none';
+  }
+}
+
+/**
+ * 필터된 행을 tbody에 렌더링 (최대 1000행, 초과 시 안내)
+ */
+function _renderPreviewRows(filteredRows) {
+  const tbody = document.getElementById('preview-tbody');
+  if (!tbody || !_previewData) return;
+  const { headers } = _previewData;
+  const tdStyle = 'padding:5px 8px;border:1px solid var(--border);font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+  const display = filteredRows.slice(0, 1000);
+
+  // DocumentFragment 사용으로 DOM 조작 최소화
+  const frag = document.createDocumentFragment();
+  display.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = headers.map(h => {
+      const val = String(r[h] ?? '');
+      const safe = val.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `<td style="${tdStyle}" title="${safe}">${safe.slice(0, 40)}</td>`;
+    }).join('');
+    frag.appendChild(tr);
+  });
+
+  if (filteredRows.length > 1000) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="${headers.length}" style="text-align:center;padding:10px;color:var(--muted);font-size:11px;border:1px solid var(--border);">
+      ⚠️ 상위 1,000행만 표시 중 (필터 결과 총 ${filteredRows.length.toLocaleString()}행)
+    </td>`;
+    frag.appendChild(tr);
+  }
+
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+}
+
+/**
+ * 필터 입력값 변경 시 호출 — 상태 업데이트 후 300ms debounce로 재필터링
+ */
+function updatePreviewFilter(el) {
+  const col = el.dataset.col;
+  const ftype = el.dataset.ftype;
+  if (!_previewFilters[col]) _previewFilters[col] = {};
+  _previewFilters[col][ftype] = el.value;
+
+  clearTimeout(_previewDebounce);
+  _previewDebounce = setTimeout(_applyPreviewFilters, 300);
+}
+
+/**
+ * 현재 _previewFilters 기준 AND 필터링 수행 후 화면 갱신
+ */
+function _applyPreviewFilters() {
+  if (!_previewData) return;
+  const { rows } = _previewData;
+
+  const filtered = rows.filter(row => {
+    for (const [col, f] of Object.entries(_previewFilters)) {
+      const rawVal = String(row[col] ?? '');
+
+      // 숫자 범위
+      if (f.min !== undefined && f.min !== '') {
+        if (parseFloat(rawVal) < parseFloat(f.min)) return false;
+      }
+      if (f.max !== undefined && f.max !== '') {
+        if (parseFloat(rawVal) > parseFloat(f.max)) return false;
+      }
+      // 날짜 범위 (문자열 비교 — ISO8601 또는 YYYY-MM-DD 형식에서 동작)
+      if (f.dateFrom !== undefined && f.dateFrom !== '') {
+        if (rawVal.replace(/[./년월일\s]/g, '-').slice(0, 10) < f.dateFrom) return false;
+      }
+      if (f.dateTo !== undefined && f.dateTo !== '') {
+        if (rawVal.replace(/[./년월일\s]/g, '-').slice(0, 10) > f.dateTo) return false;
+      }
+      // 드롭다운 선택
+      if (f.select !== undefined && f.select !== '') {
+        if (rawVal !== f.select) return false;
+      }
+      // 텍스트 부분 검색 (대소문자 무시)
+      if (f.text !== undefined && f.text !== '') {
+        if (!rawVal.toLowerCase().includes(f.text.toLowerCase())) return false;
+      }
+    }
+    return true;
+  });
+
+  _renderPreviewRows(filtered);
+  _updatePreviewInfo(rows.length, filtered.length);
+}
+
+/** 모든 필터 초기화 */
+function resetPreviewFilters() {
+  _previewFilters = {};
+  const filterRow = document.getElementById('preview-filter-row');
+  if (filterRow) filterRow.querySelectorAll('input, select').forEach(el => { el.value = ''; });
+  _renderPreviewRows(_previewData.rows);
+  _updatePreviewInfo(_previewData.rows.length, _previewData.rows.length);
 }
 
 // ── 차트 그리기 ──
@@ -3567,26 +4204,29 @@ function advanceL4Step(text) {
   // Kept for compatibility but step nav is now handled by setL4Step
 }
 
-// ── 프로젝트 전체 흐름 (AI 아이디어 기획 중심) ──
+// ── 프로젝트 전체 흐름 (6단계: 데이터 찾기 → 기획서 작성) ──
 const PROJ_STEPS = [
   {n:1, icon:'🎯', label:'문제 정의'},
-  {n:2, icon:'📂', label:'공공데이터 찾기'},
-  {n:3, icon:'🔎', label:'데이터 이해'},
-  {n:4, icon:'🤖', label:'AI 활용 아이디어'},
+  {n:2, icon:'🔍', label:'데이터 찾기'},
+  {n:3, icon:'👀', label:'데이터 이해'},
+  {n:4, icon:'📊', label:'데이터 분석'},
   {n:5, icon:'💡', label:'인사이트 도출'},
-  {n:6, icon:'🧠', label:'서비스 기획'},
-  {n:7, icon:'📝', label:'기획서 작성'},
+  {n:6, icon:'🚀', label:'AI 아이디어'},
+  {n:7, icon:'🛠', label:'서비스 기획'},
+  {n:8, icon:'📋', label:'기획서 작성'},
 ];
-// l4탐구단계 → 프로젝트 전체 단계 매핑
-const L4_TO_PROJ = {1:2, 2:3, 3:4, 4:5, 5:6, 6:7};
+// l4탐구단계(1~8) → 프로젝트 전체 단계(1~8) 1:1 매핑
+const L4_TO_PROJ = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8};
 
 const L4_STEP_META = [null,
-  { title:'📂 공공데이터 찾기',   phase:'② 공공데이터 찾기',  phaseColor:'#60a5fa', desc:'문제와 관련된 공공데이터를 찾습니다',    done:'문제 정의를 완료했습니다',              next:'이제 공공데이터를 찾아봅니다' },
-  { title:'🔎 데이터 이해하기',   phase:'③ 데이터 이해',       phaseColor:'#a78bfa', desc:'데이터 구조와 내용을 파악합니다',        done:'공공데이터 탐색을 완료했습니다',         next:'이제 데이터를 이해하고 파악합니다' },
-  { title:'🤖 AI 활용 아이디어',  phase:'④ AI 활용 아이디어',  phaseColor:'#f59e0b', desc:'AI를 어떻게 활용할지 아이디어를 냅니다', done:'데이터 이해를 완료했습니다',            next:'이제 AI 활용 아이디어를 구상합니다' },
-  { title:'💡 인사이트 도출',     phase:'⑤ 인사이트 도출',     phaseColor:'#10b981', desc:'데이터에서 의미 있는 발견을 정리합니다', done:'AI 아이디어 구상을 완료했습니다',        next:'이제 핵심 인사이트를 정리합니다' },
-  { title:'🧠 서비스 기획',       phase:'⑥ 서비스 기획',       phaseColor:'#6C63FF', desc:'AI 서비스 시나리오와 기능을 설계합니다', done:'인사이트를 도출했습니다',               next:'이제 서비스를 기획합니다' },
-  { title:'📝 기획서 작성',       phase:'⑦ 기획서 작성',       phaseColor:'#ec4899', desc:'프로젝트를 정리하고 기획서를 작성합니다',done:'서비스 기획을 완료했습니다',            next:'이제 기획서를 작성합니다' },
+  { title:'🎯 문제 정의',         phase:'① 문제 정의',         phaseColor:'#7c3aed', desc:'해결할 문제를 명확하게 정의합니다',         done:'',                                     next:'문제를 정의하면 데이터를 찾습니다' },
+  { title:'🔍 공공데이터 찾기',   phase:'② 데이터 찾기',       phaseColor:'#0284c7', desc:'연구 주제에 맞는 공공데이터를 찾습니다',   done:'문제 정의를 완료했습니다',              next:'데이터를 업로드하면 다음 단계로 이동합니다' },
+  { title:'👀 데이터 이해',        phase:'③ 데이터 이해',       phaseColor:'#059669', desc:'데이터 구조와 내용을 파악합니다',           done:'데이터 탐색을 완료했습니다',            next:'이제 데이터를 이해하고 파악합니다' },
+  { title:'📊 데이터 분석',        phase:'④ 데이터 분석',       phaseColor:'#d97706', desc:'그래프로 패턴과 특징을 찾습니다',           done:'데이터 이해를 완료했습니다',            next:'이제 데이터를 시각화해 분석합니다' },
+  { title:'💡 인사이트 도출',     phase:'⑤ 인사이트 도출',     phaseColor:'#10b981', desc:'데이터에서 의미 있는 발견을 정리합니다',   done:'데이터 분석을 완료했습니다',            next:'이제 핵심 인사이트를 정리합니다' },
+  { title:'🚀 AI 활용 아이디어', phase:'⑥ AI 활용 아이디어',  phaseColor:'#6C63FF', desc:'데이터 기반으로 AI 서비스를 구상합니다',   done:'인사이트를 도출했습니다',               next:'이제 AI 활용 아이디어를 구상합니다' },
+  { title:'🛠 서비스 기획',        phase:'⑦ 서비스 기획',       phaseColor:'#be185d', desc:'AI 아이디어를 실제 서비스로 구체화합니다', done:'AI 아이디어를 완성했습니다',             next:'이제 서비스 기획을 구체화합니다' },
+  { title:'📋 기획서 작성',       phase:'⑧ 기획서 작성',       phaseColor:'#1d4ed8', desc:'프로젝트를 정리하고 기획서를 완성합니다',  done:'서비스 기획을 완료했습니다',             next:'이제 기획서를 작성합니다' },
 ];
 
 // 프로젝트 단계를 앞으로만 진행 (완료 표시는 누적, 뒤로 가도 지워지지 않음)
@@ -3613,16 +4253,16 @@ function renderSidebarProjFlow(activeProjStep) {
     container.innerHTML = html;
   }
   // ── 진행률 바 업데이트 ──
-  const doneCount = completedProjectStepNums.size;
-  const pct = Math.max(Math.round(doneCount / 7 * 100), 4);
+  const doneCount = Math.min(completedProjectStepNums.size, 8);
+  const pct = Math.max(Math.round(doneCount / 8 * 100), 4);
   const bar = document.getElementById('sidebar-proj-bar');
   const lbl = document.getElementById('sidebar-proj-label');
   if (bar) bar.style.width = pct + '%';
-  if (lbl) lbl.textContent = `${doneCount} / 7 완료`;
+  if (lbl) lbl.textContent = `${doneCount} / 8 완료`;
 }
 
 function updateProjFlow(currentL4StepNum) {
-  const projStep = L4_TO_PROJ[currentL4StepNum] || 2;
+  const projStep = L4_TO_PROJ[currentL4StepNum] || 1;
   setCurrentProjectStep(projStep);
   renderSidebarProjFlow(projStep);
   updateStepGuideBanner(currentL4StepNum);
@@ -3631,13 +4271,14 @@ function updateProjFlow(currentL4StepNum) {
 
 // 프로젝트 단계 클릭 → 해당 lesson + l4 서브스텝으로 이동
 const PROJ_TO_LESSON = {
-  1: { lesson: 1, l4: null },    // 문제 정의 → 3차시 주제선정
-  2: { lesson: 2, l4: 1 },       // 공공데이터 찾기 → l4 step 1
-  3: { lesson: 2, l4: 2 },       // 데이터 이해 → l4 step 2
-  4: { lesson: 2, l4: 3 },       // AI 활용 아이디어 → l4 step 3
-  5: { lesson: 2, l4: 4 },       // 인사이트 도출 → l4 step 4
-  6: { lesson: 2, l4: 5 },       // 서비스 기획 → l4 step 5
-  7: { lesson: 2, l4: 6 },       // 기획서 작성 → l4 step 6
+  1: { lesson: 2, l4: 1 },       // 문제 정의 → l4 step 1
+  2: { lesson: 2, l4: 2 },       // 공공데이터 찾기 → l4 step 2
+  3: { lesson: 2, l4: 3 },       // 데이터 이해 → l4 step 3
+  4: { lesson: 2, l4: 4 },       // 데이터 분석 → l4 step 4
+  5: { lesson: 2, l4: 5 },       // 인사이트 도출 → l4 step 5
+  6: { lesson: 2, l4: 6 },       // AI 활용 아이디어 → l4 step 6
+  7: { lesson: 2, l4: 7 },       // 서비스 기획 → l4 step 7
+  8: { lesson: 2, l4: 8 },       // 기획서 작성 → l4 step 8
 };
 
 function goToProjectStep(projStep) {
@@ -3651,7 +4292,9 @@ function goToProjectStep(projStep) {
 }
 
 function updateL4SubTabs(n) {
-  for (let i = 1; i <= 6; i++) {
+  const prog = document.getElementById('l4-subtab-progress');
+  if (prog) prog.textContent = `${n} / 8단계`;
+  for (let i = 1; i <= 8; i++) {
     const tab = document.getElementById('l4-tab-' + i);
     if (!tab) continue;
     tab.classList.remove('active', 'done');
@@ -3665,11 +4308,11 @@ function updateStepGuideBanner(n) {
   if (!banner) return;
   const meta = L4_STEP_META[n];
   if (!meta) return;
-  const pct = Math.round((n / 6) * 100);
+  const pct = Math.round((n / 8) * 100);
   // 컨텐츠 영역: 단계 제목+설명만 (프로젝트 흐름은 사이드바에서 표시)
   banner.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-      <span style="font-size:11px;font-weight:700;color:${meta.phaseColor};background:${meta.phaseColor}1a;padding:2px 9px;border-radius:20px;white-space:nowrap;">${n} / 6</span>
+      <span style="font-size:11px;font-weight:700;color:${meta.phaseColor};background:${meta.phaseColor}1a;padding:2px 9px;border-radius:20px;white-space:nowrap;">${n} / 8</span>
       <div style="min-width:0;">
         <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${meta.title}</div>
         <div style="font-size:10px;color:var(--muted);">${meta.desc}</div>
@@ -3686,27 +4329,27 @@ function updateStepGuideBanner(n) {
 // ── Step Navigation ──
 function setL4Step(n) {
   currentL4Step = n;
-  updateProjFlow(n);   // updates big sidebar 7-steps + sub-tabs
+  updateProjFlow(n);   // updates big sidebar 8-steps + sub-tabs
   scheduleAutosave();
   // Show the right view, hide others
-  for (let i = 1; i <= 6; i++) {
+  for (let i = 1; i <= 8; i++) {
     const view = document.getElementById('l4-view-' + i);
     if (!view) continue;
     if (i === n) {
-      view.style.display = (i === 4) ? 'flex' : 'block';
-      view.style.flexDirection = (i === 4) ? 'column' : '';
+      view.style.display = (i === 5) ? 'flex' : 'block';
+      view.style.flexDirection = (i === 5) ? 'column' : '';
     } else {
       view.style.display = 'none';
     }
   }
   // Step-specific side effects
-  if (n === 2 && lesson4Data) renderL4Preprocessing();
-  if (n === 3 && lesson4Data) {
+  if (n === 3 && lesson4Data) renderL4Preprocessing();
+  if (n === 4 && lesson4Data) {
     refreshV3Selectors();
     renderV3ColTypeBadges();
     renderV3Chart();
   }
-  if (n === 4 && lesson4Data && l4Messages.length === 0) {
+  if (n === 5 && lesson4Data && l4Messages.length === 0) {
     triggerL4AutoAnalysis(lesson4AllData || [lesson4Data]);
   }
 }
@@ -3745,11 +4388,15 @@ function renderV3Chart() {
   const xCol = document.getElementById('v3-x-col')?.value;
   const yCol = document.getElementById('v3-y-col')?.value;
   const seriesCol = document.getElementById('v3-series-col')?.value || '';
-  const sortMode = document.getElementById('v3-sort')?.value || 'freq';
+  const sortMode = document.getElementById('v3-sort')?.value || 'original';
+  const sortHintEl = document.getElementById('v3-sort-hint');
+  if (sortHintEl) sortHintEl.textContent = {original:'엑셀 데이터 입력 순서 그대로',desc:'값이 큰 항목 먼저 표시',asc:'값이 작은 항목 먼저 표시',alpha:'가나다/ABC 순서로 표시'}[sortMode]||'';
   if (!xCol) return;
   const insightBox = document.getElementById('v3-insight-box');
   if (insightBox) insightBox.style.display = 'none';
   const hint = document.getElementById('v3-chart-hint');
+  const statusEl = document.getElementById('v3-chart-status');
+  if (statusEl) statusEl.style.display = 'none';
   const canvas = document.getElementById('l4-chart-canvas-v3');
   if (!canvas) return;
   if (v3ChartInst) { v3ChartInst.destroy(); v3ChartInst = null; }
@@ -3778,40 +4425,61 @@ function renderV3Chart() {
     if (!yCol) return;
     // Multi-series grouped chart
     if (seriesCol) {
+      const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+      const aggLabel = {mean:'평균',count:'개수',sum:'합계',max:'최댓값',min:'최솟값'}[aggMethod]||'평균';
       const seriesVals=[...new Set(rows.map(r=>String(r[seriesCol]||'')))].filter(Boolean).slice(0,6);
       const xVals=[...new Set(rows.map(r=>fmtLabel(r[xCol])))].filter(Boolean);
       // sort xVals
-      let sortedX = xVals;
-      if (sortMode==='alpha') sortedX=xVals.sort((a,b)=>a.localeCompare(b,'ko'));
-      else sortedX=xVals.sort((a,b)=>a.localeCompare(b,'ko')); // default alpha for grouped
+      let sortedX = [...xVals]; // 원본 순서 보존을 위해 복사
+      if (sortMode==='alpha' || sortMode==='desc' || sortMode==='asc') sortedX.sort((a,b)=>a.localeCompare(b,'ko'));
+      // original: 정렬 없이 삽입 순서(=엑셀 원본 순서) 유지
       sortedX=sortedX.slice(0,15);
       // agg[xVal][seriesVal] = [values]
       const agg={};
-      rows.forEach(r=>{const x=fmtLabel(r[xCol]);const s=String(r[seriesCol]||'');const v=parseFloat(r[yCol]);if(isNaN(v)||!sortedX.includes(x)||!seriesVals.includes(s))return;if(!agg[x])agg[x]={};if(!agg[x][s])agg[x][s]=[];agg[x][s].push(v);});
-      const datasets=seriesVals.map((s,i)=>({label:s,data:sortedX.map(x=>{const vals=agg[x]?.[s]||[];return vals.length?+(vals.reduce((a,b)=>a+b)/vals.length).toFixed(2):null;}),backgroundColor:palette[i]+'cc',borderColor:palette[i],borderWidth:1.5}));
-      if (hint) hint.textContent = `${type==='hbar'?'가로막대':'막대'} 그래프: ${xCol} × ${seriesCol} 별 ${yCol} 평균 (그룹 비교)`;
+      rows.forEach(r=>{const x=fmtLabel(r[xCol]);const s=String(r[seriesCol]||'');if(!sortedX.includes(x)||!seriesVals.includes(s))return;if(aggMethod==='count'){const v=r[yCol];if(v!==null&&v!==undefined&&v!==''){if(!agg[x])agg[x]={};if(!agg[x][s])agg[x][s]=[];agg[x][s].push(v);}}else{const v=parseFloat(r[yCol]);if(!isNaN(v)){if(!agg[x])agg[x]={};if(!agg[x][s])agg[x][s]=[];agg[x][s].push(v);}}});
+      const datasets=seriesVals.map((s,i)=>({label:s,data:sortedX.map(x=>{const vals=agg[x]?.[s]||[];if(!vals.length)return null;return aggMethod==='count'?vals.length:aggMethod==='sum'?+(vals.reduce((a,b)=>a+b,0)).toFixed(2):aggMethod==='max'?Math.max(...vals):aggMethod==='min'?Math.min(...vals):+(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2);}),backgroundColor:palette[i]+'cc',borderColor:palette[i],borderWidth:1.5}));
+      if (hint) hint.textContent = `${type==='hbar'?'가로막대':'막대'} 그래프: ${xCol} × ${seriesCol} 별 ${yCol} ${aggLabel} (그룹 비교)`;
       const isH = type==='hbar';
       const h = isH ? Math.max(300, sortedX.length * 36) : '';
       if (isH) { canvas.style.height=h+'px'; canvas.style.maxHeight=h+'px'; } else { canvas.style.height=''; canvas.style.maxHeight=''; }
       v3ChartInst = new Chart(canvas, { type:'bar', data:{labels:sortedX,datasets}, options:{ indexAxis:isH?'y':'x', plugins:{legend:{labels:{color:textColor,font:{size:11}}}}, scales:{ x:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11},maxRotation:isH?0:45}}, y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11}},beginAtZero:false} } } });
     } else {
+      const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+      const aggLabel = {mean:'평균',count:'개수',sum:'합계',max:'최댓값',min:'최솟값'}[aggMethod]||'평균';
       const agg={};
-      rows.forEach(r=>{ const k=fmtLabel(r[xCol]); const v=parseFloat(r[yCol]); if(!isNaN(v)){ if(!agg[k]) agg[k]=[]; agg[k].push(v); } });
-      let entries=Object.entries(agg).map(([k,v])=>[k,+(v.reduce((a,b)=>a+b)/v.length).toFixed(2)]);
-      if (sortMode==='desc') entries.sort((a,b)=>b[1]-a[1]);
-      else if (sortMode==='asc') entries.sort((a,b)=>a[1]-b[1]);
+      rows.forEach(r=>{ const k=fmtLabel(r[xCol]); if(aggMethod==='count'){ const v=r[yCol]; if(v!==null&&v!==undefined&&v!==''){if(!agg[k])agg[k]=[];agg[k].push(v);} } else { const v=parseFloat(r[yCol]); if(!isNaN(v)){if(!agg[k])agg[k]=[];agg[k].push(v);} } });
+      let entries=Object.entries(agg).map(([k,v])=>[k,aggMethod==='count'?v.length:aggMethod==='sum'?+(v.reduce((a,b)=>a+b,0)).toFixed(2):aggMethod==='max'?Math.max(...v):aggMethod==='min'?Math.min(...v):+(v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)]);
+      // 원본 순서: 삽입 순서(=엑셀 행 순서) 유지, 나머지만 정렬
+      if (sortMode==='asc') entries.sort((a,b)=>a[1]-b[1]);
       else if (sortMode==='alpha') entries.sort((a,b)=>a[0].localeCompare(b[0],'ko'));
-      else entries.sort((a,b)=>agg[b[0]].length-agg[a[0]].length);
-      entries=entries.slice(0,20);
+      else if (sortMode==='desc') entries.sort((a,b)=>b[1]-a[1]);
+      // original: 정렬 없음 — Object.entries 삽입 순서 = 엑셀 원본 순서
+      const totalCount = entries.length;
+      const topN = 15;
+      const searchTerm = (document.getElementById('v3-search')?.value || '').trim().toLowerCase();
+      if (searchTerm) {
+        entries = entries.filter(e => e[0].toLowerCase().includes(searchTerm));
+      } else {
+        entries = entries.slice(0, topN);
+      }
       const labels=entries.map(e=>e[0]);
       const data=entries.map(e=>e[1]);
       const isH = type==='hbar';
       const clr = isH ? 'rgba(96,165,250,0.75)' : 'rgba(108,99,255,0.7)';
       const bclr = isH ? 'rgba(96,165,250,1)' : 'rgba(108,99,255,1)';
-      if (hint) hint.textContent = `${isH?'가로막대':type==='bar'?'막대':'선'} 그래프: ${xCol} 별 ${yCol} 평균`;
+      const sortLabel = {original:'원본 순서',desc:'값 내림차순',asc:'값 오름차순',alpha:'가나다순'}[sortMode]||'원본 순서';
+      if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.textContent = searchTerm
+          ? `🔍 "${searchTerm}" 검색 결과 ${entries.length}개 표시 (전체 ${totalCount}개 중)`
+          : sortMode==='original'
+            ? `원본 순서: 엑셀 데이터 입력 순서 그대로 표시됩니다 (전체 ${totalCount}개 중 ${entries.length}개)`
+            : `전체 데이터 ${totalCount}개 중 상위 ${entries.length}개만 표시됩니다 (${sortLabel})`;
+      }
+      if (hint) hint.textContent = `${isH?'가로막대':type==='bar'?'막대':'선'} 그래프: ${xCol} 별 ${yCol} ${aggLabel}`;
       const h = isH ? Math.max(300, labels.length * 28) : '';
       if (isH) { canvas.style.height=h+'px'; canvas.style.maxHeight=h+'px'; } else { canvas.style.height=''; canvas.style.maxHeight=''; }
-      v3ChartInst = new Chart(canvas, { type:isH?'bar':type, data:{labels,datasets:[{label:`${yCol} 평균`,data,backgroundColor:clr,borderColor:bclr,borderWidth:2,tension:0.3}]}, options:{indexAxis:isH?'y':'x', plugins:{legend:{labels:{color:textColor}}}, scales:{x:{grid:{color:gridColor},ticks:{color:textColor,maxRotation:isH?0:45,font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11}},beginAtZero:false}}} });
+      v3ChartInst = new Chart(canvas, { type:isH?'bar':type, data:{labels,datasets:[{label:`${xCol}별 ${yCol} ${aggLabel}`,data,backgroundColor:clr,borderColor:bclr,borderWidth:2,tension:0.3}]}, options:{indexAxis:isH?'y':'x', plugins:{legend:{labels:{color:textColor}}}, scales:{x:{grid:{color:gridColor},ticks:{color:textColor,maxRotation:isH?0:45,font:{size:11}}},y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:11}},beginAtZero:false}}} });
     }
   }
 }
@@ -3873,12 +4541,23 @@ function refreshV3Selectors() {
   const crossRow=document.getElementById('cross-row-col');
   const crossCol=document.getElementById('cross-col-col');
   const prevX=xSel?.value, prevY=ySel?.value;
-  if(xSel) xSel.innerHTML=headers.map(h=>`<option value="${h}">${h}</option>`).join('');
-  if(ySel) ySel.innerHTML=(numCols.length?numCols:headers).map(h=>`<option value="${h}">${h}</option>`).join('');
+  // 유형 배지 포함 옵션 생성
+  function colLabel(h) {
+    const t = getColType(h, rows);
+    return t==='num' ? `${h} [숫자]` : t==='date' ? `${h} [시간]` : `${h} [기준]`;
+  }
+  const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+  const yNote = document.getElementById('v3-y-numeric-note');
+  if(xSel) xSel.innerHTML=headers.map(h=>`<option value="${h}">${colLabel(h)}</option>`).join('');
+  const colsForY = aggMethod === 'count' ? headers : (numCols.length?numCols:headers);
+  if(ySel) ySel.innerHTML=colsForY.map(h=>`<option value="${h}">${colLabel(h)}</option>`).join('');
+  if(yNote) yNote.style.display = aggMethod === 'count' ? 'none' : '';
   if(xSel&&prevX&&[...xSel.options].some(o=>o.value===prevX)) xSel.value=prevX;
   else if(xSel&&headers.length) xSel.value=headers[0];
   if(ySel&&prevY&&[...ySel.options].some(o=>o.value===prevY)) ySel.value=prevY;
-  else if(ySel&&numCols.length) ySel.value=numCols[0];
+  else if(ySel&&colsForY.length) ySel.value=colsForY[0];
+  // 축 추천 칩 업데이트
+  setTimeout(updateAxisChips, 50);
   // Series selector
   const seriesSel=document.getElementById('v3-series-col');
   const prevSeries=seriesSel?.value;
@@ -4062,7 +4741,7 @@ function l4QuickSend(text) {
 }
 
 function l4AskAndGo(text) {
-  setL4Step(4);
+  setL4Step(5);
   setTimeout(() => {
     const input = document.getElementById('l4-input');
     if (input) { input.value = text; autoResize(input); }
@@ -4070,14 +4749,35 @@ function l4AskAndGo(text) {
   }, 150);
 }
 
+// ── AI 코치 도움 받기 (컨텍스트 입력 + 프롬프트 템플릿) ──
+function coachAsk(stepId, promptTemplate) {
+  const ctx = (document.getElementById('coach-ctx-' + stepId)?.value || '').trim();
+  let fullPrompt;
+  if (ctx) {
+    fullPrompt = promptTemplate.replace(/{ctx}/g, ctx);
+  } else {
+    // 컨텍스트 없을 때: 플레이스홀더를 제거한 범용 프롬프트로 변환
+    fullPrompt = promptTemplate
+      .replace(/우리 팀 탐구 주제: \{ctx\}\.\s*/g, '')
+      .replace(/우리 팀 AI 서비스 아이디어: \{ctx\}\.\s*/g, '')
+      .replace(/우리 팀 AI 서비스: \{ctx\}\.\s*/g, '')
+      .replace(/서비스: \{ctx\}\.\s*/g, '')
+      .replace(/우리 팀 프로젝트: \{ctx\}\.\s*/g, '')
+      .replace(/\{ctx\}/g, '')
+      .trim();
+  }
+  l4AskAndGo(fullPrompt);
+}
+
 async function l4ValidateService() {
-  const inp = document.getElementById('l4-svc-input')?.value?.trim();
-  const proc = document.getElementById('l4-svc-process')?.value?.trim();
-  const out = document.getElementById('l4-svc-output')?.value?.trim();
-  const usr = document.getElementById('l4-svc-user')?.value?.trim();
-  if (!inp && !proc && !out) { alert('AI 서비스 설계를 먼저 작성하세요.'); return; }
-  const design = `내 AI 서비스 설계를 검토해줘:\n[입력 데이터] ${inp||'(미작성)'}\n[AI 처리] ${proc||'(미작성)'}\n[출력 결과] ${out||'(미작성)'}\n[사용자] ${usr||'(미작성)'}`;
-  setL4Step(4);
+  const ctx = (document.getElementById('coach-ctx-6')?.value || '').trim();
+  if (!ctx) {
+    showToast('우리 팀 AI 서비스 아이디어를 먼저 입력해주세요.', 'warning');
+    document.getElementById('coach-ctx-6')?.focus();
+    return;
+  }
+  const design = `우리 팀 AI 서비스 아이디어: ${ctx}\n\n이 아이디어에 대해 피드백해줘. 강점, 보완할 점, 실현 가능성, 사용자 관점에서 개선 방향을 알려줘.`;
+  setL4Step(5);
   const input = document.getElementById('l4-input');
   if (input) { input.value = design; input.style.height = 'auto'; }
   sendL4Message();
@@ -4452,17 +5152,74 @@ document.addEventListener('click', e => {
   });
 })();
 
+// ── 축 추천 칩 렌더 ──
+function updateAxisChips() {
+  if (!lesson4Data) return;
+  const { headers, rows } = lesson4Data;
+  const xRecs = document.getElementById('v3-x-recs');
+  if (xRecs) {
+    const catCols = headers.filter(h => getColType(h, rows) !== 'num');
+    xRecs.innerHTML = catCols.slice(0, 4).map(h =>
+      `<span class="axis-chip axis-chip-x" onclick="document.getElementById('v3-x-col').value='${h.replace(/'/g,"\\'")}';renderV3Chart();" title="X축에 적용">📌 ${h}</span>`
+    ).join('');
+  }
+  checkYAxisWarning(document.getElementById('v3-y-col')?.value || '', 'v3-y-warn');
+}
+
+// ── AI 유형 카드 선택 ──
+function selectAIType(el, type) {
+  document.querySelectorAll('#ai-type-grid .ai-type-card').forEach(c => {
+    c.classList.remove('selected');
+    c.style.opacity = '0.65';
+  });
+  el.classList.add('selected');
+  el.style.opacity = '1';
+  const sel = document.getElementById('ai-type-selected');
+  if (sel) {
+    sel.style.display = 'block';
+    sel.innerHTML = `✅ <b>${type}</b>을(를) 선택했어요! 아래 칸을 채운 뒤 AI 피드백을 받아보세요.`;
+  }
+}
+
 // ── Y축 경고: 코드/번호 컬럼 선택 시 ──
 function checkYAxisWarning(colName, warnId) {
   const el = document.getElementById(warnId);
   if (!el) return;
+  const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+  if (aggMethod === 'count') { el.style.display = 'none'; return; }
   const bad = /코드|번호|ID|아이디|식별|일련|serial|code|index|idx/i.test(colName);
   if (bad) {
+    const verb = {sum:'합산',max:'최댓값 계산',min:'최솟값 계산'}[aggMethod] || '평균';
     el.style.display = 'block';
-    el.innerHTML = `⚠️ <b>${colName}</b>는 식별 코드예요!<br>코드 번호를 평균내면 의미가 없어요.<br>학생 수·점수·비율 같은 컬럼을 골라보세요.`;
+    el.innerHTML = `⚠️ <b>${colName}</b>는 식별 코드예요!<br>코드 번호를 ${verb}하면 의미가 없어요.<br>학생 수·점수·비율 같은 컬럼을 골라보세요.`;
   } else {
     el.style.display = 'none';
   }
+}
+
+// ── 집계 방식 변경 핸들러 ──
+function onAggChange() {
+  if (!lesson4Data) { renderV3Chart(); return; }
+  const { headers, rows } = lesson4Data;
+  const aggMethod = document.getElementById('v3-agg-method')?.value || 'mean';
+  const yNote = document.getElementById('v3-y-numeric-note');
+  const ySel = document.getElementById('v3-y-col');
+  const prevY = ySel?.value;
+  function colLabel(h) {
+    const t = getColType(h, rows);
+    return t==='num' ? `${h} [숫자]` : t==='date' ? `${h} [시간]` : `${h} [기준]`;
+  }
+  if (aggMethod === 'count') {
+    if (yNote) yNote.style.display = 'none';
+    if (ySel) ySel.innerHTML = headers.map(h => `<option value="${h}">${colLabel(h)}</option>`).join('');
+  } else {
+    if (yNote) yNote.style.display = '';
+    const numCols = getEffectiveNumCols(headers, rows);
+    if (ySel) ySel.innerHTML = (numCols.length ? numCols : headers).map(h => `<option value="${h}">${colLabel(h)}</option>`).join('');
+  }
+  if (ySel && prevY && [...ySel.options].some(o => o.value === prevY)) ySel.value = prevY;
+  checkYAxisWarning(ySel?.value || '', 'v3-y-warn');
+  renderV3Chart();
 }
 
 // ── Chat Mode Toggle ──
@@ -4560,7 +5317,7 @@ async function analyzeWriteDiff() {
     const box = document.getElementById('compare-analysis');
     box.style.display = 'block';
     box.innerHTML = `<div style="font-size:13px;font-weight:500;color:var(--accent2);margin-bottom:10px;">🔍 차이 분석 결과</div><div style="font-size:13px;line-height:1.8;">${renderMarkdown(data.reply)}</div>`;
-    box.scrollIntoView({ behavior: 'smooth' });
+    // scrollIntoView removed to prevent page jump
   } catch(e) { alert('오류: ' + e.message); }
   finally { btn.textContent = '🔍 차이 분석하기'; btn.disabled = false; }
 }
@@ -4568,8 +5325,7 @@ async function analyzeWriteDiff() {
 function showRewriteArea() {
   const area = document.getElementById('rewrite-area');
   area.style.display = 'block';
-  area.scrollIntoView({ behavior: 'smooth' });
-  document.getElementById('rewrite-ta').focus();
+  // scrollIntoView and focus removed to prevent page jump
 }
 
 // ── Self Reflection ──
@@ -4637,11 +5393,12 @@ function renderMarkdown(text) {
 //  팀 진행 기록 자동저장 시스템
 // ═══════════════════════════════════════════════════════
 
-const L4_SAVE_FIELDS = ['l4-svc-input','l4-svc-process','l4-svc-output','l4-svc-user'];
-const L4_CHECK_IDS   = ['l4-chk-1','l4-chk-2','l4-chk-3','l4-chk-4','l4-chk-5','l4-chk-6'];
+const L4_SAVE_FIELDS = ['coach-ctx-1','coach-ctx-6','coach-ctx-7','coach-ctx-8'];
+const L4_CHECK_IDS   = ['l4-chk-1','l4-chk-2','l4-chk-3','l4-chk-4','l4-chk-5','l4-chk-6','l4-chk-7','l4-chk-8'];
 
 let saveDebounceTimer = null;
 let teamProgressData  = null;
+let isSaving          = false;
 
 function getTeamKey() {
   return currentTeam ? 'hyfl_l4_' + currentTeam.replace(/\s/g,'_') : null;
@@ -4659,6 +5416,7 @@ function collectSaveData() {
     completedSteps: [...completedProjectStepNums],
     fields,
     checks,
+    histories: histories.slice(0, 15),
     updatedAt: new Date().toISOString()
   };
 }
@@ -4719,7 +5477,7 @@ function restoreSaveData(data) {
   if (data.fields) {
     Object.entries(data.fields).forEach(([id, val]) => {
       const el = document.getElementById(id);
-      if (el) { el.value = val; autoResize && autoResize(el); }
+      if (el) el.value = val;
     });
   }
   if (data.checks) {
@@ -4728,6 +5486,14 @@ function restoreSaveData(data) {
       if (el) el.checked = checked;
     });
   }
+  if (data.histories && Array.isArray(data.histories) && data.histories.length > 0) {
+    // 서버에서 복원된 기록이 로컬보다 많으면 병합 (중복 제거 없이 서버 우선)
+    if (data.histories.length > histories.length) {
+      histories = data.histories;
+      localStorage.setItem('chat_history_' + currentTeam, JSON.stringify(histories));
+      renderHistory();
+    }
+  }
 }
 
 function scheduleAutosave() {
@@ -4735,6 +5501,144 @@ function scheduleAutosave() {
   showSaveStatus('saving');
   clearTimeout(saveDebounceTimer);
   saveDebounceTimer = setTimeout(saveTeamProgress, 1500);
+}
+
+async function saveL4StepData(step) {
+  if (isSaving) return;
+  if (!currentTeam) {
+    showToast('팀 정보가 없습니다. 다시 로그인해주세요.', 'error');
+    return;
+  }
+
+  // 필수 입력 검증 (Step 1)
+  if (step === 1) {
+    const v1 = (document.getElementById('prob-def-1')?.value || '').trim();
+    const v2 = (document.getElementById('prob-def-2')?.value || '').trim();
+    if (!v1 || !v2) {
+      showToast('해결하고 싶은 문제와 중요한 이유를 모두 작성해주세요.', 'warning');
+      if (!v1) document.getElementById('prob-def-1')?.focus();
+      else document.getElementById('prob-def-2')?.focus();
+      return;
+    }
+  }
+
+  const btn = document.getElementById('save-btn-step' + step);
+  isSaving = true;
+  showSaveStatus('saving');
+  if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
+  clearTimeout(saveDebounceTimer);
+
+  try {
+    const key = getTeamKey();
+    const data = collectSaveData();
+
+    // localStorage 백업 저장
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
+
+    // 서버 저장 (메인)
+    const res = await fetch('/api/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'saveProgress', teamId: currentTeam, progress: data })
+    });
+    if (!res.ok) throw new Error('서버 응답 오류: ' + res.status);
+
+    showSaveStatus('saved');
+    showToast('저장되었습니다!', 'success');
+  } catch(e) {
+    showSaveStatus('error');
+    showToast('저장에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+  } finally {
+    isSaving = false;
+    if (btn) { btn.disabled = false; btn.innerHTML = '💾 저장'; }
+  }
+}
+
+// ── 데이터 찾기 도우미 ──
+function setDataTopic(topic) {
+  const input = document.getElementById('data-topic-input');
+  if (input) { input.value = topic; input.focus(); }
+  suggestDataByTopic();
+}
+
+async function suggestDataByTopic() {
+  const topic = (document.getElementById('data-topic-input')?.value || '').trim();
+  if (!topic) { alert('관심 주제를 입력해주세요.'); return; }
+
+  const btn = document.getElementById('data-suggest-btn');
+  const result = document.getElementById('data-suggest-result');
+  const loading = document.getElementById('data-suggest-loading');
+  if (btn) { btn.disabled = true; btn.textContent = '추천 중...'; }
+  if (result) result.style.display = 'none';
+  if (loading) loading.style.display = 'block';
+
+  const prompt = `학생이 "${topic}" 주제로 교육 데이터 프로젝트를 하려고 합니다.
+다음 형식으로 한국어로 답해주세요 (마크다운 없이 깔끔하게):
+
+🎯 주제 분석
+[이 주제로 탐구할 수 있는 교육 문제 1~2문장]
+
+📥 추천 데이터 사이트 (2~3개)
+• 사이트명: 찾을 수 있는 데이터 설명
+• 사이트명: 찾을 수 있는 데이터 설명
+
+🔑 추천 검색 키워드 (3~5개)
+• 키워드1 / 키워드2 / 키워드3
+
+📁 권장 데이터 형태
+• 형태: 이유 설명
+
+💡 데이터를 찾을 때 팁
+[1~2개의 실용적인 조언]`;
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: currentModel, messages: [{ role: 'user', content: prompt }] })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    if (result) {
+      result.style.display = 'block';
+      result.innerHTML = `<div style="font-size:12px;font-weight:600;color:#0284c7;margin-bottom:8px;">📊 "${escapeHtml(topic)}" 데이터 추천 결과</div><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;">${escapeHtml(data.reply)}</div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="l4AskAndGo('${escapeHtml(topic)} 주제로 교육 데이터 프로젝트를 시작하려 해요. 어떤 공공데이터를 어디서 찾고, 어떻게 분석하면 좋을지 단계별로 알려주세요.')" style="font-size:11px;padding:5px 12px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI와 더 자세히 얘기하기 →</button>
+        </div>`;
+    }
+  } catch(e) {
+    if (result) {
+      const kws = [topic, `${topic} 통계`, `${topic} 현황`, `교육 ${topic}`];
+      const kwHtml = kws.map(k => `<button onclick="document.getElementById('data-topic-input').value='${k.replace(/'/g,"\\'")}';suggestDataByTopic();" style="font-size:11px;padding:4px 10px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:20px;color:#0284c7;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${escapeHtml(k)}</button>`).join('');
+      result.style.display = 'block';
+      result.innerHTML = `
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <span style="font-size:18px;">😅</span>
+          <div style="font-size:13px;font-weight:600;color:var(--text);">지금은 AI 추천 연결이 원활하지 않아요</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">아래 추천 검색어와 사이트에서 직접 데이터를 찾아볼 수 있어요.</div>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px;">💡 추천 검색어</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">${kwHtml}</div>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:6px;">🔗 데이터 찾기 추천 사이트</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <a href="https://edss.moe.go.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">교육데이터플랫폼 →</a>
+          <a href="https://edudata.keris.or.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">교육데이터맵 →</a>
+          <a href="https://schoolinfo.go.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">학교알리미 →</a>
+          <a href="https://kess.kedi.re.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">교육통계(KESS) →</a>
+          <a href="https://data.go.kr" target="_blank" style="font-size:11px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);text-decoration:none;">공공데이터포털 →</a>
+        </div>`;
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '추천받기 ✨'; }
+    if (loading) loading.style.display = 'none';
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function showSaveStatus(state) {
@@ -4763,7 +5667,7 @@ function showSaveStatus(state) {
   }
 }
 
-async function checkForSavedProgress() {
+async function checkForSavedProgress(autoResume = false) {
   // 로컬스토리지 먼저 확인 (빠름)
   const local = loadTeamProgress();
   // 서버에서도 확인 (더 최신일 수 있음)
@@ -4779,7 +5683,14 @@ async function checkForSavedProgress() {
   }
   if (!data || !data.updatedAt) return;
   teamProgressData = data;
-  showResumeBanner(data);
+  restoreSaveData(data);
+  if (autoResume) {
+    // 새로고침 자동 복원: 바로 마지막 단계로 이동
+    setL4Step(data.currentL4Step || 1);
+  } else {
+    // 일반 로그인: "이어서 하기" 배너 표시
+    showResumeBanner(data);
+  }
 }
 
 function showResumeBanner(data) {
@@ -4807,7 +5718,7 @@ function showResumeBanner(data) {
 function resumeProgress() {
   if (!teamProgressData) return;
   document.getElementById('l4-resume-banner').style.display = 'none';
-  restoreSaveData(teamProgressData);
+  // 필드는 이미 checkForSavedProgress에서 복원됨 — 여기서는 마지막 단계로 이동만
   setL4Step(teamProgressData.currentL4Step || 1);
   showSaveStatus('saved');
 }
@@ -4848,6 +5759,50 @@ function showConfirmModal(html, onConfirm) {
   overlay.querySelector('#_confirm_yes').onclick = () => { overlay.remove(); onConfirm(); };
 }
 
+// ── 범용 토스트 (success / error / warning) ──
+function showToast(msg, type) {
+  const bg = { success:'rgba(16,185,129,0.95)', error:'rgba(239,68,68,0.95)', warning:'rgba(245,158,11,0.95)' }[type] || 'rgba(16,185,129,0.95)';
+  const icon = { success:'✅', error:'❌', warning:'⚠️' }[type] || '✅';
+  const toast = document.createElement('div');
+  toast.textContent = icon + ' ' + msg;
+  toast.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:${bg};color:#fff;padding:10px 22px;border-radius:12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;z-index:9999;box-shadow:0 4px 18px rgba(0,0,0,0.22);opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;white-space:nowrap;`;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity='1'; toast.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(() => { toast.style.opacity='0'; setTimeout(() => toast.remove(), 350); }, 2800);
+}
+
+// ── 세션 토스트 ──
+function showSessionToast(msg) {
+  const toast = document.createElement('div');
+  toast.textContent = msg || '✅ 이전 작업을 불러왔습니다';
+  toast.style.cssText = "position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(16,185,129,0.95);color:#fff;padding:10px 22px;border-radius:12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;z-index:9999;box-shadow:0 4px 18px rgba(0,0,0,0.22);opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;";
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity='1'; toast.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(() => { toast.style.opacity='0'; setTimeout(() => toast.remove(), 350); }, 2800);
+}
+
+// ── 세션 자동 복원 (새로고침 후 로그인 유지) ──
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const sess = JSON.parse(localStorage.getItem('hyfl_session') || 'null');
+    if (sess && sess.team && sess.ts && (Date.now() - sess.ts) < 86400000) {
+      currentTeam = sess.team;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('team-chip').textContent = currentTeam;
+      document.getElementById('app').classList.add('visible');
+      Object.keys(lessonMsgStore).forEach(k => delete lessonMsgStore[k]);
+      messages = []; histories = [];
+      completedProjectStepNums.clear(); completedProjectStepNums.add(1);
+      loadHistory();
+      updateProjFlow(currentL4Step || 1);
+      setLesson(0, document.getElementById('btn-free'));
+      // autoResume=true: 마지막 단계로 자동 이동
+      setTimeout(() => checkForSavedProgress(true), 300);
+      setTimeout(() => showSessionToast('✅ 이전 작업을 불러왔습니다'), 700);
+    }
+  } catch(e) {}
+});
+
 // 텍스트 입력 자동저장 (이벤트 위임)
 document.addEventListener('DOMContentLoaded', () => {
   const panel = document.getElementById('lesson4-panel');
@@ -4861,6 +5816,140 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.type === 'checkbox') scheduleAutosave();
   });
 });
+
+// ── 도움말 모달 표시 ──
+function showHelp() {
+  document.getElementById('help-modal').style.display = 'flex';
+}
+
+// ── 기획서 자동 생성 ──
+/**
+ * 이전 단계(Step 5)에서 입력한 내용을 수집해
+ * AI에게 기획서 초안 생성을 요청합니다.
+ */
+async function generatePlan() {
+  // 코칭 컨텍스트 입력 (우선 사용)
+  const ctxSummary = (document.getElementById('coach-ctx-8')?.value || '').trim();
+  // 이전 단계 입력값 수집 (하위 호환)
+  const aiType = document.getElementById('ai-type-selected')?.textContent?.trim() || '';
+
+  const genDiv  = document.getElementById('plan-generated');
+  const copyWrap = document.getElementById('plan-copy-btn-wrap');
+  genDiv.style.display  = 'block';
+  copyWrap.style.display = 'none';
+  genDiv.textContent = '⏳ AI가 기획서를 작성하는 중...';
+
+  // 프롬프트 구성
+  const prompt = ctxSummary
+    ? `아래 학생 팀의 프로젝트 요약을 바탕으로 AI 서비스 기획서 초안을 PPT 슬라이드용으로 작성해줘.
+
+[팀 프로젝트 요약]
+${ctxSummary}
+${aiType ? `[선택 AI 유형] ${aiType}` : ''}
+
+[기획서 형식]
+다음 5가지 항목을 포함해 명확하고 간결하게 작성해줘:
+① 문제 정의
+② 데이터 분석 결과 (핵심 발견 2~3가지)
+③ AI 활용 아이디어
+④ 서비스 구조 (사용자→입력→AI처리→출력)
+⑤ 기대 효과`
+    : `학생 AI 서비스 기획 프로젝트 기획서 초안 양식을 만들어줘.
+각 항목에 작성 가이드와 예시를 포함해서 학생이 쉽게 채울 수 있도록 해줘:
+① 문제 정의
+② 데이터 분석 결과 (핵심 발견 2~3가지)
+③ AI 활용 아이디어
+④ 서비스 구조 (사용자→입력→AI처리→출력)
+⑤ 기대 효과`;
+
+  try {
+    // AI 호출 (비스트리밍)
+    const reply = await callAI(currentModel, [{ role: 'user', content: prompt }]);
+    genDiv.textContent = reply;
+    copyWrap.style.display = 'block';
+  } catch(e) {
+    genDiv.textContent = `❌ 생성 실패: ${e.message}\n\n직접 작성하거나 "AI에게 기획서 도움 요청" 버튼을 눌러보세요.`;
+  }
+}
+
+/** 생성된 기획서를 클립보드에 복사 */
+function copyPlan() {
+  const text = document.getElementById('plan-generated')?.textContent || '';
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('#plan-copy-btn-wrap button');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✅ 복사됨!'; setTimeout(() => btn.textContent = orig, 1500); }
+  }).catch(() => alert('복사 실패: 브라우저가 클립보드를 지원하지 않습니다.'));
+}
+
+// ── XML 데이터 가져오기 ──
+/**
+ * 공공데이터 API URL에서 XML 데이터를 가져와
+ * JSON으로 변환 후 lesson4Data로 로드합니다.
+ * CORS 정책으로 인해 동일 출처가 아니면 실패할 수 있습니다.
+ */
+async function fetchXmlData() {
+  const url    = (document.getElementById('xml-url-input')?.value || '').trim();
+  const status = document.getElementById('xml-status');
+  if (!url) { status.style.display='block'; status.textContent='❌ URL을 입력해주세요.'; status.style.color='#ef4444'; return; }
+
+  status.style.display = 'block';
+  status.style.color   = 'var(--muted)';
+  status.textContent   = '⏳ 데이터 불러오는 중...';
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+
+    // DOMParser로 XML 파싱
+    const parser = new DOMParser();
+    const xml    = parser.parseFromString(text, 'application/xml');
+    const parseErr = xml.querySelector('parsererror');
+    if (parseErr) throw new Error('XML 파싱 실패: 올바른 XML 형식이 아닙니다');
+
+    // 모든 자식 요소 수집 → 첫 번째 반복 요소를 데이터 단위로 사용
+    const root     = xml.documentElement;
+    const items    = Array.from(root.querySelectorAll('*')).filter(el => el.children.length === 0 || el.tagName === root.firstElementChild?.tagName);
+    const rowEls   = Array.from(root.children).filter(el => el.tagName !== 'totalCount' && el.tagName !== 'numOfRows' && el.tagName !== 'pageNo' && el.tagName !== 'resultCode' && el.tagName !== 'resultMsg');
+
+    // 컬럼 헤더 추출
+    const headers = rowEls.length > 0
+      ? [...new Set(rowEls.flatMap(el => Array.from(el.children).map(c => c.tagName)))]
+      : [];
+
+    if (!headers.length) {
+      // 단순 XML: leaf 노드를 행으로 처리
+      const leaves = Array.from(root.querySelectorAll('*')).filter(el => el.children.length === 0);
+      const rows   = leaves.map(el => ({ 항목: el.tagName, 값: el.textContent.trim() }));
+      lesson4Data  = { headers: ['항목', '값'], rows, filename: 'xml_data' };
+    } else {
+      const rows = rowEls.map(el => {
+        const obj = {};
+        headers.forEach(h => { obj[h] = el.querySelector(h)?.textContent?.trim() ?? ''; });
+        return obj;
+      });
+      lesson4Data = { headers, rows, filename: 'xml_data' };
+    }
+
+    // 사이드바 통계 갱신
+    renderLesson4Stats(lesson4Data.headers, lesson4Data.rows, false);
+    document.getElementById('l4-stats-area').style.display = 'block';
+    status.textContent = `✅ XML 로드 성공: ${lesson4Data.rows.length}행 × ${lesson4Data.headers.length}열`;
+    status.style.color = '#10b981';
+
+    // 데이터 이해 단계로 이동
+    setTimeout(() => setL4Step(3), 800);
+  } catch(e) {
+    status.style.color = '#ef4444';
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+      status.textContent = '❌ CORS 오류: 이 URL은 브라우저에서 직접 접근이 불가합니다.\n💡 공공데이터포털에서 CSV로 직접 다운로드해 업로드해주세요.';
+    } else {
+      status.textContent = `❌ 오류: ${e.message}`;
+    }
+    console.error('XML fetch 오류:', e);
+  }
+}
 
 // 페이지 이탈 시 저장
 window.addEventListener('beforeunload', () => {
