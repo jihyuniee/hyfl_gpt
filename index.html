@@ -248,18 +248,22 @@ Chart.register(piePercentPlugin);
     padding: 16px 12px; overflow-y: auto;
   }
 
-  /* ── 사이드바 프로젝트 흐름 (7단계) ── */
-  .ps-row { display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:6px;font-size:11px;transition:background 0.1s; }
-  .ps-circle { width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0; }
-  .ps-row.ps-done   { color:#10b981; }
-  .ps-row.ps-active { background:rgba(108,99,255,0.18);color:var(--accent2);font-weight:700;border-left:3px solid var(--accent);padding-left:5px;border-radius:0 6px 6px 0; }
-  .ps-row.ps-upcoming { color:var(--muted); }
-  .ps-row.ps-done   .ps-circle { background:rgba(16,185,129,0.2);color:#10b981; }
-  .ps-row.ps-active .ps-circle { background:var(--accent);color:#fff;box-shadow:0 0 0 3px rgba(108,99,255,0.25); }
-  .ps-row.ps-upcoming .ps-circle { background:var(--surface2);color:var(--muted); }
-  .ps-connector { width:2px;height:6px;margin-left:14px;border-radius:1px; }
-  .ps-connector.done { background:rgba(16,185,129,0.35); }
-  .ps-connector.upcoming { background:rgba(255,255,255,0.07); }
+  /* ── 사이드바 AI 코치 메뉴 ── */
+  .ps-row {
+    display:flex; align-items:center; gap:8px;
+    padding:7px 10px; border-radius:7px;
+    font-size:12px; cursor:pointer;
+    transition:background 0.15s, color 0.15s;
+    margin-bottom:1px;
+  }
+  .ps-row.ps-upcoming { color:var(--text); opacity:0.75; }
+  .ps-row.ps-upcoming:hover { background:var(--surface2); opacity:1; }
+  .ps-row.ps-active {
+    background:rgba(108,99,255,0.12);
+    color:var(--accent2); font-weight:600;
+    border-left:2px solid var(--accent2);
+    padding-left:8px;
+  }
 
   /* ── 본문 수평 서브탭 (6단계) ── */
   #l4-subtab-nav { display:flex;overflow-x:auto;flex-shrink:0;background:var(--surface);border-bottom:2px solid var(--border);scrollbar-width:none; }
@@ -2726,6 +2730,7 @@ async function doLogin() {
   Object.keys(lessonMsgStore).forEach(k => delete lessonMsgStore[k]);
   messages = [];
   histories = [];
+  currentTopicMenu = null;
   completedProjectStepNums.clear();
   completedProjectStepNums.add(1);
 
@@ -3458,6 +3463,7 @@ function readFileWithEncoding(file) {
 let l4Messages = [];
 let l4AutoAnalysisPending = false; // set true on data upload, cleared after auto-analysis runs
 let _convLoaded = false;           // true once server conversation has been loaded
+let currentTopicMenu = null;       // which topic menu item is highlighted (1-8), set on click only
 
 async function parseOneFile(file) {
   let headers, rows;
@@ -4240,27 +4246,29 @@ function setCurrentProjectStep(projStep) {
   currentProjectStep = projStep;
 }
 
-// 사이드바 탐구 주제 메뉴 렌더 (완료 추적 없이 현재 주제만 강조)
-function renderSidebarProjFlow(activeProjStep) {
+// 사이드바 탐구 주제 메뉴 렌더 — currentTopicMenu 기준으로 하이라이트 (단계 완료 추적 없음)
+function renderSidebarProjFlow() {
   const container = document.getElementById('sidebar-proj-steps');
   if (container) {
     let html = '';
     PROJ_STEPS.forEach((s) => {
-      const isActive = s.n === activeProjStep;
+      const isActive = s.n === currentTopicMenu;
       const cls = isActive ? 'ps-active' : 'ps-upcoming';
-      html += `<div class="ps-row ${cls}" onclick="goToProjectStep(${s.n})" style="cursor:pointer;" title="${s.label} 주제로 대화하기"><span>${s.icon} ${s.label}</span></div>`;
+      html += `<div class="ps-row ${cls}" onclick="goToProjectStep(${s.n})" title="${s.label}로 대화 시작"><span>${s.icon} ${s.label}</span></div>`;
     });
     container.innerHTML = html;
   }
   const lbl = document.getElementById('sidebar-proj-label');
-  const activeStep = PROJ_STEPS.find(s => s.n === activeProjStep);
-  if (lbl) lbl.textContent = activeStep ? `탐구 중: ${activeStep.label}` : '';
+  if (lbl) {
+    const active = currentTopicMenu ? PROJ_STEPS.find(s => s.n === currentTopicMenu) : null;
+    lbl.textContent = active ? `현재: ${active.label}` : '';
+  }
 }
 
 function updateProjFlow(currentL4StepNum) {
   const projStep = L4_TO_PROJ[currentL4StepNum] || 1;
   setCurrentProjectStep(projStep);
-  renderSidebarProjFlow(projStep);
+  renderSidebarProjFlow(); // uses currentTopicMenu, not step number
   updateStepGuideBanner(currentL4StepNum);
   updateL4SubTabs(currentL4StepNum);
 }
@@ -4280,6 +4288,9 @@ const PROJ_TO_LESSON = {
 function goToProjectStep(projStep) {
   const target = PROJ_TO_LESSON[projStep];
   if (!target) return;
+  // 클릭한 메뉴를 즉시 강조 (단계 완료 상태와 무관)
+  currentTopicMenu = projStep;
+  renderSidebarProjFlow();
   const btn = document.querySelector(`[onclick="setLesson(${target.lesson},this)"]`);
   setLesson(target.lesson, btn);
   // 데이터 단계(2·3·4)는 해당 뷰로, 나머지는 채팅(Step 5)으로 이동 + 주제 프롬프트 삽입
@@ -5438,9 +5449,6 @@ function collectSaveData() {
   L4_CHECK_IDS.forEach(id => { const el = document.getElementById(id); if (el) checks[id] = el.checked; });
   return {
     teamId: currentTeam,
-    currentL4Step,
-    currentProjectStep,
-    completedSteps: [...completedProjectStepNums],
     fields,
     checks,
     histories: histories.slice(0, 15),
@@ -5493,14 +5501,6 @@ function loadTeamProgress() {
 
 function restoreSaveData(data) {
   if (!data) return;
-  // 완료 단계 복원 (누적 Set에 추가)
-  if (data.completedSteps && Array.isArray(data.completedSteps)) {
-    data.completedSteps.forEach(s => completedProjectStepNums.add(s));
-  }
-  if (data.currentProjectStep) {
-    currentProjectStep = data.currentProjectStep;
-    renderSidebarProjFlow(currentProjectStep);
-  }
   if (data.fields) {
     Object.entries(data.fields).forEach(([id, val]) => {
       const el = document.getElementById(id);
@@ -5711,11 +5711,8 @@ async function checkForSavedProgress(autoResume = false) {
   if (!data || !data.updatedAt) return;
   teamProgressData = data;
   restoreSaveData(data);
-  if (autoResume) {
-    // 새로고침 자동 복원: 바로 마지막 단계로 이동
-    setL4Step(data.currentL4Step || 1);
-  } else {
-    // 일반 로그인: "이어서 하기" 배너 표시
+  // 단계 자동 복원 제거 — 대화만 복원되므로 특정 단계로 이동하지 않음
+  if (!autoResume) {
     showResumeBanner(data);
   }
 }
@@ -5725,14 +5722,13 @@ function showResumeBanner(data) {
   if (!banner) return;
   const d = new Date(data.updatedAt);
   const dateStr = isNaN(d) ? '' : d.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
-  const stepTitle = L4_STEP_META[data.currentL4Step]?.title || `STEP ${data.currentL4Step}`;
   banner.style.display = 'block';
   banner.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
       <div>
         <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;">📂 지난 시간 기록이 있어요!</div>
         <div style="font-size:11px;color:var(--muted);">
-          ${dateStr ? dateStr + ' 저장 · ' : ''}마지막 단계: <b style="color:var(--accent2);">${stepTitle}</b>
+          ${dateStr ? dateStr + ' 저장됨 · ' : ''}이전 대화가 자동으로 불러와집니다
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -5743,23 +5739,18 @@ function showResumeBanner(data) {
 }
 
 function resumeProgress() {
-  if (!teamProgressData) return;
   document.getElementById('l4-resume-banner').style.display = 'none';
-  // 필드는 이미 checkForSavedProgress에서 복원됨 — 여기서는 마지막 단계로 이동만
-  setL4Step(teamProgressData.currentL4Step || 1);
+  // 대화는 loadConversation()으로 이미 복원됨 — 단계 이동 없이 배너만 닫기
   showSaveStatus('saved');
 }
 
 function confirmResetProgress() {
-  showConfirmModal('모든 기록이 삭제됩니다.<br>정말 새로 시작할까요?', () => {
+  showConfirmModal('저장된 필드 기록이 삭제됩니다.<br>정말 새로 시작할까요?', () => {
     const key = getTeamKey();
     if (key) localStorage.removeItem(key);
     teamProgressData = null;
-    // 완료 단계 초기화 (문제 정의만 유지)
-    completedProjectStepNums.clear();
-    completedProjectStepNums.add(1);
-    currentProjectStep = 2;
-    renderSidebarProjFlow(2);
+    currentTopicMenu = null;
+    renderSidebarProjFlow();
     document.getElementById('l4-resume-banner').style.display = 'none';
   });
 }
@@ -5819,6 +5810,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('app').classList.add('visible');
       Object.keys(lessonMsgStore).forEach(k => delete lessonMsgStore[k]);
       messages = []; histories = [];
+      currentTopicMenu = null;
       completedProjectStepNums.clear(); completedProjectStepNums.add(1);
       loadHistory();
       updateProjFlow(currentL4Step || 1);
