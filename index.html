@@ -196,6 +196,13 @@ Chart.register(piePercentPlugin);
   .step-card { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px; }
   .step-card-title { font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px; }
   .step-card-hint { font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.6; }
+  /* ── AI 코치 버튼 그리드 ── */
+  .coach-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+  .coach-btn { padding:10px 12px;border:1px solid rgba(108,99,255,0.22);border-radius:10px;background:rgba(108,99,255,0.05);color:var(--accent2);font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;text-align:left;line-height:1.5;transition:background 0.15s; }
+  .coach-btn:hover { background:rgba(108,99,255,0.12); }
+  .coach-btn-wide { grid-column:span 2; }
+  /* ── 구글 클래스룸 안내 배너 ── */
+  .gc-notice { background:linear-gradient(90deg,rgba(66,133,244,0.09),rgba(52,168,83,0.07));border-bottom:1px solid rgba(66,133,244,0.18);padding:9px 20px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text);flex-shrink:0; }
   /* ── AI 유형 카드 ── */
   .ai-type-card { cursor:pointer;border-radius:10px;text-align:center;transition:all 0.15s;padding:10px 6px; }
   .ai-type-card:hover { transform:scale(1.04);filter:brightness(1.08); }
@@ -816,9 +823,9 @@ Chart.register(piePercentPlugin);
       <!-- 자유 대화 -->
       <button class="lesson-btn active" onclick="setLesson(0,this)" id="btn-free" style="margin-bottom:4px;">🏠 자유 대화</button>
 
-      <!-- ══ 프로젝트 전체 흐름 (7단계) ══ -->
+      <!-- ══ AI 코치 메뉴 ══ -->
       <div style="height:1px;background:var(--border);margin:8px 0;"></div>
-      <div class="sidebar-label">🗂️ 프로젝트 진행 현황</div>
+      <div class="sidebar-label">🤖 AI 코치 메뉴</div>
       <div id="sidebar-proj-flow">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
           <div id="sidebar-proj-label" style="font-size:9px;color:var(--muted);">1 / 7 완료</div>
@@ -1220,6 +1227,14 @@ Chart.register(piePercentPlugin);
           <!-- 지난 기록 이어하기 배너 -->
           <div id="l4-resume-banner"></div>
 
+          <!-- 구글 클래스룸 안내 배너 -->
+          <div id="gc-notice-banner" class="gc-notice">
+            <span>✏️ <b>활동지</b>는 <span style="color:#4285F4;font-weight:600;">구글클래스룸</span>에서 작성하고,
+            이 플랫폼은 <b>막힐 때 AI 코치에게 도움받는 곳</b>으로 활용하세요.</span>
+            <button onclick="document.getElementById('gc-notice-banner').style.display='none'"
+              style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 12px;flex-shrink:0;">✕</button>
+          </div>
+
           <!-- ① STEP 1: 문제 정의 -->
           <div id="l4-view-1" style="flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:640px;margin:0 auto;">
@@ -1238,36 +1253,28 @@ Chart.register(piePercentPlugin);
                 <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 데이터로 이 문제를 탐구할 수 있다고 생각한다</label>
               </div>
 
-              <!-- 문제 정의 폼 -->
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;">
-                <div style="font-weight:700;font-size:15px;margin-bottom:16px;">📝 문제 정의서</div>
-
-                <div style="margin-bottom:22px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">1. 우리 팀이 해결하고 싶은 문제는? <span style="color:#ef4444;font-size:11px;">*필수</span></label>
-                  <textarea id="prob-def-1" rows="5" oninput="autoResizeForm(this)" placeholder="예) 우리 동네에서 쓰레기 불법 투기 문제가 심각한데, 어느 지역에 집중적으로 발생하는지 파악하기 어렵다. 단속 인력도 부족하고, 주민들도 어디에 신고해야 할지 몰라 방치되는 경우가 많다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;min-height:120px;font-family:'Noto Sans KR',sans-serif;"></textarea>
+              <!-- AI 코치 도움 받기 -->
+              <div class="step-card" style="border:2px solid rgba(108,99,255,0.22);background:linear-gradient(135deg,rgba(108,99,255,0.04),rgba(118,75,162,0.03));">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div class="step-card-title" style="margin-bottom:0;">AI 코치에게 도움받기</div>
+                  <span style="font-size:10px;background:var(--accent2);color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI</span>
                 </div>
-
-                <div style="margin-bottom:22px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">2. 이 문제가 중요한 이유는? <span style="color:#ef4444;font-size:11px;">*필수</span></label>
-                  <textarea id="prob-def-2" rows="4" oninput="autoResizeForm(this)" placeholder="예) 불법 투기가 많은 지역은 주민 생활환경이 크게 나빠지고, 지자체의 쓰레기 처리 비용도 증가한다. 또한 환경 오염으로 이어져 지역 전체의 가치가 하락하는 문제로 번질 수 있다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;min-height:100px;font-family:'Noto Sans KR',sans-serif;"></textarea>
-                </div>
-
-                <div style="margin-bottom:22px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">3. 이 문제를 겪고 있는 사람(대상)은?</label>
-                  <textarea id="prob-def-3" rows="3" oninput="autoResizeForm(this)" placeholder="예) 해당 지역 주민, 환경미화원, 환경부 담당자, 지자체 공무원 — 쓰레기 불법 투기로 인해 생활 불편과 추가 비용을 겪는 모든 사람" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;min-height:80px;font-family:'Noto Sans KR',sans-serif;"></textarea>
-                </div>
-
-                <div>
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">4. 데이터로 어떻게 탐구할 수 있을까?</label>
-                  <textarea id="prob-def-4" rows="3" oninput="autoResizeForm(this)" placeholder="예) 공공데이터포털에서 불법투기 신고 데이터를 구해 지역별·시간대별 건수를 분석하고, 지도에 시각화해서 집중 발생 구역을 찾아낸다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;min-height:80px;font-family:'Noto Sans KR',sans-serif;"></textarea>
+                <p class="step-card-hint">활동지의 <b>문제 정의</b> 칸이 막히면 여기서 버튼 하나로 도움받으세요.<br>탐구 주제를 아래에 입력하면 더 맞춤화된 도움을 받을 수 있어요.</p>
+                <input type="text" id="coach-ctx-1"
+                  placeholder="우리 팀 탐구 주제를 한 줄로 입력 (예: 지역별 교육격차 문제)"
+                  style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;background:var(--bg);color:var(--text);box-sizing:border-box;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif;">
+                <div class="coach-grid">
+                  <button onclick="coachAsk(1,'우리 팀 탐구 주제: {ctx}. 이 주제로 활동지에 쓸 수 있는 문제 정의 문장을 만들어줘. 해결하려는 문제, 왜 중요한지, 누가 겪는지, 데이터로 어떻게 탐구할지 포함해서.')" class="coach-btn">📝 문제 정의 문장 만들기</button>
+                  <button onclick="coachAsk(1,'우리 팀 탐구 주제: {ctx}. 이 주제와 관련된 공공데이터를 찾을 수 있는 사이트와 검색 키워드를 추천해줘.')" class="coach-btn">📂 관련 데이터 찾기</button>
+                  <button onclick="coachAsk(1,'우리 팀 탐구 주제: {ctx}. 이 문제가 왜 중요한지 설득력 있는 이유 3가지를 활동지에 쓸 수 있는 문장으로 만들어줘.')" class="coach-btn">💡 중요성 이유 쓰기</button>
+                  <button onclick="coachAsk(1,'우리 팀 탐구 주제: {ctx}. 이 주제를 데이터로 탐구할 수 있는 질문 3가지를 만들어줘.')" class="coach-btn">🔍 탐구 질문 만들기</button>
+                  <button onclick="coachAsk(1,'다음 문장을 더 명확하고 자연스럽게 다듬어줘 (활동지용): {ctx}')" class="coach-btn coach-btn-wide">✍️ 활동지에 쓴 문장 다듬기</button>
                 </div>
               </div>
 
-              <!-- 저장 + 다음 단계 (sticky footer) -->
-              <div style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);margin:24px -28px -24px;padding:12px 28px;display:flex;gap:10px;justify-content:flex-end;z-index:10;">
-                <button id="save-btn-step1" onclick="saveL4StepData(1)" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💾 저장</button>
-                <button onclick="setL4Step(2)" style="padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">다음 단계: 데이터 찾기 →</button>
-              </div>
+              <!-- 다음 단계 -->
+              <button class="l4-next-btn" onclick="setL4Step(2)">다음 단계: 🔍 데이터 찾기 →</button>
             </div>
           </div>
 
@@ -1845,38 +1852,23 @@ Chart.register(piePercentPlugin);
                 <button onclick="l4AskAndGo('우리 팀 주제에 어울리는 AI 활용 방식을 추천해줘. 예측/분류/추천/생성형AI/챗봇/이상탐지 중 어떤 게 맞을지 이유와 함께 알려줘.')" style="margin-top:10px;font-size:11px;padding:5px 12px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:20px;color:#f59e0b;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💡 우리 팀에 맞는 AI 방식 추천받기</button>
               </div>
 
-              <!-- ② 우리 팀 연결 -->
-              <div class="step-card">
-                <div class="step-card-title">② 우리 팀 프로젝트와 연결해요</div>
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                  <div>
-                    <div style="font-size:10px;color:var(--accent2);font-weight:600;margin-bottom:4px;">🎯 우리가 해결하려는 문제는?</div>
-                    <textarea id="l4-svc-problem" class="step-textarea" placeholder="예) 지역별 학생 수 불균형으로 교육 기회가 달라지는 문제" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;"></textarea>
-                  </div>
-                  <div>
-                    <div style="font-size:10px;color:#f59e0b;font-weight:600;margin-bottom:4px;">🤖 AI가 어떤 역할을 하면 좋을까?</div>
-                    <textarea id="l4-svc-process" class="step-textarea" placeholder="예) 학생 데이터를 분석해서 맞춤 학습 경로를 추천해줘" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;"></textarea>
-                  </div>
-                  <div>
-                    <div style="font-size:10px;color:#10b981;font-weight:600;margin-bottom:4px;">📊 우리 데이터를 어떻게 활용할까?</div>
-                    <textarea id="l4-svc-input" class="step-textarea" placeholder="예) 학교알리미 학생 수 데이터로 지역별 교육 불균형 분석" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;"></textarea>
-                  </div>
+              <!-- ② AI 코치 도움 받기 -->
+              <div class="step-card" style="border:2px solid rgba(108,99,255,0.22);background:linear-gradient(135deg,rgba(108,99,255,0.04),rgba(118,75,162,0.03));">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div class="step-card-title" style="margin-bottom:0;">AI 코치에게 도움받기</div>
+                  <span style="font-size:10px;background:var(--accent2);color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI</span>
                 </div>
-              </div>
-
-              <!-- ③ 아이디어 초안 + 사용자 -->
-              <div class="step-card">
-                <div class="step-card-title">③ 아이디어 초안 작성</div>
-                <div style="font-size:10px;color:#60a5fa;font-weight:600;margin-bottom:4px;">👤 누가 이 서비스를 쓰나요?</div>
-                <textarea id="l4-svc-user" class="step-textarea" placeholder="예) 학부모, 교사, 학생" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:36px;line-height:1.7;box-sizing:border-box;margin-bottom:8px;"></textarea>
-                <div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px;">📝 서비스 이름 + 핵심 기능</div>
-                <textarea id="l4-svc-output" class="step-textarea" placeholder="예) 서비스명: 지역균형 학습지도&#10;기능: 교육 격차 시각화 + AI가 부족한 자원 추천&#10;기대 효과: 교육 불균형 해소" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:72px;line-height:1.7;box-sizing:border-box;"></textarea>
-              </div>
-
-              <!-- 액션 버튼 -->
-              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-                <button onclick="l4ValidateService()" style="width:100%;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🤖 AI에게 우리 아이디어 피드백 받기</button>
-                <button onclick="l4AskAndGo('우리가 발견한 교육 문제를 해결하는 AI 서비스 아이디어를 3가지 제안해줘. 각각 서비스명, 대상, 핵심 기능을 포함해서.')" style="width:100%;padding:10px;background:rgba(108,99,255,0.1);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💡 AI 서비스 아이디어 3가지 제안받기</button>
+                <p class="step-card-hint">활동지의 <b>AI 아이디어</b> 칸이 막히면 여기서 도움받으세요.<br>우리 팀 AI 서비스 아이디어를 한 줄로 입력하면 더 정확한 피드백을 받을 수 있어요.</p>
+                <input type="text" id="coach-ctx-6"
+                  placeholder="우리 팀 AI 서비스 아이디어 (예: 학교 급식 잔반 예측 AI)"
+                  style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;background:var(--bg);color:var(--text);box-sizing:border-box;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif;">
+                <div class="coach-grid">
+                  <button onclick="coachAsk(6,'우리 팀 AI 서비스 아이디어: {ctx}. 이 아이디어의 강점, 보완할 점, 실현 가능성을 피드백해줘.')" class="coach-btn">🤖 아이디어 피드백 받기</button>
+                  <button onclick="coachAsk(6,'우리 팀 탐구 주제: {ctx}. 데이터로 해결할 수 있는 AI 서비스 아이디어를 3가지 제안해줘. 서비스명, 대상, 핵심 기능 포함.')" class="coach-btn">💡 AI 아이디어 3가지 제안</button>
+                  <button onclick="coachAsk(6,'우리 팀 AI 서비스: {ctx}. 이 서비스에 가장 잘 맞는 AI 유형(예측/분류/추천/생성형/챗봇/이상탐지)을 추천하고 이유를 설명해줘.')" class="coach-btn">🎯 AI 유형 추천받기</button>
+                  <button onclick="coachAsk(6,'우리 팀 AI 서비스: {ctx}. 사용자 → 입력 데이터 → AI 처리 → 출력 결과 구조로 서비스 흐름을 설명해줘.')" class="coach-btn">🔧 서비스 구조 설명하기</button>
+                </div>
               </div>
               <button class="l4-next-btn" onclick="setL4Step(7)">다음 단계: 🛠 서비스 기획 →</button>
             </div>
@@ -1899,47 +1891,28 @@ Chart.register(piePercentPlugin);
                 <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#166534;cursor:pointer;"><input type="checkbox" style="accent-color:#16a34a;"> 서비스가 문제를 어떻게 해결하는지 설명할 수 있다</label>
               </div>
 
-              <!-- 서비스 기획 폼 -->
-              <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;">
-                <div style="font-weight:700;font-size:15px;margin-bottom:16px;">📐 서비스 설계서</div>
-
-                <div style="margin-bottom:16px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">1. 서비스 이름</label>
-                  <input type="text" id="svc-name" placeholder="예) 스마트 불법투기 알림 앱" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;background:var(--bg);color:var(--text);box-sizing:border-box;">
+              <!-- AI 코치 도움 받기 -->
+              <div class="step-card" style="border:2px solid rgba(236,72,153,0.22);background:linear-gradient(135deg,rgba(236,72,153,0.04),rgba(168,85,247,0.03));">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div class="step-card-title" style="margin-bottom:0;">AI 코치에게 도움받기</div>
+                  <span style="font-size:10px;background:#be185d;color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI</span>
                 </div>
-
-                <div style="margin-bottom:16px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">2. 주요 사용자</label>
-                  <input type="text" id="svc-user-target" placeholder="예) 환경부 담당자, 지역 주민" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;background:var(--bg);color:var(--text);box-sizing:border-box;">
-                </div>
-
-                <div style="margin-bottom:16px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">3. 주요 기능 (각 줄에 하나씩)</label>
-                  <textarea id="svc-features" rows="4" placeholder="예)&#10;- 불법투기 위험 지역 지도 시각화&#10;- AI 신고 접수 및 분류&#10;- 처리 현황 대시보드" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
-                </div>
-
-                <div style="margin-bottom:16px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">4. 사용 흐름 (시나리오)</label>
-                  <textarea id="svc-flow" rows="4" placeholder="예) 사용자가 앱 실행 → 지도에서 위험 지역 확인 → AI가 불법투기 예측 → 알림 전송 → 담당자가 처리" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
-                </div>
-
-                <div>
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">5. 기대 효과</label>
-                  <textarea id="svc-impact" rows="3" placeholder="예) 불법투기 30% 감소, 처리 시간 단축, 주민 생활환경 개선" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                <p class="step-card-hint">활동지의 <b>서비스 기획</b> 칸이 막히면 여기서 도움받으세요.<br>서비스 이름이나 핵심 아이디어를 입력하면 더 구체적인 도움을 받을 수 있어요.</p>
+                <input type="text" id="coach-ctx-7"
+                  placeholder="우리 팀 서비스 이름 또는 핵심 아이디어 (예: 급식 잔반 예측 앱)"
+                  style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;background:var(--bg);color:var(--text);box-sizing:border-box;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif;">
+                <div class="coach-grid">
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 이 서비스의 주요 기능 5가지를 구체적으로 제안해줘. 활동지에 쓸 수 있는 형식으로.')" class="coach-btn">🔧 기능 목록 제안받기</button>
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 사용자가 이 서비스를 사용하는 흐름을 단계별로 설명해줘. 활동지 시나리오 작성용으로.')" class="coach-btn">👣 사용 흐름 만들기</button>
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 이 서비스의 기대 효과를 수치나 구체적 사례를 들어 설명해줘.')" class="coach-btn">📈 기대 효과 작성하기</button>
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 이 서비스 기획의 강점과 보완할 점을 피드백해줘. 실현 가능성도 평가해줘.')" class="coach-btn">💬 기획 피드백 받기</button>
+                  <button onclick="coachAsk(7,'서비스: {ctx}. 이 서비스를 PPT 발표용 슬라이드 구조로 정리해줘. 각 슬라이드 제목과 핵심 내용 포함.')" class="coach-btn coach-btn-wide">🖥️ PPT 발표 구조 만들기</button>
                 </div>
               </div>
 
-              <!-- AI 피드백 요청 -->
-              <div style="background:linear-gradient(135deg,rgba(236,72,153,0.07),rgba(168,85,247,0.07));border:1px solid rgba(236,72,153,0.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;">
-                <div style="font-size:12px;font-weight:600;color:#be185d;margin-bottom:8px;">💬 AI에게 서비스 기획 피드백 받기</div>
-                <button onclick="l4AskAndGo('우리 팀이 기획한 서비스에 대해 피드백해줘. 강점, 보완할 점, 실현 가능성을 알려줘.')" style="font-size:12px;padding:7px 16px;background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3);border-radius:8px;color:#be185d;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">AI 피드백 요청 →</button>
-              </div>
-
-              <!-- 저장 + 다음 단계 (sticky footer) -->
-              <div style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);margin:24px -24px -24px;padding:12px 24px;display:flex;gap:10px;justify-content:flex-end;z-index:10;">
-                <button id="save-btn-step7" onclick="saveL4StepData(7)" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💾 저장</button>
-                <button onclick="setL4Step(8)" style="padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">다음 단계: 기획서 작성 →</button>
-              </div>
+              <!-- 다음 단계 -->
+              <button class="l4-next-btn" onclick="setL4Step(8)">다음 단계: 📋 기획서 작성 →</button>
             </div>
           </div>
 
@@ -1968,35 +1941,28 @@ Chart.register(piePercentPlugin);
                 </div>
               </div>
 
-              <!-- 기획서 직접 작성 -->
-              <div class="step-card">
-                <div class="step-card-title">✏️ 기획서 초안 직접 작성</div>
-
-                <div style="font-size:10px;color:var(--accent2);font-weight:600;margin-bottom:4px;">① 우리가 해결하려는 문제</div>
-                <textarea id="plan-problem" class="step-textarea" placeholder="예) 지역별 교육 기회 불평등 문제" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:10px;"></textarea>
-
-                <div style="font-size:10px;color:#10b981;font-weight:600;margin-bottom:4px;">② 데이터에서 발견한 핵심 사실</div>
-                <textarea id="plan-insight" class="step-textarea" placeholder="예) 서울 학생 수는 지방의 3배, 농촌 지역은 5년간 20% 감소" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:10px;"></textarea>
-
-                <div style="font-size:10px;color:#f59e0b;font-weight:600;margin-bottom:4px;">③ AI 활용 아이디어</div>
-                <textarea id="plan-idea" class="step-textarea" placeholder="예) 예측 AI로 5년 후 지역별 학생 수를 예측해 미리 자원을 배분" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:10px;"></textarea>
-
-                <div style="font-size:10px;color:#60a5fa;font-weight:600;margin-bottom:4px;">④ 서비스 구조 (사용자 → 입력 → AI 처리 → 출력)</div>
-                <textarea id="plan-structure" class="step-textarea" placeholder="예) 교사·학부모 → 지역 데이터 입력 → AI 예측 분석 → 자원 배분 리포트 출력" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:10px;"></textarea>
-
-                <div style="font-size:10px;color:#ec4899;font-weight:600;margin-bottom:4px;">⑤ 기대 효과</div>
-                <textarea id="plan-effect" class="step-textarea" placeholder="예) 교육 자원의 효율적 배분으로 지역 교육 격차 20% 감소 기대" oninput="autoResize(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:12px;resize:none;min-height:44px;line-height:1.7;box-sizing:border-box;margin-bottom:6px;"></textarea>
-              </div>
-
-              <!-- 자동 생성 -->
-              <div class="step-card">
-                <div class="step-card-title">🤖 AI가 기획서 초안 자동 생성</div>
-                <p style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.7;">이전 단계에서 입력한 내용을 자동으로 모아 기획서 형식으로 정리합니다</p>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-                  <button onclick="generatePlan()" style="flex:1;min-width:160px;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 기획서 자동 생성</button>
-                  <button onclick="l4AskAndGo('우리 팀의 AI 서비스 기획서를 완성도 높게 작성해줘. 서비스명, 문제 정의, 데이터 활용, AI 기능, 기대 효과를 포함해서 PPT용으로 정리해줘.')" style="flex:1;min-width:160px;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI에게 기획서 도움 요청</button>
+              <!-- AI 코치: 기획서 도움 + 자동 생성 통합 카드 -->
+              <div class="step-card" style="border:2px solid rgba(29,78,216,0.22);background:linear-gradient(135deg,rgba(29,78,216,0.04),rgba(108,99,255,0.03));">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                  <span style="font-size:20px;">🤖</span>
+                  <div class="step-card-title" style="margin-bottom:0;">AI 코치에게 도움받기</div>
+                  <span style="font-size:10px;background:#1d4ed8;color:#fff;padding:2px 8px;border-radius:20px;font-weight:600;">AI</span>
                 </div>
-                <div id="plan-generated" style="display:none;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--text);"></div>
+                <p class="step-card-hint">활동지의 <b>기획서</b> 칸이 막히면 여기서 도움받거나, 우리 팀 내용을 요약해서 입력하면 AI가 기획서 초안을 자동으로 생성해줘요.</p>
+                <input type="text" id="coach-ctx-8"
+                  placeholder="우리 팀 프로젝트 핵심 요약 (예: 급식 잔반 예측 AI로 교육청 예산 절감)"
+                  style="width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;background:var(--bg);color:var(--text);box-sizing:border-box;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                  <button onclick="generatePlan()" style="flex:1;min-width:150px;padding:11px;background:var(--accent);color:white;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 기획서 자동 생성</button>
+                  <button onclick="coachAsk(8,'우리 팀 프로젝트: {ctx}. 이 내용으로 AI 서비스 기획서를 PPT 슬라이드용으로 작성해줘. ① 문제 정의 ② 데이터 분석 결과 ③ AI 활용 아이디어 ④ 서비스 구조 ⑤ 기대 효과 형식으로.')" style="flex:1;min-width:150px;padding:10px;background:rgba(108,99,255,0.12);color:var(--accent2);border:1px solid rgba(108,99,255,0.3);border-radius:10px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💬 AI에게 기획서 작성 요청</button>
+                </div>
+                <div class="coach-grid" style="margin-bottom:0;">
+                  <button onclick="coachAsk(8,'우리 팀 프로젝트: {ctx}. 이 내용을 발표할 때 쓸 PPT 슬라이드 구조를 10장 이내로 만들어줘. 각 슬라이드 제목과 핵심 내용 포함.')" class="coach-btn">🖥️ PPT 구조 만들기</button>
+                  <button onclick="coachAsk(8,'우리 팀 프로젝트: {ctx}. 발표 대본을 3분 분량으로 만들어줘.')" class="coach-btn">🎤 발표 대본 만들기</button>
+                  <button onclick="coachAsk(8,'우리 팀 프로젝트: {ctx}. 기획서에서 보완해야 할 부분을 피드백해줘. 논리 흐름, 데이터 근거, 실현 가능성 중심으로.')" class="coach-btn">🔍 기획서 피드백 받기</button>
+                  <button onclick="coachAsk(8,'다음 기획서 문장을 더 설득력 있고 명확하게 다듬어줘 (PPT/보고서용): {ctx}')" class="coach-btn">✍️ 기획서 문장 다듬기</button>
+                </div>
+                <div id="plan-generated" style="display:none;margin-top:12px;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12px;line-height:1.9;white-space:pre-wrap;color:var(--text);"></div>
                 <div id="plan-copy-btn-wrap" style="display:none;margin-top:8px;">
                   <button onclick="copyPlan()" style="font-size:11px;padding:5px 14px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 기획서 텍스트 복사</button>
                 </div>
@@ -4783,13 +4749,34 @@ function l4AskAndGo(text) {
   }, 150);
 }
 
+// ── AI 코치 도움 받기 (컨텍스트 입력 + 프롬프트 템플릿) ──
+function coachAsk(stepId, promptTemplate) {
+  const ctx = (document.getElementById('coach-ctx-' + stepId)?.value || '').trim();
+  let fullPrompt;
+  if (ctx) {
+    fullPrompt = promptTemplate.replace(/{ctx}/g, ctx);
+  } else {
+    // 컨텍스트 없을 때: 플레이스홀더를 제거한 범용 프롬프트로 변환
+    fullPrompt = promptTemplate
+      .replace(/우리 팀 탐구 주제: \{ctx\}\.\s*/g, '')
+      .replace(/우리 팀 AI 서비스 아이디어: \{ctx\}\.\s*/g, '')
+      .replace(/우리 팀 AI 서비스: \{ctx\}\.\s*/g, '')
+      .replace(/서비스: \{ctx\}\.\s*/g, '')
+      .replace(/우리 팀 프로젝트: \{ctx\}\.\s*/g, '')
+      .replace(/\{ctx\}/g, '')
+      .trim();
+  }
+  l4AskAndGo(fullPrompt);
+}
+
 async function l4ValidateService() {
-  const inp = document.getElementById('l4-svc-input')?.value?.trim();
-  const proc = document.getElementById('l4-svc-process')?.value?.trim();
-  const out = document.getElementById('l4-svc-output')?.value?.trim();
-  const usr = document.getElementById('l4-svc-user')?.value?.trim();
-  if (!inp && !proc && !out) { alert('AI 서비스 설계를 먼저 작성하세요.'); return; }
-  const design = `내 AI 서비스 설계를 검토해줘:\n[입력 데이터] ${inp||'(미작성)'}\n[AI 처리] ${proc||'(미작성)'}\n[출력 결과] ${out||'(미작성)'}\n[사용자] ${usr||'(미작성)'}`;
+  const ctx = (document.getElementById('coach-ctx-6')?.value || '').trim();
+  if (!ctx) {
+    showToast('우리 팀 AI 서비스 아이디어를 먼저 입력해주세요.', 'warning');
+    document.getElementById('coach-ctx-6')?.focus();
+    return;
+  }
+  const design = `우리 팀 AI 서비스 아이디어: ${ctx}\n\n이 아이디어에 대해 피드백해줘. 강점, 보완할 점, 실현 가능성, 사용자 관점에서 개선 방향을 알려줘.`;
   setL4Step(5);
   const input = document.getElementById('l4-input');
   if (input) { input.value = design; input.style.height = 'auto'; }
@@ -5406,7 +5393,7 @@ function renderMarkdown(text) {
 //  팀 진행 기록 자동저장 시스템
 // ═══════════════════════════════════════════════════════
 
-const L4_SAVE_FIELDS = ['prob-def-1','prob-def-2','prob-def-3','prob-def-4','svc-name','svc-user-target','svc-features','svc-flow','svc-impact','l4-svc-input','l4-svc-process','l4-svc-output','l4-svc-user','plan-problem','plan-insight','plan-idea','plan-structure','plan-effect'];
+const L4_SAVE_FIELDS = ['coach-ctx-1','coach-ctx-6','coach-ctx-7','coach-ctx-8'];
 const L4_CHECK_IDS   = ['l4-chk-1','l4-chk-2','l4-chk-3','l4-chk-4','l4-chk-5','l4-chk-6','l4-chk-7','l4-chk-8'];
 
 let saveDebounceTimer = null;
@@ -5488,10 +5475,9 @@ function restoreSaveData(data) {
     renderSidebarProjFlow(currentProjectStep);
   }
   if (data.fields) {
-    const formFields = new Set(['prob-def-1','prob-def-2','prob-def-3','prob-def-4','svc-name','svc-user-target','svc-features','svc-flow','svc-impact','plan-problem','plan-insight','plan-idea','plan-structure','plan-effect']);
     Object.entries(data.fields).forEach(([id, val]) => {
       const el = document.getElementById(id);
-      if (el) { el.value = val; formFields.has(id) ? autoResizeForm(el) : (autoResize && autoResize(el)); }
+      if (el) el.value = val;
     });
   }
   if (data.checks) {
@@ -5842,16 +5828,10 @@ function showHelp() {
  * AI에게 기획서 초안 생성을 요청합니다.
  */
 async function generatePlan() {
-  // 이전 단계 입력값 수집
-  const problem   = (document.getElementById('plan-problem')?.value   || document.getElementById('l4-svc-problem')?.value  || '').trim();
-  const insight   = (document.getElementById('plan-insight')?.value   || '').trim();
-  const idea      = (document.getElementById('plan-idea')?.value      || document.getElementById('l4-svc-process')?.value  || '').trim();
-  const structure = (document.getElementById('plan-structure')?.value || '').trim();
-  const effect    = (document.getElementById('plan-effect')?.value    || '').trim();
-  const aiType    = document.getElementById('ai-type-selected')?.textContent?.trim() || '';
-  const dataUse   = (document.getElementById('l4-svc-input')?.value  || '').trim();
-  const user      = (document.getElementById('l4-svc-user')?.value   || '').trim();
-  const service   = (document.getElementById('l4-svc-output')?.value  || '').trim();
+  // 코칭 컨텍스트 입력 (우선 사용)
+  const ctxSummary = (document.getElementById('coach-ctx-8')?.value || '').trim();
+  // 이전 단계 입력값 수집 (하위 호환)
+  const aiType = document.getElementById('ai-type-selected')?.textContent?.trim() || '';
 
   const genDiv  = document.getElementById('plan-generated');
   const copyWrap = document.getElementById('plan-copy-btn-wrap');
@@ -5860,21 +5840,22 @@ async function generatePlan() {
   genDiv.textContent = '⏳ AI가 기획서를 작성하는 중...';
 
   // 프롬프트 구성
-  const prompt = `아래 학생 팀의 데이터 분석 프로젝트 내용을 바탕으로 AI 서비스 기획서 초안을 작성해줘.
+  const prompt = ctxSummary
+    ? `아래 학생 팀의 프로젝트 요약을 바탕으로 AI 서비스 기획서 초안을 PPT 슬라이드용으로 작성해줘.
 
-[프로젝트 정보]
-- 문제 정의: ${problem || '(미입력)'}
-- 데이터 발견 사실: ${insight || '(미입력)'}
-- AI 활용 아이디어: ${idea || '(미입력)'}
-- 선택 AI 유형: ${aiType || '(미선택)'}
-- 데이터 활용 방법: ${dataUse || '(미입력)'}
-- 서비스 대상: ${user || '(미입력)'}
-- 서비스 이름·기능: ${service || '(미입력)'}
-- 서비스 구조: ${structure || '(미입력)'}
-- 기대 효과: ${effect || '(미입력)'}
+[팀 프로젝트 요약]
+${ctxSummary}
+${aiType ? `[선택 AI 유형] ${aiType}` : ''}
 
 [기획서 형식]
-다음 5가지 항목을 포함해 PPT 슬라이드용으로 작성해줘. 각 항목은 명확하고 간결하게:
+다음 5가지 항목을 포함해 명확하고 간결하게 작성해줘:
+① 문제 정의
+② 데이터 분석 결과 (핵심 발견 2~3가지)
+③ AI 활용 아이디어
+④ 서비스 구조 (사용자→입력→AI처리→출력)
+⑤ 기대 효과`
+    : `학생 AI 서비스 기획 프로젝트 기획서 초안 양식을 만들어줘.
+각 항목에 작성 가이드와 예시를 포함해서 학생이 쉽게 채울 수 있도록 해줘:
 ① 문제 정의
 ② 데이터 분석 결과 (핵심 발견 2~3가지)
 ③ AI 활용 아이디어
