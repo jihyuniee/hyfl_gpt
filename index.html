@@ -1208,21 +1208,12 @@ Chart.register(piePercentPlugin);
         <!-- 오른쪽: 단계별 뷰 -->
         <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
 
-          <!-- 진행 단계 표시 (클릭 불가 · 왼쪽 사이드바에서 이동) -->
-          <nav id="l4-subtab-nav">
-            <span id="l4-subtab-progress" style="font-size:10px;color:var(--muted);padding:0 12px;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:4px;border-right:1px solid var(--border);margin-right:4px;">진행</span>
-            <button class="l4-tab active" id="l4-tab-1"><span class="l4-tab-num">1</span>🎯 문제 정의</button>
-            <button class="l4-tab" id="l4-tab-2"><span class="l4-tab-num">2</span>🔍 데이터 찾기</button>
-            <button class="l4-tab" id="l4-tab-3"><span class="l4-tab-num">3</span>👀 데이터 이해</button>
-            <button class="l4-tab" id="l4-tab-4"><span class="l4-tab-num">4</span>📊 데이터 분석</button>
-            <button class="l4-tab" id="l4-tab-5"><span class="l4-tab-num">5</span>💡 인사이트</button>
-            <button class="l4-tab" id="l4-tab-6"><span class="l4-tab-num">6</span>🚀 AI 아이디어</button>
-            <button class="l4-tab" id="l4-tab-7"><span class="l4-tab-num">7</span>🛠 서비스 기획</button>
-            <button class="l4-tab" id="l4-tab-8"><span class="l4-tab-num">8</span>📋 기획서 작성</button>
-          </nav>
-
-          <!-- 현재 단계 안내 배너 (단계 제목 + 진행률) -->
-          <div id="l4-step-guide-banner" style="padding:8px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;"></div>
+          <!-- 현재 데이터 파일 간이 표시 (데이터 단계 아닐 때) -->
+          <div id="l4-data-indicator" style="display:none;padding:6px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;align-items:center;gap:8px;font-size:11px;color:var(--text);">
+            <span style="color:var(--muted);">📁 현재 데이터:</span>
+            <span id="l4-data-indicator-name" style="color:var(--accent2);font-weight:600;"></span>
+            <button onclick="showL4Preview()" style="font-size:10px;padding:2px 8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;color:var(--text);">보기</button>
+          </div>
 
           <!-- 지난 기록 이어하기 배너 -->
           <div id="l4-resume-banner"></div>
@@ -1236,13 +1227,8 @@ Chart.register(piePercentPlugin);
           </div>
 
           <!-- ① STEP 1: 문제 정의 -->
-          <div id="l4-view-1" style="flex:1;overflow-y:auto;padding:24px 28px;">
-            <div style="max-width:640px;margin:0 auto;">
-              <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:24px;">
-                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 1 · 이 단계에서 하는 일</div>
-                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🎯 문제 정의</div>
-                <div style="font-size:13px;opacity:.9;line-height:1.5;">우리가 해결하고 싶은 문제가 무엇인지 명확하게 정의합니다. 좋은 문제 정의가 좋은 프로젝트의 출발점입니다.</div>
-              </div>
+          <div id="l4-view-1" style="flex:1;overflow-y:auto;padding:20px 28px;">
+            <div style="max-width:800px;margin:0 auto;">
 
               <!-- 학생 체크리스트 -->
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
@@ -1281,11 +1267,6 @@ Chart.register(piePercentPlugin);
           <!-- ② STEP 2: 공공데이터 찾기 -->
           <div id="l4-view-2" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:620px;margin:0 auto;">
-              <div style="background:linear-gradient(135deg,#06b6d4 0%,#0284c7 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
-                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 2 · 이 단계에서 하는 일</div>
-                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🔍 공공데이터 찾기</div>
-                <div style="font-size:13px;opacity:.9;line-height:1.5;">우리 팀의 문제와 관련된 공공데이터를 찾아 다운로드하고 업로드합니다. 파일을 올리면 자동으로 다음 단계로 이동해요.</div>
-              </div>
 
               <!-- 학생 체크리스트 -->
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
@@ -1457,11 +1438,6 @@ Chart.register(piePercentPlugin);
           <!-- ③ STEP 3: 데이터 이해하기 -->
           <div id="l4-view-3" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:640px;margin:0 auto;">
-              <div style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
-                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 3 · 이 단계에서 하는 일</div>
-                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">👀 데이터 이해</div>
-                <div style="font-size:13px;opacity:.9;line-height:1.5;">데이터가 어떻게 구성되어 있는지 파악합니다. 어떤 항목이 있고, 빠진 값이나 이상한 값은 없는지 확인해요.</div>
-              </div>
               <!-- 학생 체크리스트 -->
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
                 <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
@@ -1568,11 +1544,6 @@ Chart.register(piePercentPlugin);
           <!-- ④ STEP 4: 데이터 분석 -->
           <div id="l4-view-4" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
             <div style="max-width:720px;margin:0 auto;">
-              <div style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
-                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 4 · 이 단계에서 하는 일</div>
-                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">📊 데이터 분석</div>
-                <div style="font-size:13px;opacity:.9;line-height:1.5;">데이터를 직접 시각화하고 비교하면서 패턴과 특징을 발견합니다. 그래프를 만들고 "왜?"라는 질문을 계속 던져보세요.</div>
-              </div>
               <!-- 학생 체크리스트 -->
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
                 <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
@@ -1762,11 +1733,6 @@ Chart.register(piePercentPlugin);
           <!-- ⑤ STEP 5: 인사이트 도출 -->
           <div id="l4-view-5" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
             <div style="padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <span style="font-size:18px;">💡</span>
-                <div style="font-size:14px;font-weight:700;">인사이트 도출</div>
-                <div style="font-size:11px;color:var(--muted);line-height:1.4;margin-left:4px;">STEP 5 · 데이터 분석 결과에서 의미 있는 발견을 언어로 정리합니다</div>
-              </div>
               <!-- 탐구 질문 + 빠른 실행 -->
               <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                 <span style="font-size:10px;color:var(--muted);margin-right:2px;">생각해볼 것:</span>
@@ -1797,13 +1763,8 @@ Chart.register(piePercentPlugin);
 
           <!-- ⑥ STEP 6: AI 활용 아이디어 정하기 -->
           <div id="l4-view-6" style="display:none;flex:1;overflow-y:auto;padding:18px 22px;">
-            <div style="max-width:620px;margin:0 auto;">
+            <div style="max-width:800px;margin:0 auto;">
 
-              <div style="background:linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:16px;">
-                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 6 · 이 단계에서 하는 일</div>
-                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🚀 AI 활용 아이디어</div>
-                <div style="font-size:13px;opacity:.9;line-height:1.5;">인사이트를 바탕으로 AI 기술을 활용한 서비스 아이디어를 구체화합니다. 어떤 AI를 어떻게 쓸지 정해봐요.</div>
-              </div>
               <!-- 학생 체크리스트 -->
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
                 <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
@@ -1876,12 +1837,7 @@ Chart.register(piePercentPlugin);
 
           <!-- ⑦ STEP 7: 서비스 기획 -->
           <div id="l4-view-7" style="display:none;flex:1;overflow-y:auto;padding:24px 28px;">
-            <div style="max-width:640px;margin:0 auto;">
-              <div style="background:linear-gradient(135deg,#ec4899 0%,#be185d 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
-                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 7 · 이 단계에서 하는 일</div>
-                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">🛠 서비스 기획</div>
-                <div style="font-size:13px;opacity:.9;line-height:1.5;">AI 아이디어를 실제 서비스로 구체화합니다. 서비스 구조, 주요 기능, 사용 흐름을 설계해봐요.</div>
-              </div>
+            <div style="max-width:800px;margin:0 auto;">
               <!-- 학생 체크리스트 -->
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:24px;">
                 <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
@@ -1918,12 +1874,7 @@ Chart.register(piePercentPlugin);
 
           <!-- ⑧ STEP 8: 기획서 작성 -->
           <div id="l4-view-8" style="display:none;flex:1;overflow-y:auto;padding:24px 32px;">
-            <div style="max-width:640px;margin:0 auto;">
-              <div style="background:linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%);color:#fff;border-radius:16px;padding:20px 24px;margin-bottom:20px;">
-                <div style="font-size:13px;opacity:.8;margin-bottom:4px;">STEP 8 · 이 단계에서 하는 일</div>
-                <div style="font-size:18px;font-weight:700;margin-bottom:6px;">📋 기획서 작성</div>
-                <div style="font-size:13px;opacity:.9;line-height:1.5;">지금까지 분석하고 기획한 내용을 하나의 기획서로 완성합니다. AI의 도움을 받아 완성도 높은 기획서를 만들어봐요.</div>
-              </div>
+            <div style="max-width:800px;margin:0 auto;">
               <!-- 학생 체크리스트 -->
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
                 <div style="font-weight:600;font-size:13px;color:#15803d;margin-bottom:10px;">✅ 지금 해야 할 일</div>
@@ -3649,6 +3600,9 @@ function applyHeaderSelection() {
     if (selector) selector.style.display = 'none';
     lesson4AllData = allData;
     lesson4Data = allData[0];
+    // 간이 데이터 표시 업데이트
+    const _indName = document.getElementById('l4-data-indicator-name');
+    if (_indName) _indName.textContent = allData[0].filename || '데이터 로드됨';
     const f0 = allData[0];
     renderLesson4Stats(f0.headers, f0.rows, rawPendingFiles[0].filename.endsWith('.xlsx')||rawPendingFiles[0].filename.endsWith('.xls'));
     const uploadedBox = document.getElementById('l4-view-2-uploaded');
@@ -4327,10 +4281,28 @@ function updateStepGuideBanner(n) {
 }
 
 // ── Step Navigation ──
+const L4_DATA_STEPS = new Set([2, 3, 4]); // 데이터 파일 패널이 필요한 단계
+
 function setL4Step(n) {
   currentL4Step = n;
   updateProjFlow(n);   // updates big sidebar 8-steps + sub-tabs
   scheduleAutosave();
+
+  // ── 데이터 사이드바: 데이터 단계(2·3·4)에서만 표시 ──
+  const dataSidebar = document.querySelector('.l4-sidebar');
+  if (dataSidebar) dataSidebar.style.display = L4_DATA_STEPS.has(n) ? '' : 'none';
+
+  // ── 간이 데이터 표시: 비데이터 단계에서 파일명 표시 ──
+  const indicator = document.getElementById('l4-data-indicator');
+  const indicatorName = document.getElementById('l4-data-indicator-name');
+  if (indicator) {
+    const show = !L4_DATA_STEPS.has(n) && !!lesson4Data;
+    indicator.style.display = show ? 'flex' : 'none';
+    if (show && indicatorName) {
+      indicatorName.textContent = lesson4Data.filename || '데이터 로드됨';
+    }
+  }
+
   // Show the right view, hide others
   for (let i = 1; i <= 8; i++) {
     const view = document.getElementById('l4-view-' + i);
