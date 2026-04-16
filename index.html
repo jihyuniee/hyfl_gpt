@@ -827,12 +827,9 @@ Chart.register(piePercentPlugin);
       <div style="height:1px;background:var(--border);margin:8px 0;"></div>
       <div class="sidebar-label">🤖 AI 코치 메뉴</div>
       <div id="sidebar-proj-flow">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <div id="sidebar-proj-label" style="font-size:9px;color:var(--muted);">1 / 7 완료</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div id="sidebar-proj-label" style="font-size:9px;color:var(--muted);"></div>
           <div id="save-status-badge-sidebar" style="font-size:9px;color:var(--muted);"></div>
-        </div>
-        <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:8px;">
-          <div id="sidebar-proj-bar" style="height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#10b981);width:14%;transition:width 0.4s;"></div>
         </div>
         <div id="sidebar-proj-steps"></div>
       </div>
@@ -2733,9 +2730,10 @@ async function doLogin() {
   completedProjectStepNums.add(1);
 
   loadHistory();
-  updateProjFlow(currentL4Step || 1);  // 사이드바 7단계 초기 렌더
+  updateProjFlow(currentL4Step || 1);  // 사이드바 탐구 주제 초기 렌더
   setLesson(0, document.getElementById('btn-free'));  // 첫 화면: 자유 대화
   setTimeout(checkForSavedProgress, 300);
+  setTimeout(() => loadConversation(), 600);
 }
 
 // ── Register ──
@@ -2943,7 +2941,7 @@ function restoreLessonState(idx) {
   }
   if (!store) return false;
   if (idx === 2) {
-    l4Messages = [...(store.l4msgs || [])];
+    if (!_convLoaded) l4Messages = [...(store.l4msgs || [])];
     if (store.active) {
       const md = document.getElementById('l4-messages');
       if (md) md.innerHTML = store.l4html || '';
@@ -3458,6 +3456,8 @@ function readFileWithEncoding(file) {
 
 // ── Lesson 4: state ──
 let l4Messages = [];
+let l4AutoAnalysisPending = false; // set true on data upload, cleared after auto-analysis runs
+let _convLoaded = false;           // true once server conversation has been loaded
 
 async function parseOneFile(file) {
   let headers, rows;
@@ -3610,8 +3610,7 @@ function applyHeaderSelection() {
       uploadedBox.style.display = 'block';
       uploadedBox.innerHTML = `<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:10px 14px;font-size:12px;color:#10b981;">✅ ${allData.map(d=>`<b>${d.filename}</b> (${d.rows.length}행 × ${d.headers.length}열)`).join(', ')} 업로드 완료</div>`;
     }
-    l4Messages = [];
-    document.getElementById('l4-messages').innerHTML = '';
+    l4AutoAnalysisPending = true;
     setL4Step(3);
   } catch(e) {
     alert('데이터 처리 오류: ' + e.message);
@@ -4098,6 +4097,7 @@ async function triggerL4AutoAnalysis(allData) {
     } catch(e2) { thinkingRow.innerHTML = `<span style="color:var(--danger)">오류: ${e2.message}</span>`; return; }
   }
   l4Messages.push({ role: 'assistant', content: full });
+  saveConversationMessages([{ role: 'user', content: dataMsg }, { role: 'assistant', content: full }]);
   document.getElementById('l4-messages').scrollTop = 99999;
 }
 
@@ -4115,6 +4115,44 @@ function addL4Bubble(type, text, isMarkdown=false) {
   msgDiv.appendChild(row);
   msgDiv.scrollTop = msgDiv.scrollHeight;
   return row.querySelector('.bubble');
+}
+
+// ── 팀 프로젝트 대화 서버 저장/복원 ──
+async function loadConversation() {
+  if (!currentTeam) return;
+  try {
+    const r = await fetch('/api/conversations?teamId=' + encodeURIComponent(currentTeam));
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d.conversation || !Array.isArray(d.conversation.messages) || !d.conversation.messages.length) return;
+    const msgs = d.conversation.messages;
+    l4Messages = msgs.map(m => ({ role: m.role, content: m.content }));
+    const container = document.getElementById('l4-messages');
+    if (container) {
+      container.innerHTML = '';
+      msgs.forEach(m => {
+        addL4Bubble(
+          m.role === 'user' ? 'user' : 'ai',
+          m.role === 'user' ? m.content.replace(/\n/g, '<br>') : renderMarkdown(m.content),
+          false
+        );
+      });
+      container.scrollTop = 99999;
+    }
+    _convLoaded = true;
+    showToast(`💬 이전 대화 ${msgs.length}개 메시지를 불러왔습니다`, 'success');
+  } catch(e) {}
+}
+
+async function saveConversationMessages(newMsgs) {
+  if (!currentTeam || !newMsgs?.length) return;
+  try {
+    await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ teamId: currentTeam, messages: newMsgs, append: true })
+    });
+  } catch(e) {}
 }
 
 function handleL4Key(e) {
@@ -4151,6 +4189,7 @@ async function sendL4Message() {
     }
   }
   l4Messages.push({ role: 'assistant', content: full });
+  saveConversationMessages([{ role: 'user', content: text }, { role: 'assistant', content: full }]);
   document.getElementById('l4-messages').scrollTop = 99999;
 }
 
@@ -4172,6 +4211,18 @@ const PROJ_STEPS = [
 // l4탐구단계(1~8) → 프로젝트 전체 단계(1~8) 1:1 매핑
 const L4_TO_PROJ = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8};
 
+// 주제별 AI 대화 시작 프롬프트
+const TOPIC_PROMPTS = {
+  1: '우리 팀이 해결하려는 교육 문제를 더 구체화해보자. 어떤 문제를 AI로 해결하고 싶어?',
+  2: '우리 주제에 맞는 공공교육데이터를 어디서 찾을 수 있을까? 어떤 데이터셋이 필요한지 알려줘.',
+  3: '업로드한 데이터를 이해하고 싶어. 주요 컬럼의 의미와 데이터 구조를 분석해줘.',
+  4: '데이터에서 패턴이나 특징을 찾고 싶어. 어떤 분석을 해볼까?',
+  5: '지금까지 분석한 결과에서 중요한 인사이트를 뽑아내고 싶어. 어떤 의미가 있을까?',
+  6: '우리가 발견한 인사이트를 바탕으로 어떤 AI 서비스를 만들 수 있을까?',
+  7: '우리 AI 서비스 아이디어를 더 구체적으로 기획하고 싶어. 사용자, 기능, 사용 흐름을 정리해줘.',
+  8: '지금까지 우리 팀이 이야기한 내용을 바탕으로 AI 서비스 기획서 초안을 작성해줘.',
+};
+
 const L4_STEP_META = [null,
   { title:'🎯 문제 정의',         phase:'① 문제 정의',         phaseColor:'#7c3aed', desc:'해결할 문제를 명확하게 정의합니다',         done:'',                                     next:'문제를 정의하면 데이터를 찾습니다' },
   { title:'🔍 공공데이터 찾기',   phase:'② 데이터 찾기',       phaseColor:'#0284c7', desc:'연구 주제에 맞는 공공데이터를 찾습니다',   done:'문제 정의를 완료했습니다',              next:'데이터를 업로드하면 다음 단계로 이동합니다' },
@@ -4189,30 +4240,21 @@ function setCurrentProjectStep(projStep) {
   currentProjectStep = projStep;
 }
 
-// 사이드바 7단계 렌더 (completedProjectStepNums 사용)
+// 사이드바 탐구 주제 메뉴 렌더 (완료 추적 없이 현재 주제만 강조)
 function renderSidebarProjFlow(activeProjStep) {
   const container = document.getElementById('sidebar-proj-steps');
   if (container) {
     let html = '';
-    PROJ_STEPS.forEach((s, idx) => {
-      const isDone   = completedProjectStepNums.has(s.n) && s.n !== activeProjStep;
+    PROJ_STEPS.forEach((s) => {
       const isActive = s.n === activeProjStep;
-      const cls = isDone ? 'ps-done' : (isActive ? 'ps-active' : 'ps-upcoming');
-      const circle = isDone ? '✓' : s.n;
-      html += `<div class="ps-row ${cls}" onclick="goToProjectStep(${s.n})" style="cursor:pointer;" title="${s.label}로 이동"><div class="ps-circle">${circle}</div><span>${s.icon} ${s.label}</span></div>`;
-      if (idx < PROJ_STEPS.length - 1) {
-        html += `<div class="ps-connector ${isDone ? 'done' : 'upcoming'}"></div>`;
-      }
+      const cls = isActive ? 'ps-active' : 'ps-upcoming';
+      html += `<div class="ps-row ${cls}" onclick="goToProjectStep(${s.n})" style="cursor:pointer;" title="${s.label} 주제로 대화하기"><span>${s.icon} ${s.label}</span></div>`;
     });
     container.innerHTML = html;
   }
-  // ── 진행률 바 업데이트 ──
-  const doneCount = Math.min(completedProjectStepNums.size, 8);
-  const pct = Math.max(Math.round(doneCount / 8 * 100), 4);
-  const bar = document.getElementById('sidebar-proj-bar');
   const lbl = document.getElementById('sidebar-proj-label');
-  if (bar) bar.style.width = pct + '%';
-  if (lbl) lbl.textContent = `${doneCount} / 8 완료`;
+  const activeStep = PROJ_STEPS.find(s => s.n === activeProjStep);
+  if (lbl) lbl.textContent = activeStep ? `탐구 중: ${activeStep.label}` : '';
 }
 
 function updateProjFlow(currentL4StepNum) {
@@ -4240,9 +4282,21 @@ function goToProjectStep(projStep) {
   if (!target) return;
   const btn = document.querySelector(`[onclick="setLesson(${target.lesson},this)"]`);
   setLesson(target.lesson, btn);
-  if (target.l4 !== null) {
-    setTimeout(() => setL4Step(target.l4), 150);
-  }
+  // 데이터 단계(2·3·4)는 해당 뷰로, 나머지는 채팅(Step 5)으로 이동 + 주제 프롬프트 삽입
+  const isDataStep = L4_DATA_STEPS.has(projStep);
+  const destStep = isDataStep ? target.l4 : 5;
+  setTimeout(() => {
+    setL4Step(destStep);
+    if (!isDataStep) {
+      const prompt = TOPIC_PROMPTS[projStep];
+      const input = document.getElementById('l4-input');
+      if (prompt && input && !input.value.trim()) {
+        input.value = prompt;
+        autoResize(input);
+        input.focus();
+      }
+    }
+  }, 150);
 }
 
 function updateL4SubTabs(n) {
@@ -4321,7 +4375,8 @@ function setL4Step(n) {
     renderV3ColTypeBadges();
     renderV3Chart();
   }
-  if (n === 5 && lesson4Data && l4Messages.length === 0) {
+  if (n === 5 && lesson4Data && (l4Messages.length === 0 || l4AutoAnalysisPending)) {
+    l4AutoAnalysisPending = false;
     triggerL4AutoAnalysis(lesson4AllData || [lesson4Data]);
   }
 }
@@ -5770,6 +5825,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setLesson(0, document.getElementById('btn-free'));
       // autoResume=true: 마지막 단계로 자동 이동
       setTimeout(() => checkForSavedProgress(true), 300);
+      setTimeout(() => loadConversation(), 600);
       setTimeout(() => showSessionToast('✅ 이전 작업을 불러왔습니다'), 700);
     }
   } catch(e) {}
