@@ -1242,31 +1242,31 @@ Chart.register(piePercentPlugin);
               <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;">
                 <div style="font-weight:700;font-size:15px;margin-bottom:16px;">📝 문제 정의서</div>
 
-                <div style="margin-bottom:16px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">1. 우리 팀이 해결하고 싶은 문제는?</label>
-                  <textarea id="prob-def-1" rows="3" placeholder="예) 우리 동네 쓰레기 불법 투기 문제가 심각한데, 어디에 집중적으로 발생하는지 알 수 없다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                <div style="margin-bottom:22px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">1. 우리 팀이 해결하고 싶은 문제는? <span style="color:#ef4444;font-size:11px;">*필수</span></label>
+                  <textarea id="prob-def-1" rows="5" oninput="autoResizeForm(this)" placeholder="예) 우리 동네에서 쓰레기 불법 투기 문제가 심각한데, 어느 지역에 집중적으로 발생하는지 파악하기 어렵다. 단속 인력도 부족하고, 주민들도 어디에 신고해야 할지 몰라 방치되는 경우가 많다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;min-height:120px;font-family:'Noto Sans KR',sans-serif;"></textarea>
                 </div>
 
-                <div style="margin-bottom:16px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">2. 이 문제가 중요한 이유는?</label>
-                  <textarea id="prob-def-2" rows="3" placeholder="예) 불법 투기가 많은 지역은 주민 생활환경이 나빠지고, 처리 비용도 증가한다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                <div style="margin-bottom:22px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">2. 이 문제가 중요한 이유는? <span style="color:#ef4444;font-size:11px;">*필수</span></label>
+                  <textarea id="prob-def-2" rows="4" oninput="autoResizeForm(this)" placeholder="예) 불법 투기가 많은 지역은 주민 생활환경이 크게 나빠지고, 지자체의 쓰레기 처리 비용도 증가한다. 또한 환경 오염으로 이어져 지역 전체의 가치가 하락하는 문제로 번질 수 있다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;min-height:100px;font-family:'Noto Sans KR',sans-serif;"></textarea>
                 </div>
 
-                <div style="margin-bottom:16px;">
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">3. 이 문제를 겪고 있는 사람(대상)은?</label>
-                  <textarea id="prob-def-3" rows="2" placeholder="예) 해당 지역 주민, 환경부 담당자, 지자체" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                <div style="margin-bottom:22px;">
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">3. 이 문제를 겪고 있는 사람(대상)은?</label>
+                  <textarea id="prob-def-3" rows="3" oninput="autoResizeForm(this)" placeholder="예) 해당 지역 주민, 환경미화원, 환경부 담당자, 지자체 공무원 — 쓰레기 불법 투기로 인해 생활 불편과 추가 비용을 겪는 모든 사람" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;min-height:80px;font-family:'Noto Sans KR',sans-serif;"></textarea>
                 </div>
 
                 <div>
-                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;">4. 데이터로 어떻게 탐구할 수 있을까?</label>
-                  <textarea id="prob-def-4" rows="2" placeholder="예) 공공데이터포털에서 불법투기 신고 데이터를 구해 지역별 건수를 분석한다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;"></textarea>
+                  <label style="display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;">4. 데이터로 어떻게 탐구할 수 있을까?</label>
+                  <textarea id="prob-def-4" rows="3" oninput="autoResizeForm(this)" placeholder="예) 공공데이터포털에서 불법투기 신고 데이터를 구해 지역별·시간대별 건수를 분석하고, 지도에 시각화해서 집중 발생 구역을 찾아낸다." style="width:100%;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);box-sizing:border-box;min-height:80px;font-family:'Noto Sans KR',sans-serif;"></textarea>
                 </div>
               </div>
 
-              <!-- 저장 + 다음 단계 -->
-              <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:32px;">
-                <button onclick="saveL4StepData(1)" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;">💾 저장</button>
-                <button onclick="setL4Step(2)" style="padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">다음 단계: 데이터 찾기 →</button>
+              <!-- 저장 + 다음 단계 (sticky footer) -->
+              <div style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);margin:24px -28px -24px;padding:12px 28px;display:flex;gap:10px;justify-content:flex-end;z-index:10;">
+                <button id="save-btn-step1" onclick="saveL4StepData(1)" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💾 저장</button>
+                <button onclick="setL4Step(2)" style="padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">다음 단계: 데이터 찾기 →</button>
               </div>
             </div>
           </div>
@@ -1935,10 +1935,10 @@ Chart.register(piePercentPlugin);
                 <button onclick="l4AskAndGo('우리 팀이 기획한 서비스에 대해 피드백해줘. 강점, 보완할 점, 실현 가능성을 알려줘.')" style="font-size:12px;padding:7px 16px;background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3);border-radius:8px;color:#be185d;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">AI 피드백 요청 →</button>
               </div>
 
-              <!-- 저장 + 다음 단계 -->
-              <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:32px;">
-                <button onclick="saveL4StepData(7)" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;">💾 저장</button>
-                <button onclick="setL4Step(8)" style="padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">다음 단계: 기획서 작성 →</button>
+              <!-- 저장 + 다음 단계 (sticky footer) -->
+              <div style="position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);margin:24px -24px -24px;padding:12px 24px;display:flex;gap:10px;justify-content:flex-end;z-index:10;">
+                <button id="save-btn-step7" onclick="saveL4StepData(7)" style="padding:10px 20px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💾 저장</button>
+                <button onclick="setL4Step(8)" style="padding:10px 24px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">다음 단계: 기획서 작성 →</button>
               </div>
             </div>
           </div>
@@ -3251,6 +3251,11 @@ function handleKey(e) {
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+// 폼 입력창용 — 높이 제한 없이 내용에 맞게 자동 확장
+function autoResizeForm(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
 }
 
 function addBubble(type, text, isMarkdown=false) {
@@ -5406,6 +5411,7 @@ const L4_CHECK_IDS   = ['l4-chk-1','l4-chk-2','l4-chk-3','l4-chk-4','l4-chk-5','
 
 let saveDebounceTimer = null;
 let teamProgressData  = null;
+let isSaving          = false;
 
 function getTeamKey() {
   return currentTeam ? 'hyfl_l4_' + currentTeam.replace(/\s/g,'_') : null;
@@ -5482,9 +5488,10 @@ function restoreSaveData(data) {
     renderSidebarProjFlow(currentProjectStep);
   }
   if (data.fields) {
+    const formFields = new Set(['prob-def-1','prob-def-2','prob-def-3','prob-def-4','svc-name','svc-user-target','svc-features','svc-flow','svc-impact','plan-problem','plan-insight','plan-idea','plan-structure','plan-effect']);
     Object.entries(data.fields).forEach(([id, val]) => {
       const el = document.getElementById(id);
-      if (el) { el.value = val; autoResize && autoResize(el); }
+      if (el) { el.value = val; formFields.has(id) ? autoResizeForm(el) : (autoResize && autoResize(el)); }
     });
   }
   if (data.checks) {
@@ -5510,9 +5517,55 @@ function scheduleAutosave() {
   saveDebounceTimer = setTimeout(saveTeamProgress, 1500);
 }
 
-function saveL4StepData(step) {
-  scheduleAutosave();
-  showSaveStatus('saved');
+async function saveL4StepData(step) {
+  if (isSaving) return;
+  if (!currentTeam) {
+    showToast('팀 정보가 없습니다. 다시 로그인해주세요.', 'error');
+    return;
+  }
+
+  // 필수 입력 검증 (Step 1)
+  if (step === 1) {
+    const v1 = (document.getElementById('prob-def-1')?.value || '').trim();
+    const v2 = (document.getElementById('prob-def-2')?.value || '').trim();
+    if (!v1 || !v2) {
+      showToast('해결하고 싶은 문제와 중요한 이유를 모두 작성해주세요.', 'warning');
+      if (!v1) document.getElementById('prob-def-1')?.focus();
+      else document.getElementById('prob-def-2')?.focus();
+      return;
+    }
+  }
+
+  const btn = document.getElementById('save-btn-step' + step);
+  isSaving = true;
+  showSaveStatus('saving');
+  if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
+  clearTimeout(saveDebounceTimer);
+
+  try {
+    const key = getTeamKey();
+    const data = collectSaveData();
+
+    // localStorage 백업 저장
+    try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
+
+    // 서버 저장 (메인)
+    const res = await fetch('/api/teams', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'saveProgress', teamId: currentTeam, progress: data })
+    });
+    if (!res.ok) throw new Error('서버 응답 오류: ' + res.status);
+
+    showSaveStatus('saved');
+    showToast('저장되었습니다!', 'success');
+  } catch(e) {
+    showSaveStatus('error');
+    showToast('저장에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+  } finally {
+    isSaving = false;
+    if (btn) { btn.disabled = false; btn.innerHTML = '💾 저장'; }
+  }
 }
 
 // ── 데이터 찾기 도우미 ──
@@ -5718,6 +5771,18 @@ function showConfirmModal(html, onConfirm) {
     </div>`;
   document.body.appendChild(overlay);
   overlay.querySelector('#_confirm_yes').onclick = () => { overlay.remove(); onConfirm(); };
+}
+
+// ── 범용 토스트 (success / error / warning) ──
+function showToast(msg, type) {
+  const bg = { success:'rgba(16,185,129,0.95)', error:'rgba(239,68,68,0.95)', warning:'rgba(245,158,11,0.95)' }[type] || 'rgba(16,185,129,0.95)';
+  const icon = { success:'✅', error:'❌', warning:'⚠️' }[type] || '✅';
+  const toast = document.createElement('div');
+  toast.textContent = icon + ' ' + msg;
+  toast.style.cssText = `position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:${bg};color:#fff;padding:10px 22px;border-radius:12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;z-index:9999;box-shadow:0 4px 18px rgba(0,0,0,0.22);opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;white-space:nowrap;`;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => { toast.style.opacity='1'; toast.style.transform='translateX(-50%) translateY(0)'; });
+  setTimeout(() => { toast.style.opacity='0'; setTimeout(() => toast.remove(), 350); }, 2800);
 }
 
 // ── 세션 토스트 ──
