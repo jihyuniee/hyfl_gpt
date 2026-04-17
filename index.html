@@ -265,6 +265,17 @@ Chart.register(piePercentPlugin);
     padding-left:8px;
   }
 
+  /* ── 코치 질문 칩 ── */
+  .q-chip {
+    font-size:11px; padding:5px 11px;
+    background:var(--surface2); border:1px solid var(--border2);
+    border-radius:20px; color:var(--text); cursor:pointer;
+    font-family:'Noto Sans KR',sans-serif; line-height:1.4;
+    transition:background 0.15s, border-color 0.15s, color 0.15s;
+    text-align:left;
+  }
+  .q-chip:hover { background:rgba(108,99,255,0.1); border-color:rgba(108,99,255,0.35); color:var(--accent2); }
+
   /* ── 본문 수평 서브탭 (6단계) ── */
   #l4-subtab-nav { display:flex;overflow-x:auto;flex-shrink:0;background:var(--surface);border-bottom:2px solid var(--border);scrollbar-width:none; }
   #l4-subtab-nav::-webkit-scrollbar { display:none; }
@@ -829,9 +840,10 @@ Chart.register(piePercentPlugin);
 
       <!-- ══ AI 코치 메뉴 ══ -->
       <div style="height:1px;background:var(--border);margin:8px 0;"></div>
-      <div class="sidebar-label">🤖 AI 코치 메뉴</div>
+      <div class="sidebar-label">🤖 AI 코치</div>
+      <button class="lesson-btn" onclick="goToCoachHome()" id="btn-coach-home" style="margin-bottom:6px;font-weight:500;">💬 프로젝트 대화</button>
       <div id="sidebar-proj-flow">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;padding:0 4px;">
           <div id="sidebar-proj-label" style="font-size:9px;color:var(--muted);"></div>
           <div id="save-status-badge-sidebar" style="font-size:9px;color:var(--muted);"></div>
         </div>
@@ -1731,33 +1743,27 @@ Chart.register(piePercentPlugin);
             </div>
           </div>
 
-          <!-- ⑤ STEP 5: 인사이트 도출 -->
+          <!-- ⑤ STEP 5: AI 코치 대화 -->
           <div id="l4-view-5" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
-            <div style="padding:12px 20px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
-              <!-- 탐구 질문 + 빠른 실행 -->
-              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-                <span style="font-size:10px;color:var(--muted);margin-right:2px;">생각해볼 것:</span>
-                <span style="font-size:10px;padding:3px 9px;background:rgba(108,99,255,0.1);border-radius:20px;color:var(--accent2);">이 데이터의 핵심 메시지는?</span>
-                <span style="font-size:10px;padding:3px 9px;background:rgba(16,185,129,0.1);border-radius:20px;color:#10b981;">어떤 교육 문제가 드러나나?</span>
-                <span style="font-size:10px;padding:3px 9px;background:rgba(245,158,11,0.1);border-radius:20px;color:#f59e0b;">왜 이런 결과가 나왔을까?</span>
-                <span style="font-size:10px;padding:3px 9px;background:rgba(239,68,68,0.1);border-radius:20px;color:#f87171;">⚠️ 상관관계 ≠ 인과관계</span>
-              </div>
+            <!-- 코치 질문 패널: 메뉴 클릭 시 표시 -->
+            <div id="coach-question-panel" style="display:none;padding:10px 16px 8px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:7px;font-weight:600;letter-spacing:0.3px;">💡 막히는 부분이 있으면 아래 질문을 눌러 대화를 시작하세요</div>
+              <div id="coach-question-chips" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
             </div>
             <div id="l4-messages" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;"></div>
-            <div id="l4-input-wrap" style="padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;">
+            <div id="l4-input-wrap" style="padding:10px 16px 12px;background:var(--bg);border-top:1px solid var(--border);flex-shrink:0;">
               <div id="l4-input-inner" style="display:flex;gap:8px;align-items:flex-end;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:8px 12px;">
-                <textarea id="l4-input" placeholder="데이터에서 뭘 발견했는지, 어떤 게 궁금한지 물어보세요 — AI가 같이 생각해드려요 (Shift+Enter 줄바꿈)" rows="1" style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;resize:none;line-height:1.6;max-height:100px;min-height:24px;" onkeydown="handleL4Key(event)" oninput="autoResize(this)"></textarea>
+                <textarea id="l4-input" placeholder="막히는 부분을 질문하거나, 생각을 정리해달라고 하세요 — AI 코치가 함께 생각해드려요 (Shift+Enter 줄바꿈)" rows="1" style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;resize:none;line-height:1.6;max-height:100px;min-height:24px;" onkeydown="handleL4Key(event)" oninput="autoResize(this)"></textarea>
                 <button onclick="sendL4Message()" style="width:32px;height:32px;border-radius:8px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/></svg>
                 </button>
               </div>
               <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">
-                <button onclick="l4QuickSend('업로드한 데이터의 각 열(항목)이 무엇을 의미하는지 초보자도 이해할 수 있게 설명해줘')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">열 설명 보기</button>
-                <button onclick="l4QuickSend('이 데이터에서 집단 간 차이나 지역 간 격차를 비교 분석해줘. 가장 차이가 큰 항목 중심으로.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">데이터 비교하기</button>
-                <button onclick="l4QuickSend('이 데이터의 핵심 인사이트를 3가지로 요약해줘. 각각 한 문장으로 쓰고 왜 중요한지도 써줘.')" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✨ 인사이트 찾기</button>
-                <button onclick="l4QuickSend('이 데이터가 보여주는 교육 문제를 해결할 AI 서비스 아이디어를 3가지 제안해줘. 서비스명, 대상, 주요 기능 포함.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">서비스 아이디어</button>
-                <button onclick="l4QuickSend('이 데이터 분석 결과를 발표자료에 쓸 수 있는 문장으로 작성해줘. ① 문제 제기 ② 데이터 근거 ③ 결론 순서로.')" style="font-size:11px;padding:5px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">발표자료 생성</button>
-                <button onclick="setL4Step(6)" style="font-size:11px;padding:5px 11px;background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);border-radius:20px;color:var(--accent2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🚀 AI 아이디어 →</button>
+                <button onclick="l4QuickSend('이 데이터의 각 열 항목이 의미하는 것을 설명해줘. 우리 주제와 어떻게 연결될 수 있는지도 알려줘.')" class="q-chip">데이터 열 의미 파악</button>
+                <button onclick="l4QuickSend('데이터에서 눈에 띄는 차이나 패턴이 있는지 찾아봐. 어떤 집단 간, 지역 간 차이가 있는지 중심으로.')" class="q-chip">패턴·차이 찾기</button>
+                <button onclick="l4QuickSend('이 데이터에서 뽑을 수 있는 인사이트를 3가지로 정리해줘. 완성 문장 말고, 각 인사이트를 확인하기 위한 질문 형태로 써줘.')" class="q-chip">✨ 인사이트 질문 만들기</button>
+                <button onclick="l4QuickSend('우리가 발견한 인사이트를 바탕으로 어떤 AI 서비스가 필요할지 생각해볼 질문들을 만들어줘. 서비스 아이디어를 스스로 정리하도록 도와줘.')" class="q-chip">서비스 아이디어 구상</button>
+                <button onclick="l4QuickSend('우리 기획을 PPT 발표 구조로 정리할 때, 각 슬라이드에 들어갈 내용 목록만 제목으로 만들어줘. 내용은 직접 채울게.')" class="q-chip">PPT 슬라이드 구조 잡기</button>
               </div>
             </div>
           </div>
@@ -4217,6 +4223,57 @@ const PROJ_STEPS = [
 // l4탐구단계(1~8) → 프로젝트 전체 단계(1~8) 1:1 매핑
 const L4_TO_PROJ = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8};
 
+// ── AI 코치 메뉴 (사이드바 5개 항목) ──
+const COACH_MENUS = [
+  { n:1, icon:'🧠', label:'문제 정의' },
+  { n:2, icon:'📊', label:'공공데이터 탐색' },
+  { n:3, icon:'🔍', label:'인사이트 도출' },
+  { n:4, icon:'💡', label:'아이디어 기획' },
+  { n:5, icon:'📝', label:'기획서 정리' },
+];
+
+// 코치 메뉴 → 이동할 l4Step
+const COACH_MENU_TO_L4 = { 1:5, 2:2, 3:5, 4:5, 5:5 };
+
+// 코치 메뉴별 안내 질문 (클릭하면 채팅창에 주입)
+const COACH_QUESTIONS = {
+  1: [
+    '우리가 해결하려는 문제를 한 문장으로 쓸 수 있나요?',
+    '이 문제를 왜 지금 해결해야 하나요?',
+    '이 문제를 겪는 사람은 누구인가요?',
+    '지금 해결 안 되면 어떤 불편이 생기나요?',
+    '비슷한 문제를 이미 해결한 사례가 있나요?',
+  ],
+  2: [
+    '찾은 데이터는 누구에 대한 정보인가요?',
+    '이 데이터로 어떤 문제를 설명할 수 있나요?',
+    '우리 주제와 이 데이터는 어떻게 연결되나요?',
+    '가장 눈에 띄는 숫자나 비율은 무엇인가요?',
+    '데이터가 보여주지 못하는 것은 무엇인가요?',
+  ],
+  3: [
+    '데이터에서 확인된 사실은 무엇인가요?',
+    '그 사실이 의미하는 문제는 무엇인가요?',
+    '그래서 우리에게 필요한 것은 무엇인가요?',
+    '인사이트 3단 정리 틀 만들어줘: ①확인된 사실 ②의미하는 문제 ③필요한 것 — 힌트 질문으로',
+    '이 인사이트가 우리 주제 해결과 어떻게 연결되나요?',
+  ],
+  4: [
+    '이 서비스는 누가 주로 사용하나요?',
+    '언제, 어떤 상황에서 사용하나요?',
+    '사용자가 입력하는 것은 무엇인가요?',
+    'AI는 어떤 판단이나 처리를 하나요?',
+    '결과로 사용자에게 무엇을 보여주나요?',
+  ],
+  5: [
+    '한 문장으로 우리 서비스를 설명해봐요',
+    'PPT 슬라이드 구조 틀만 잡아줘 (슬라이드 제목만, 내용은 직접 쓸게)',
+    '발표에서 가장 강조하고 싶은 내용은?',
+    '우리 서비스가 기존 방법과 다른 점은?',
+    '심사위원이 가장 궁금해할 것은 무엇일까요?',
+  ],
+};
+
 // 주제별 AI 대화 시작 프롬프트
 const TOPIC_PROMPTS = {
   1: '우리 팀이 해결하려는 교육 문제를 더 구체화해보자. 어떤 문제를 AI로 해결하고 싶어?',
@@ -4246,29 +4303,83 @@ function setCurrentProjectStep(projStep) {
   currentProjectStep = projStep;
 }
 
-// 사이드바 탐구 주제 메뉴 렌더 — currentTopicMenu 기준으로 하이라이트 (단계 완료 추적 없음)
-function renderSidebarProjFlow() {
+// ── AI 코치 메뉴: 사이드바 렌더 ──
+function renderCoachMenuSidebar() {
   const container = document.getElementById('sidebar-proj-steps');
-  if (container) {
-    let html = '';
-    PROJ_STEPS.forEach((s) => {
-      const isActive = s.n === currentTopicMenu;
-      const cls = isActive ? 'ps-active' : 'ps-upcoming';
-      html += `<div class="ps-row ${cls}" onclick="goToProjectStep(${s.n})" title="${s.label}로 대화 시작"><span>${s.icon} ${s.label}</span></div>`;
-    });
-    container.innerHTML = html;
-  }
+  if (!container) return;
+  let html = '';
+  COACH_MENUS.forEach(m => {
+    const isActive = m.n === currentTopicMenu;
+    const cls = isActive ? 'ps-active' : 'ps-upcoming';
+    html += `<div class="ps-row ${cls}" onclick="goToCoachMenu(${m.n})" title="${m.label}"><span>${m.icon} ${m.label}</span></div>`;
+  });
+  container.innerHTML = html;
   const lbl = document.getElementById('sidebar-proj-label');
   if (lbl) {
-    const active = currentTopicMenu ? PROJ_STEPS.find(s => s.n === currentTopicMenu) : null;
-    lbl.textContent = active ? `현재: ${active.label}` : '';
+    const active = currentTopicMenu ? COACH_MENUS.find(m => m.n === currentTopicMenu) : null;
+    lbl.textContent = active ? `주제: ${active.label}` : '';
   }
+}
+
+// 사이드바 렌더 진입점 (기존 코드 호환)
+function renderSidebarProjFlow() {
+  renderCoachMenuSidebar();
+}
+
+// ── AI 코치 메뉴 클릭 동작 ──
+function goToCoachMenu(n) {
+  currentTopicMenu = n;
+  renderCoachMenuSidebar();
+  const btn = document.querySelector('[onclick="setLesson(2,this)"]');
+  setLesson(2, btn);
+  const destL4 = COACH_MENU_TO_L4[n] || 5;
+  setTimeout(() => {
+    setL4Step(destL4);
+    if (destL4 === 5) showCoachQuestions(n);
+  }, 150);
+}
+
+// 💬 프로젝트 대화 버튼 — 질문 패널 없이 채팅만
+function goToCoachHome() {
+  currentTopicMenu = null;
+  renderCoachMenuSidebar();
+  const btn = document.querySelector('[onclick="setLesson(2,this)"]');
+  setLesson(2, btn);
+  setTimeout(() => {
+    setL4Step(5);
+    const qp = document.getElementById('coach-question-panel');
+    if (qp) qp.style.display = 'none';
+  }, 150);
+}
+
+// 선택한 메뉴의 안내 질문을 채팅창 위에 표시
+function showCoachQuestions(n) {
+  const panel = document.getElementById('coach-question-panel');
+  const chips = document.getElementById('coach-question-chips');
+  if (!panel || !chips) return;
+  const questions = COACH_QUESTIONS[n] || [];
+  if (!questions.length) { panel.style.display = 'none'; return; }
+  chips.innerHTML = questions.map(q =>
+    `<button class="q-chip" onclick="injectCoachQuestion(${JSON.stringify(q)})">${q}</button>`
+  ).join('');
+  panel.style.display = 'block';
+}
+
+// 질문 칩 클릭 → 입력창에 삽입 후 패널 닫기
+function injectCoachQuestion(q) {
+  const input = document.getElementById('l4-input');
+  if (!input) return;
+  input.value = q;
+  autoResize(input);
+  input.focus();
+  const panel = document.getElementById('coach-question-panel');
+  if (panel) panel.style.display = 'none';
 }
 
 function updateProjFlow(currentL4StepNum) {
   const projStep = L4_TO_PROJ[currentL4StepNum] || 1;
   setCurrentProjectStep(projStep);
-  renderSidebarProjFlow(); // uses currentTopicMenu, not step number
+  renderCoachMenuSidebar(); // currentTopicMenu 기준 — 단계 번호와 무관
   updateStepGuideBanner(currentL4StepNum);
   updateL4SubTabs(currentL4StepNum);
 }
@@ -4378,6 +4489,11 @@ function setL4Step(n) {
     } else {
       view.style.display = 'none';
     }
+  }
+  // Step 5가 아닐 때 질문 패널 숨기기
+  if (n !== 5) {
+    const qp = document.getElementById('coach-question-panel');
+    if (qp) qp.style.display = 'none';
   }
   // Step-specific side effects
   if (n === 3 && lesson4Data) renderL4Preprocessing();
