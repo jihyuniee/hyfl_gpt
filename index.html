@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HYFL eduAI — 2026 공공교육데이터 AI활용대회</title>
+<title>HYFL eduAI — DATA TO AI SERVICE</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
@@ -736,10 +736,10 @@ Chart.register(piePercentPlugin);
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">HYFL edu<span>AI</span></div>
-    <div class="login-sub">교육용 AI 대화 플랫폼</div>
+    <div class="login-sub">데이터로 문제를 발견하고 AI 서비스를 기획하는 실습 플랫폼</div>
     <div class="login-contest">
-      📊 2026 공공교육데이터 AI활용대회<br>
-      대회 기간 중 교사 승인 팀만 접속 가능합니다
+      🚀 2학기 프로젝트 · DATA TO AI SERVICE<br>
+      관심 분야의 공공데이터를 분석하고, 근거 있는 서비스를 제안해요
     </div>
 
     <div style="display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border2);border-radius:10px;overflow:hidden;">
@@ -819,7 +819,7 @@ Chart.register(piePercentPlugin);
     <div class="top-logo">HYFL edu<span>AI</span></div>
     <div class="top-right">
       <div class="team-chip" id="team-chip">팀명</div>
-      <div class="contest-chip">2026 공공교육데이터 AI활용대회</div>
+      <div class="contest-chip">2학기 · DATA TO AI SERVICE</div>
       <button onclick="showHelp()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 11px;cursor:pointer;font-size:12px;color:var(--muted);font-family:'Noto Sans KR',sans-serif;line-height:1.4;" title="도움말">❓ 도움말</button>
       <button id="theme-btn" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:15px;line-height:1;" title="라이트/다크 모드">🌙</button>
       <button class="logout-btn" onclick="doLogout()">나가기</button>
@@ -851,24 +851,25 @@ Chart.register(piePercentPlugin);
       </div>
 
       <div style="height:1px;background:var(--border);margin:8px 0;"></div>
-      <div class="sidebar-label">📖 개념 학습</div>
-      <button class="lesson-btn" onclick="setLesson(8,this)">📂 공공데이터 탐색</button>
-      <button class="lesson-btn" onclick="setLesson(9,this)">📊 데이터가 말해주는 이야기</button>
-      <button class="lesson-btn" onclick="setLesson(10,this)">🤖 AI 활용 방법</button>
+      <div class="sidebar-label">📖 프로젝트 실습</div>
+      <button class="lesson-btn" onclick="setLesson(8,this)">📂 공공데이터 찾기</button>
+      <button class="lesson-btn" onclick="setLesson(9,this)">📊 파일 분석 · 시각화</button>
+      <button class="lesson-btn" onclick="setLesson(10,this)">🧭 데이터에서 서비스까지</button>
 
       <div style="height:1px;background:var(--border);margin:10px 0;"></div>
-      <div class="sidebar-label">🏆 대회 정보</div>
-      <button class="lesson-btn" onclick="setLesson(3,this)" id="btn-contest">📋 대회 개요 · 일정</button>
-      <button class="lesson-btn" onclick="setLesson(4,this)">⭐ 심사 기준</button>
-      <button class="lesson-btn" onclick="setLesson(5,this)">🗂️ 데이터 목록</button>
+      <div class="sidebar-label">📚 바로가기</div>
+      <a href="https://jihyuniee.github.io/hyfl-ai-lab/data-project/" target="_blank" class="tool-link">
+        <span class="tool-icon" style="background:rgba(108,99,255,0.15);">📘</span>2학기 웹 교과서
+      </a>
+      <a href="https://www.data.go.kr/" target="_blank" class="tool-link">
+        <span class="tool-icon" style="background:rgba(16,185,129,0.15);">🏛️</span>공공데이터포털
+      </a>
+      <a href="https://kess.kedi.re.kr/" target="_blank" class="tool-link">
+        <span class="tool-icon" style="background:rgba(66,133,244,0.15);">🎓</span>교육통계서비스
+      </a>
 
       <div style="height:1px;background:var(--border);margin:10px 0;"></div>
-      <div class="sidebar-label">✏️ 학습 활동</div>
-      <button class="lesson-btn" onclick="setLesson(6,this)">✍️ 글쓰기 비교</button>
-      <button class="lesson-btn" onclick="setLesson(7,this)">🪞 자기 반성 기록</button>
-
-      <div style="height:1px;background:var(--border);margin:10px 0;"></div>
-      <div class="sidebar-label">🛠️ 수업 도구</div>
+      <div class="sidebar-label">🛠️ 제작 도구</div>      <div class="sidebar-label">🛠️ 수업 도구</div>
       <a href="https://www.miricanvas.com" target="_blank" class="tool-link">
         <span class="tool-icon" style="background:rgba(108,99,255,0.15);">🎨</span>미리캔버스
       </a>
@@ -2551,8 +2552,8 @@ let uploadedFileContent = null;
 let lesson4Data = null;
 let lesson4AllData = null;
 let currentL4Step = 1;
-const completedProjectStepNums = new Set([1]); // 문제 정의는 항상 완료 (누적, 뒤로 가도 유지)
-let currentProjectStep = 2; // 현재 활성 프로젝트 단계
+const completedProjectStepNums = new Set(); // 팀이 실제로 완료한 단계만 누적
+let currentProjectStep = 1; // 관심 분야와 문제 가설부터 시작
 let v3ChartType = 'bar';
 let v3ChartInst = null;
 let scaffoldingMode = false;
@@ -2565,61 +2566,29 @@ let rawPendingFiles = []; // 헤더 선택 전 원시 데이터
 const lessons = [
   {
     title: '자유 대화',
-    bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
+    bookUrl: 'https://jihyuniee.github.io/hyfl-ai-lab/data-project/',
     activityUrl: null,
-    system: '당신은 한국 학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 도우미입니다. 학생 수준에 맞게 친절하고 명확하게 답변하세요.',
-    welcome: '안녕하세요! 무엇이든 자유롭게 질문해보세요 😊',
+    system: '당신은 한영외고 학생의 DATA TO AI SERVICE 프로젝트를 돕는 교육용 AI 코치입니다. 학생의 관심 분야를 존중하고 바로 쓸 수 있는 예시와 다음 행동을 제시하세요. 파일이나 출처를 보지 않았다면 본 것처럼 말하지 마세요. 데이터에서 확인된 사실, 가능한 해석, 아직 검증되지 않은 원인 가설을 구분하고 상관관계를 인과관계로 단정하지 마세요. AI 사용이 꼭 필요한지도 규칙 기반·검색·사람의 안내와 비교하게 하세요.',
+    welcome: '안녕하세요! 관심 분야의 문제를 데이터로 확인하고 AI 서비스 기획으로 발전시켜 봐요. 지금 필요한 작업을 말해 주세요 😊',
     isDataLesson: false
   },
   {
-    title: '3차시 · 주제선정',
-    bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
-    activityUrl: 'https://docs.google.com/document/d/11L2IoxFknvSp1GyUZZhxNRZK_1vlOsxT5R4Pm-mdosg/edit?usp=sharing',
-    system: `당신은 한국 고등학생들의 공공교육데이터 AI 활용 대회를 돕는 교육용 AI 튜터입니다.
-지금은 3차시 수업 "주제 선정 — 아이디어를 서비스로 만들기" 단계입니다.
-
-[튜터링 원칙 - 반드시 준수]
-- 학생이 질문하면 바로 답을 주지 마세요. 먼저 "지금까지 어떤 생각을 해봤어?" 또는 "어떤 방향으로 생각하고 있어?"를 물어보세요.
-- 학생 답변을 들은 뒤, 다음 사고 단계를 이끄는 질문을 하세요.
-- 힌트는 단계적으로 제공하세요 (첫 힌트는 작게, 학생이 여전히 막히면 조금씩 더 구체적으로).
-- 포기하지 않도록 격려하면서 끝까지 완성하도록 도와주세요.
-- "왜 그렇게 생각해?", "다른 관점에서 보면?", "이 부분은 어떻게 느껴져?" 같은 질문을 활용하세요.
-- AI가 결론을 내리지 말고, 학생이 스스로 결론에 도달하도록 도와주세요.
-
-활동지 STEP 순서:
-STEP1 대회 핵심 기준 이해 (교육공공데이터·AI·교육문제해결·독창성·실현가능성)
-STEP2 주제 방향 선택 (AI 교육안전복지 / 교육자원최적화 / 미래교육 / 학습자중심)
-STEP3 데이터 기반 문제 탐색 (숫자·사례 포함)
-STEP4 공공데이터 활용 방법 결정
-STEP5 AI 활용 방법 선택 (예측/추천/분류/챗봇/생성형AI)
-STEP6 생성형 AI로 아이디어 확장
-STEP7 서비스 아이디어 정리
-STEP8 AI 적용 시나리오 작성 (데이터수집→AI분석→결과제공)
-STEP9 대회 평가기준 점검 (독창성→AI활용도→실현가능성→논리성→표현성)
-STEP10 최종 주제 선정
-STEP11 AI 피드백 (독창성·실현가능성·AI활용도 1~5점)
-STEP12 최종 문제 정의문 확정
-학교는 한영외고입니다. 학생들이 각 STEP을 진행할 때 막히는 부분을 친절하게 도와주세요.
-좋은 문제 정의문 구조: [공공데이터]를 활용하여 + [대상]의 + [구체적 문제]를 + [AI방법]으로 해결할 수 있을까?`,
-    welcome: `안녕하세요! 3차시 **"주제 선정"** 수업이에요 💡\n\n오늘 목표:\n① 팀 주제 1개 선정\n② 공공데이터 활용 방향 결정\n③ 최종 문제 정의문 확정\n\n활동지 STEP 1부터 순서대로 진행하면서 막히는 부분을 질문해보세요!\n예) "STEP3 문제 탐색 도와줘", "좋은 주제 아이디어 뭐가 있을까?"`,
+    title: '프로젝트 시작 · 관심과 문제 가설',
+    bookUrl: 'https://jihyuniee.github.io/hyfl-ai-lab/data-project/',
+    activityUrl: null,
+    system: '당신은 고등학생의 프로젝트 시작을 돕는 코치입니다. 진로·관심 분야에서 불편하거나 궁금한 현상을 찾게 하고, 누가 어떤 상황에서 무엇을 겪는지 문제 가설로 쓰게 하세요. 처음부터 해결책이나 AI 기능을 정답처럼 주지 마세요. 3인 팀이라면 관심의 공통점과 조사·분석·시각화·기획·발표 강점이 보완되는지 점검하게 하세요. 짧은 설명 뒤 학생이 바로 수행할 한 가지 행동을 제시하세요.',
+    welcome: '먼저 진로·관심 분야에서 “왜 이런 일이 생길까?”라고 궁금했던 장면을 적어 봅시다. 아직 정답인 문제 정의가 아니라 데이터로 확인할 가설이면 충분해요.',
     isDataLesson: false
   },
   {
-    title: '4차시 · 데이터 탐색 및 검증',
-    bookUrl: 'https://jihyuniee.github.io/hyfl-aidata/',
+    title: '데이터 실습 · 구조, 품질, 분석',
+    bookUrl: 'https://jihyuniee.github.io/hyfl-ai-lab/data-project/',
     activityUrl: null,
-    system: `당신은 한영외고 2학년 데이터 과학 수업 AI 전문 분석 도우미입니다.
-
-[응답 원칙]
-- 학생 질문에 먼저 직접적으로 답하세요. 질문으로 돌려보내지 마세요.
-- 교차분석, 상관분석 요청 시: 데이터 수치를 기반으로 구체적 결과를 바로 제시
-- 시각화 요청 시: 어떤 그래프가 적합한지 설명하고 해석까지 제공
-- 발표자료 문장 요청 시: 바로 초안을 작성해줌
-- 추가 분석 제안은 항상 마지막에 옵션으로 붙여주세요
-- 긴 분석은 번호를 붙여 구조화해서 읽기 쉽게 작성`,
-    welcome: `안녕하세요! 4차시 **"데이터 탐색 및 검증"** 수업이에요 🔍\n\n오늘 목표:\n① 공공데이터 포털에서 데이터 다운로드\n② CSV/XLSX 파일 업로드 및 구조 파악\n③ AI 활용 아이디어 도출\n\n왼쪽 패널에서 파일을 업로드해보세요!`,
+    system: '당신은 고등학생 데이터 분석 코치입니다. CSV와 XLSX, 정형·비정형 데이터, 행·열·변수, 결측치·중복·단위·범위를 실제 업로드 파일에 연결해 설명하세요. 적절한 그래프와 상관분석을 제안하되 상관관계는 인과관계가 아님을 분명히 하세요. 결과는 반드시 확인된 사실, 가능한 해석, 한계·추가로 필요한 데이터로 나누세요. Python 문법 학습을 전제로 하지 말고 생성형 AI가 만든 분석 절차와 결과를 학생이 검증하도록 도우세요.',
+    welcome: '파일을 올리면 먼저 구조와 품질을 확인한 뒤, 질문에 맞는 그래프나 관계 분석을 선택해 봅시다. AI의 해석도 데이터와 맞는지 함께 검증해요.',
     isDataLesson: true
   }
+];
 ];
 
 // ── Teams API ──
@@ -2731,7 +2700,6 @@ async function doLogin() {
   histories = [];
   currentTopicMenu = null;
   completedProjectStepNums.clear();
-  completedProjectStepNums.add(1);
 
   loadHistory();
   updateProjFlow(currentL4Step || 1);  // 사이드바 탐구 주제 초기 렌더
@@ -4070,18 +4038,19 @@ async function triggerL4AutoAnalysis(allData) {
 
   // ── 2. AI 종합 분석 보고서 ──
   const dataSummary = buildDataSummary(allData);
-  const analysisSystem = `당신은 데이터 분석 전문가입니다. 아래 데이터 통계를 바탕으로 번호가 붙은 구조화된 분석 보고서를 한국어로 작성하세요.
+  const analysisSystem = `당신은 고등학생의 데이터 분석 검증을 돕는 코치입니다. 아래 요약 통계에 있는 값만 사용해 한국어 보고서를 작성하세요.
 
-보고서 구조 (실제 수치를 포함해서 작성):
-1. 데이터 구성 (응답 건수, 변수 수, 주요 컬럼 특징)
-2. 주요 변수별 분포 및 비율 (상위 응답 위주)
-3. 핵심 패턴 및 인사이트 (3~5가지, 구체적 수치 포함)
-4. 집단 간 차이 (성별·연령대·학교급 등 관련 변수 있으면 비교)
-5. 교육 문제와의 연결점 및 AI 서비스 가능성
+보고서 구조:
+1. 데이터 구성과 품질: 행·열, 변수 유형, 결측·중복·단위에서 확인할 점
+2. 확인된 사실: 실제 수치로만 3~5가지
+3. 가능한 해석: 사실과 분리하고 "가능성이 있다" 수준으로 표현
+4. 원인 가설: 현재 데이터만으로 인과를 단정할 수 없음을 밝히고 필요한 추가 근거 제시
+5. 한계와 다음 분석: 대표성·기간·누락 변수·상관관계 해석 주의
+6. 문제 가설 수정 질문: 학생이 분석 전 생각을 어떻게 고칠지 묻는 질문 1개
 
-마지막 한 줄: "다음으로 ①교차분석 ②상관분석 ③시각화 그래프 ④발표자료 문장 작성 중 원하는 것을 말씀해주세요."
+상관관계를 인과관계로 표현하지 말고, 데이터에 없는 내용·출처·수치를 만들지 마세요. 아직 AI 서비스 아이디어로 바로 넘어가지 마세요.
 
-데이터에 없는 내용은 만들지 마세요. 실제 데이터 수치만 사용하세요.`;
+마지막 한 줄: "다음으로 ①교차분석 ②상관분석 ③시각화 ④문제 가설 수정 중 원하는 것을 선택하세요."`;
 
   const dataMsg = `다음 데이터를 분석해주세요:\n\n${dataSummary}`;
   l4Messages.push({ role: 'user', content: dataMsg });
@@ -4204,90 +4173,87 @@ function advanceL4Step(text) {
 
 // ── 프로젝트 전체 흐름 (6단계: 데이터 찾기 → 기획서 작성) ──
 const PROJ_STEPS = [
-  {n:1, icon:'🎯', label:'문제 정의'},
-  {n:2, icon:'🔍', label:'데이터 찾기'},
-  {n:3, icon:'👀', label:'데이터 이해'},
-  {n:4, icon:'📊', label:'데이터 분석'},
-  {n:5, icon:'💡', label:'인사이트 도출'},
-  {n:6, icon:'🚀', label:'AI 아이디어'},
-  {n:7, icon:'🛠', label:'서비스 기획'},
-  {n:8, icon:'📋', label:'기획서 작성'},
+  {n:1, icon:'🌱', label:'관심·문제 가설'},
+  {n:2, icon:'🔍', label:'공공데이터 찾기'},
+  {n:3, icon:'🧹', label:'구조·품질 확인'},
+  {n:4, icon:'📊', label:'전처리·분석'},
+  {n:5, icon:'💡', label:'인사이트·재정의'},
+  {n:6, icon:'⚖️', label:'AI 필요성·데이터'},
+  {n:7, icon:'🛠', label:'서비스·사람 역할'},
+  {n:8, icon:'📋', label:'기획안·피드백'},
 ];
-// l4탐구단계(1~8) → 프로젝트 전체 단계(1~8) 1:1 매핑
 const L4_TO_PROJ = {1:1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8};
 
-// ── AI 코치 메뉴 (사이드바 5개 항목) ──
 const COACH_MENUS = [
-  { n:1, icon:'🧠', label:'문제 정의' },
-  { n:2, icon:'📊', label:'공공데이터 탐색' },
-  { n:3, icon:'🔍', label:'인사이트 도출' },
-  { n:4, icon:'💡', label:'아이디어 기획' },
-  { n:5, icon:'📝', label:'기획서 정리' },
+  { n:1, icon:'🌱', label:'문제 가설' },
+  { n:2, icon:'🔍', label:'데이터 찾기' },
+  { n:3, icon:'📊', label:'분석 검증' },
+  { n:4, icon:'💡', label:'인사이트·재정의' },
+  { n:5, icon:'⚖️', label:'AI 서비스 설계' },
+  { n:6, icon:'✅', label:'최종 점검' },
 ];
 
-// 코치 메뉴 → 이동할 l4Step
-const COACH_MENU_TO_L4 = { 1:5, 2:2, 3:5, 4:5, 5:5 };
+const COACH_MENU_TO_L4 = { 1:1, 2:2, 3:4, 4:5, 5:7, 6:8 };
 
-// 코치 메뉴별 안내 질문 (클릭하면 채팅창에 주입)
 const COACH_QUESTIONS = {
   1: [
-    '우리가 해결하려는 문제를 한 문장으로 쓸 수 있나요?',
-    '이 문제를 왜 지금 해결해야 하나요?',
-    '이 문제를 겪는 사람은 누구인가요?',
-    '지금 해결 안 되면 어떤 불편이 생기나요?',
-    '비슷한 문제를 이미 해결한 사례가 있나요?',
+    '내 진로·관심 분야에서 불편하거나 궁금한 장면은 무엇인가요?',
+    '누가, 언제, 어떤 상황에서 이 문제를 겪나요?',
+    '아직 확인하지 않은 우리의 추측은 무엇인가요?',
+    '3인 팀에서 관심의 공통점과 각자의 강점을 정리해줘.',
   ],
   2: [
-    '찾은 데이터는 누구에 대한 정보인가요?',
-    '이 데이터로 어떤 문제를 설명할 수 있나요?',
-    '우리 주제와 이 데이터는 어떻게 연결되나요?',
-    '가장 눈에 띄는 숫자나 비율은 무엇인가요?',
-    '데이터가 보여주지 못하는 것은 무엇인가요?',
+    '이 문제 가설을 확인하려면 어떤 변수와 기간이 필요한가요?',
+    '이 데이터는 왜 공공데이터라고 할 수 있나요?',
+    '출처, 갱신일, 단위, 이용 조건을 점검해줘.',
+    '공공데이터가 보여주지 못하는 부분은 무엇인가요?',
   ],
   3: [
-    '데이터에서 확인된 사실은 무엇인가요?',
-    '그 사실이 의미하는 문제는 무엇인가요?',
-    '그래서 우리에게 필요한 것은 무엇인가요?',
-    '인사이트 3단 정리 틀 만들어줘: ①확인된 사실 ②의미하는 문제 ③필요한 것 — 힌트 질문으로',
-    '이 인사이트가 우리 주제 해결과 어떻게 연결되나요?',
+    'CSV와 XLSX의 차이를 지금 파일에 맞춰 설명해줘.',
+    '결측치·중복·이상치·단위 문제를 먼저 점검해줘.',
+    '이 질문에는 어떤 그래프가 적절하고 왜 그런가요?',
+    '상관계수와 히트맵에서 말할 수 있는 것과 없는 것을 나눠줘.',
   ],
   4: [
-    '이 서비스는 누가 주로 사용하나요?',
-    '언제, 어떤 상황에서 사용하나요?',
-    '사용자가 입력하는 것은 무엇인가요?',
-    'AI는 어떤 판단이나 처리를 하나요?',
-    '결과로 사용자에게 무엇을 보여주나요?',
+    '결과를 확인된 사실·가능한 해석·한계로 나눠줘.',
+    '원인이라고 말하려면 어떤 추가 근거가 필요한가요?',
+    '처음 문제 가설을 데이터에 맞게 다시 써줘.',
+    '분석 결과에서 서비스 기회로 이어지는 핵심 인사이트는 무엇인가요?',
   ],
   5: [
-    '한 문장으로 우리 서비스를 설명해봐요',
-    'PPT 슬라이드 구조 틀만 잡아줘 (슬라이드 제목만, 내용은 직접 쓸게)',
-    '발표에서 가장 강조하고 싶은 내용은?',
-    '우리 서비스가 기존 방법과 다른 점은?',
-    '심사위원이 가장 궁금해할 것은 무엇일까요?',
+    '이 문제는 정말 AI가 필요한가요? 다른 방법과 비교해줘.',
+    '문제 근거·학습·입력·운영·평가 데이터 역할을 구분해줘.',
+    '사용자→입력→AI 판단→결과→사람의 최종 판단 흐름을 점검해줘.',
+    '편향·개인정보·오류가 생기면 누가 어떻게 확인해야 하나요?',
+  ],
+  6: [
+    '기획안에 근거 수치와 데이터 출처가 모두 들어갔나요?',
+    'AI가 만든 문장 중 우리가 검증하지 못한 부분을 찾아줘.',
+    '동료 피드백을 반영해 수정 우선순위를 정해줘.',
+    '발표자가 1분 안에 설명할 핵심을 정리해줘.',
   ],
 };
 
-// 주제별 AI 대화 시작 프롬프트
 const TOPIC_PROMPTS = {
-  1: '우리 팀이 해결하려는 교육 문제를 더 구체화해보자. 어떤 문제를 AI로 해결하고 싶어?',
-  2: '우리 주제에 맞는 공공교육데이터를 어디서 찾을 수 있을까? 어떤 데이터셋이 필요한지 알려줘.',
-  3: '업로드한 데이터를 이해하고 싶어. 주요 컬럼의 의미와 데이터 구조를 분석해줘.',
-  4: '데이터에서 패턴이나 특징을 찾고 싶어. 어떤 분석을 해볼까?',
-  5: '지금까지 분석한 결과에서 중요한 인사이트를 뽑아내고 싶어. 어떤 의미가 있을까?',
-  6: '우리가 발견한 인사이트를 바탕으로 어떤 AI 서비스를 만들 수 있을까?',
-  7: '우리 AI 서비스 아이디어를 더 구체적으로 기획하고 싶어. 사용자, 기능, 사용 흐름을 정리해줘.',
-  8: '지금까지 우리 팀이 이야기한 내용을 바탕으로 AI 서비스 기획서 초안을 작성해줘.',
+  1: '내 진로·관심 분야에서 데이터로 확인해 볼 문제 가설을 만들고 싶어. 해결책부터 정하지 말고 질문으로 도와줘.',
+  2: '우리 문제 가설을 확인할 공공데이터를 찾고 싶어. 필요한 변수·기간·출처·품질 점검표를 함께 제안해줘.',
+  3: '업로드한 데이터의 행·열·변수 유형과 결측치·중복·단위·범위를 확인해줘.',
+  4: '연구 질문에 맞는 그래프나 관계 분석을 선택하고, 분석 과정과 검증 방법을 알려줘.',
+  5: '분석 결과를 확인된 사실, 가능한 해석, 원인 가설, 한계로 나누고 문제를 다시 정의해줘.',
+  6: 'AI가 필요한지 다른 해결 방식과 비교하고, 문제 근거·학습·입력·운영·평가 데이터의 역할을 구분해줘.',
+  7: '사용자, 입력, AI의 역할, 출력, 사람의 최종 판단과 안전장치를 포함해 서비스를 설계해줘.',
+  8: '근거와 한계가 드러나는 DATA TO AI SERVICE 기획안 초안을 만들고 검증 질문도 붙여줘.',
 };
-
-const L4_STEP_META = [null,
-  { title:'🎯 문제 정의',         phase:'① 문제 정의',         phaseColor:'#7c3aed', desc:'해결할 문제를 명확하게 정의합니다',         done:'',                                     next:'문제를 정의하면 데이터를 찾습니다' },
-  { title:'🔍 공공데이터 찾기',   phase:'② 데이터 찾기',       phaseColor:'#0284c7', desc:'연구 주제에 맞는 공공데이터를 찾습니다',   done:'문제 정의를 완료했습니다',              next:'데이터를 업로드하면 다음 단계로 이동합니다' },
-  { title:'👀 데이터 이해',        phase:'③ 데이터 이해',       phaseColor:'#059669', desc:'데이터 구조와 내용을 파악합니다',           done:'데이터 탐색을 완료했습니다',            next:'이제 데이터를 이해하고 파악합니다' },
-  { title:'📊 데이터 분석',        phase:'④ 데이터 분석',       phaseColor:'#d97706', desc:'그래프로 패턴과 특징을 찾습니다',           done:'데이터 이해를 완료했습니다',            next:'이제 데이터를 시각화해 분석합니다' },
-  { title:'💡 인사이트 도출',     phase:'⑤ 인사이트 도출',     phaseColor:'#10b981', desc:'데이터에서 의미 있는 발견을 정리합니다',   done:'데이터 분석을 완료했습니다',            next:'이제 핵심 인사이트를 정리합니다' },
-  { title:'🚀 AI 활용 아이디어', phase:'⑥ AI 활용 아이디어',  phaseColor:'#6C63FF', desc:'데이터 기반으로 AI 서비스를 구상합니다',   done:'인사이트를 도출했습니다',               next:'이제 AI 활용 아이디어를 구상합니다' },
-  { title:'🛠 서비스 기획',        phase:'⑦ 서비스 기획',       phaseColor:'#be185d', desc:'AI 아이디어를 실제 서비스로 구체화합니다', done:'AI 아이디어를 완성했습니다',             next:'이제 서비스 기획을 구체화합니다' },
-  { title:'📋 기획서 작성',       phase:'⑧ 기획서 작성',       phaseColor:'#1d4ed8', desc:'프로젝트를 정리하고 기획서를 완성합니다',  done:'서비스 기획을 완료했습니다',             next:'이제 기획서를 작성합니다' },
+const L4_STEP_META = [const L4_STEP_META = [null,
+  { title:'🌱 관심·문제 가설',   phase:'① 프로젝트 시작',      phaseColor:'#7c3aed', desc:'진로·관심에서 데이터로 확인할 가설을 만듭니다', done:'', next:'가설을 확인할 공공데이터를 찾습니다' },
+  { title:'🔍 공공데이터 찾기',   phase:'② 데이터 탐색',        phaseColor:'#0284c7', desc:'변수·기간·출처·갱신일을 확인하며 데이터를 찾습니다', done:'문제 가설을 세웠습니다', next:'파일의 구조와 품질을 확인합니다' },
+  { title:'🧹 구조·품질 확인',    phase:'③ 데이터 이해',        phaseColor:'#059669', desc:'형식·변수·결측치·중복·단위·범위를 점검합니다', done:'데이터와 출처를 정했습니다', next:'필요한 전처리 후 분석합니다' },
+  { title:'📊 전처리·분석',       phase:'④ 데이터 분석',        phaseColor:'#d97706', desc:'질문에 맞는 그래프와 관계 분석으로 패턴을 찾습니다', done:'데이터 품질을 확인했습니다', next:'사실과 해석을 구분해 인사이트를 만듭니다' },
+  { title:'💡 인사이트·재정의',  phase:'⑤ 판단과 재정의',      phaseColor:'#10b981', desc:'사실·해석·원인 가설·한계를 구분하고 문제를 고칩니다', done:'분석을 완료했습니다', next:'AI가 필요한지 판단합니다' },
+  { title:'⚖️ AI 필요성·데이터', phase:'⑥ AI 판단',            phaseColor:'#6C63FF', desc:'다른 해결 방식과 비교하고 데이터 역할을 구분합니다', done:'문제를 데이터로 재정의했습니다', next:'사람의 역할을 포함해 서비스를 설계합니다' },
+  { title:'🛠 서비스·사람 역할', phase:'⑦ 서비스 설계',        phaseColor:'#be185d', desc:'사용 흐름·AI 역할·사람의 판단·안전장치를 설계합니다', done:'AI 필요성과 데이터를 점검했습니다', next:'기획안을 쓰고 피드백을 반영합니다' },
+  { title:'📋 기획안·피드백',    phase:'⑧ 제안과 개선',        phaseColor:'#1d4ed8', desc:'근거·한계·책임이 드러나는 기획안을 완성합니다', done:'서비스 구조를 설계했습니다', next:'동료 피드백으로 최종 수정합니다' },
+];
 ];
 
 // 프로젝트 단계를 앞으로만 진행 (완료 표시는 누적, 뒤로 가도 지워지지 않음)
@@ -4840,14 +4806,15 @@ X축: ${xCol}, Y축: ${yCol}${seriesCol?`, 그룹: ${seriesCol}`:''}
 ${chartSummary}
 
 다음 형식으로 한국어로 분석해주세요:
-① 핵심 발견 (가장 높은/낮은 값, 특이점)
-② 패턴 및 경향 (증가/감소 추세, 집단 간 차이)
-③ 교육적 의미 (이 데이터가 교육 문제와 어떻게 연결되는가)
-④ 추천 추가 분석 (1가지)
+① 확인된 사실 (차트의 실제 값과 차이)
+② 가능한 해석 (사실과 구분)
+③ 원인 가설과 검증에 필요한 추가 데이터
+④ 한계 (상관관계는 인과관계가 아님)
+⑤ 추천 추가 분석 (1가지)
 
-각 항목을 1~2문장으로 간결하게 작성하세요.`;
+데이터에 없는 내용은 만들지 말고 각 항목을 1~2문장으로 간결하게 작성하세요.`;
   try {
-    const r=await fetch('/api/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:currentModel,messages:[{role:'user',content:prompt}],system:'당신은 교육 데이터 분석 전문가입니다. 핵심을 간결하게 분석합니다.',maxTokens:600})});
+    const r=await fetch('/api/stream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:currentModel,messages:[{role:'user',content:prompt}],system:'당신은 데이터 분석 검증 코치입니다. 사실과 해석을 구분하고 인과를 단정하지 않습니다.',maxTokens:600})});
     box.innerHTML='';
     const reader=r.body.getReader();const dec=new TextDecoder();let buf='';
     while(true){const{done,value}=await reader.read();if(done)break;buf+=dec.decode(value,{stream:true});const lines=buf.split('\n');buf=lines.pop()||'';for(const line of lines){if(line.startsWith('data: ')&&!line.includes('[DONE]')){try{const d=JSON.parse(line.slice(6));if(d.t){box.innerHTML+=d.t.replace(/\n/g,'<br>');}}catch{}}}}
@@ -5920,7 +5887,7 @@ document.addEventListener('DOMContentLoaded', () => {
       Object.keys(lessonMsgStore).forEach(k => delete lessonMsgStore[k]);
       messages = []; histories = [];
       currentTopicMenu = null;
-      completedProjectStepNums.clear(); completedProjectStepNums.add(1);
+      completedProjectStepNums.clear();
       loadHistory();
       updateProjFlow(currentL4Step || 1);
       setLesson(0, document.getElementById('btn-free'));
@@ -5977,19 +5944,29 @@ ${ctxSummary}
 ${aiType ? `[선택 AI 유형] ${aiType}` : ''}
 
 [기획서 형식]
-다음 5가지 항목을 포함해 명확하고 간결하게 작성해줘:
-① 문제 정의
-② 데이터 분석 결과 (핵심 발견 2~3가지)
-③ AI 활용 아이디어
-④ 서비스 구조 (사용자→입력→AI처리→출력)
-⑤ 기대 효과`
-    : `학생 AI 서비스 기획 프로젝트 기획서 초안 양식을 만들어줘.
-각 항목에 작성 가이드와 예시를 포함해서 학생이 쉽게 채울 수 있도록 해줘:
-① 문제 정의
-② 데이터 분석 결과 (핵심 발견 2~3가지)
-③ AI 활용 아이디어
-④ 서비스 구조 (사용자→입력→AI처리→출력)
-⑤ 기대 효과`;
+다음 항목을 PPT 슬라이드용으로 명확하고 간결하게 작성해줘:
+① 관심 분야와 처음 문제 가설
+② 사용한 공공데이터의 출처·기간·핵심 변수·전처리
+③ 분석에서 확인된 사실과 가능한 해석
+④ 분석의 한계와 데이터로 다시 정의한 문제
+⑤ AI 필요성: 규칙·검색·사람의 안내와 비교
+⑥ 데이터 역할: 문제 근거·학습·입력·운영·평가
+⑦ 서비스 흐름: 사용자→입력→AI 처리→결과→사람의 최종 판단
+⑧ 오류·편향·개인정보 위험과 안전장치
+⑨ 기대 효과·평가 방법·다음 검증
+
+학생이 제공하지 않은 수치나 출처는 만들지 말고 [확인 필요]로 표시해줘.`
+    : `DATA TO AI SERVICE 학생 프로젝트 기획안 양식을 만들어줘.
+각 항목에 한 줄 작성 가이드와 학생이 채울 빈칸을 제공해줘:
+① 관심 분야와 문제 가설
+② 공공데이터 출처·기간·변수·전처리
+③ 확인된 사실·가능한 해석·한계
+④ 데이터로 다시 정의한 문제
+⑤ AI 필요성 비교
+⑥ 문제 근거·학습·입력·운영·평가 데이터
+⑦ 사용자→입력→AI→결과→사람의 판단
+⑧ 위험과 안전장치
+⑨ 기대 효과·평가·다음 검증`;
 
   try {
     // AI 호출 (비스트리밍)
