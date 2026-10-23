@@ -1,0 +1,64 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "fluid": true,
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 120
+    }
+  },
+  "routes": [
+    {
+      "src": "/.*",
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-src 'self' blob: data:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), payment=(), usb=()",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Resource-Policy": "same-origin",
+        "Cache-Control": "no-store"
+      },
+      "continue": true
+    },
+    {
+      "src": "/(?:.*[/])?\\.[^/]*(?:/.*)?$",
+      "status": 404
+    },
+    {
+      "src": "/(?:docs|tests|scripts|lib/server|node_modules|dist)(?:/.*)?$",
+      "status": 404
+    },
+    {
+      "src": "/api/(?:chat|stream|teams|conversations)(?:\\.js)?/?$",
+      "status": 410
+    },
+    {
+      "src": "/api/(studio|ai)(?:\\.js)?/?$",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/lib/(?:curriculum|workspace)\\.mjs$",
+      "headers": {
+        "Content-Type": "text/javascript; charset=utf-8"
+      },
+      "continue": true
+    },
+    {
+      "src": "/$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(index\\.html|lib/(?:curriculum|workspace)\\.mjs|assets/.*|favicon\\.(?:ico|svg)|robots\\.txt|manifest\\.webmanifest)$",
+      "dest": "/$1"
+    },
+    {
+      "src": "/.*",
+      "status": 404
+    }
+  ]
+}

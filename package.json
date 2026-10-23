@@ -1,0 +1,16 @@
+{
+  "name": "hyfl-ai-coding-studio",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "인공지능 원리탐구 수업용 데이터 웹앱 코딩 작업 공간",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env.local scripts/dev-server.mjs",
+    "build": "node scripts/dev-server.mjs --build",
+    "check": "node scripts/dev-server.mjs --check",
+    "test": "node --test tests/*.test.mjs"
+  }
+}
