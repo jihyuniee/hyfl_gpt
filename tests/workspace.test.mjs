@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { LIMITS, emptyProject, normalizeProject, fitProject, replaceCode, parseDelimited, describeDataset, buildDocument, importHtml, exportRecords, byteLength } from '../lib/workspace.mjs';
 import { CURRICULUM, buildSystemPrompt } from '../lib/curriculum.mjs';
+import { neisMealFixture } from './dataset-fixtures.mjs';
 
 test('CSV preserves quoted commas, escaped quotes, CRLF, Korean text, and multiline cells', () => {
   const rows = parseDelimited('\uFEFF지역,설명,값\r\n서울,"가,나",12\r\n부산,"첫 줄\n둘째 ""인용""",0\r\n');
@@ -15,7 +16,29 @@ test('dataset row count and JSON metadata describe full data rather than sample 
   const result = describeDataset(csv);
   assert.equal(result.rows, 27); assert.equal(result.sample.length, 3);
   assert.deepEqual(describeDataset({ format: 'json', text: '{"items":[{"지역":"서울"},{"지역":"부산"}]}' }).columns, ['지역']);
+  assert.deepEqual(describeDataset({ format: 'json', text: '[{"지역":"서울"},{"지역":"부산"}]' }), { rows: 2, columns: ['지역'], sample: [{ 지역: '서울' }, { 지역: '부산' }], arrayPath: '$' });
   assert.throws(() => describeDataset({ format: 'json', text: 'not json' }));
+});
+
+test('NEIS description selects actual meal rows and preserves the complete uploaded envelope in exports', () => {
+  const { rows, dataset } = neisMealFixture({ bom: true });
+  const originalText = dataset.text;
+  const result = describeDataset(dataset);
+  assert.equal(result.rows, 12); assert.equal(result.arrayPath, '$.mealServiceDietInfo[1].row');
+  assert.deepEqual(result.columns, Object.keys(rows[0])); assert.deepEqual(result.sample, rows.slice(0, 3));
+  assert(!result.columns.includes('head')); assert(!result.columns.includes('row'));
+  const html = buildDocument('<html><head></head><body></body></html>', [dataset]);
+  const script = html.match(/<script id="hyfl-dataset-runtime">([\s\S]*?)<\/script>/)[1];
+  const sandbox = { window: {} }; vm.runInNewContext(script, sandbox);
+  assert.equal(sandbox.window.HYFL_DATASETS[0].text, originalText);
+  assert.equal(importHtml(html).datasets[0].text, originalText); assert.equal(dataset.text, originalText);
+});
+
+test('empty or missing NEIS row arrays never count response metadata as uploaded data rows', () => {
+  const { dataset } = neisMealFixture({ count: 0, declaredTotal: 999 });
+  assert.deepEqual(describeDataset(dataset), { rows: 0, columns: [], sample: [], arrayPath: '$.mealServiceDietInfo[1].row' });
+  const missingRows = { ...dataset, text: '{"mealServiceDietInfo":[{"head":[{"list_total_count":999}]}]}' };
+  assert.equal(describeDataset(missingRows).rows, null);
 });
 
 test('single HTML export contains full datasets and safely escapes script-breaking text', () => {

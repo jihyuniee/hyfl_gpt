@@ -8,6 +8,24 @@ const text = (selector, value) => { const el = $(selector); if (el) el.textConte
 const show = (selector, visible = true) => { const el = $(selector); if (el) el.hidden = !visible; };
 const fmtTime = value => { try { return new Intl.DateTimeFormat('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' }).format(new Date(value)); } catch { return ''; } };
 const modeNames = { build: '기능 만들기', edit: '기능 수정', debug: '오류 해결', explain: '코드 이해' };
+const workPrompts = [
+  {
+    label: '데이터에서 기능 정하기', mode: 'explain', worksheet: 'STEP 2-2',
+    prompt: '현재 프로젝트 맥락과 첨부 데이터의 열 이름·예시 행을 보고, 데이터에서 웹앱 기능으로 연결하는 일을 도와줘.\n1. 자료에서 실제로 확인되는 항목\n2. 사용자가 입력하거나 선택할 값\n3. 그 조건으로 보여줄 결과\n4. 지금 만들 수 있는 작은 기능 하나\n5. 추가로 확인하거나 확보해야 할 정보\n를 구분해서 설명해줘. 없는 항목·수치·이용 조건을 만들어내지 말고, 전체 데이터의 통계나 최신성을 확인한 것처럼 말하지 마. 아직 코드는 바꾸지 마.',
+  },
+  {
+    label: '첫 기능 만들기', mode: 'build', worksheet: 'STEP 2-3 · 2-4',
+    prompt: '프로젝트 맥락에 적은 「가장 먼저 작동해야 할 기능 하나」를 구현해줘. 첨부한 전체 데이터를 읽어 사용자의 입력에 맞는 결과를 보여줘. 기존 코드가 있으면 정상 작동하는 기능을 유지해줘. 출처·기준 시점·단위와 결과가 없는 경우의 안내를 표시해줘. 필요한 열이나 조건이 없으면 임의로 만들지 말고 먼저 확인할 점을 알려줘. 적용 후 원자료와 대조할 방법도 설명해줘.',
+  },
+  {
+    label: '잘못 나온 결과 고치기', mode: 'debug', worksheet: 'STEP 2-4',
+    prompt: '현재 앱에서 다음 문제를 고쳐줘.\n내가 입력하거나 누른 것: [직접 적기]\n원래 나와야 할 결과: [직접 적기]\n실제로 나온 결과나 오류: [직접 적기]\n원자료에서 확인한 값 또는 행: [직접 적기]\n유지해야 할 기존 기능: [직접 적기]\n현재 코드에서 원인을 살펴보고, 필요한 부분을 수정해줘. 수정 뒤 같은 입력으로 확인할 방법도 알려줘.',
+  },
+  {
+    label: '계산·결과 검증하기', mode: 'explain', worksheet: 'STEP 3-2',
+    prompt: '현재 코드가 어떤 데이터 항목을 어떤 조건으로 읽고 계산하는지 설명해줘. 원자료와 비교해 볼 테스트를 정상 입력, 결과 없음, 누락된 값으로 나누어 제안해줘. 각 테스트에서 사용할 입력과 원자료에서 직접 확인할 항목을 알려줘. 확인할 수 없는 기대 수치를 만들어내거나 실행하지 않은 테스트를 통과했다고 쓰지 마. 코드는 바꾸지 마.',
+  },
+];
 const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', dirty: false, generation: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
 let toastTimer;
 function toast(message) { text('#toast', message); $('#toast').classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 4500); }
@@ -66,6 +84,7 @@ function setView(view) {
   $$('[data-panel]').forEach(el => { el.hidden = el.dataset.panel !== view; });
   $$('[data-view]').forEach(el => { el.classList.toggle('active', el.dataset.view === view); el.setAttribute('aria-current', el.dataset.view === view ? 'page' : 'false'); });
   $('.sidebar')?.classList.remove('is-open');
+  $('#mobile-menu-button').setAttribute('aria-expanded', 'false');
   if (view === 'admin') loadAdmin();
 }
 function setMode(mode) {
@@ -103,7 +122,8 @@ function renderUsage() {
 function renderChat() {
   const container = $('#chat-messages');
   if (!state.project.messages.length) {
-    container.innerHTML = '<div class="empty-state chat-welcome"><span class="pill">우리 팀의 코딩 파트너</span><h3>지금 있는 곳에서 이어서.</h3><p>만들던 HTML과 확보한 데이터를 가져오세요. 만들 기능 하나, 고칠 오류 하나부터 시작하면 됩니다.</p><div class="prompt-suggestions"><button type="button" data-prompt="첨부한 데이터의 구조를 살펴보고, 우리 팀의 핵심 기능을 구현하는 방법을 설명해줘." data-prompt-mode="explain">데이터 연결 방법 이해하기 <span>↗</span></button><button type="button" data-prompt="현재 앱의 기능을 유지하면서, 검색 결과가 없을 때 안내 문구가 나오게 수정해줘." data-prompt-mode="edit">지금 앱의 사용성 다듬기 <span>↗</span></button></div></div>';
+    const choices = state.project.code.trim() ? [workPrompts[2], workPrompts[3]] : [workPrompts[0], workPrompts[1]];
+    container.innerHTML = `<div class="empty-state chat-welcome"><h3>${state.project.code.trim() ? '이번에 바꿀 부분을 정하세요.' : '자료를 기능으로 연결해요.'}</h3><p>현재 코드와 프로젝트 맥락이 함께 전달됩니다. 필요한 요청을 골라 우리 팀의 상황에 맞게 고쳐 쓰세요.</p><div class="prompt-suggestions">${choices.map(item => `<button type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}">${item.label} <span aria-hidden="true">→</span></button>`).join('')}</div><p class="prompt-draft-note">선택하면 요청 초안이 열립니다. AI에게 요청을 눌러야 전송돼요.</p><button type="button" class="button subtle small" data-view="guide">활동지와 연결하는 방법</button></div>`;
     return;
   }
   container.innerHTML = state.project.messages.map(m => {
@@ -120,7 +140,7 @@ function renderProjectFields() {
 }
 function renderDatasets() {
   const list = $('#dataset-list');
-  if (!state.project.datasets.length) { list.innerHTML = '<div class="empty-state compact"><p>확보한 CSV·JSON·TXT를 연결하세요.</p><small>파일 전체가 미리보기와 내려받은 웹앱에 함께 들어갑니다. 합계 320KB · 최대 8개</small></div>'; return; }
+  if (!state.project.datasets.length) { list.innerHTML = '<div class="empty-state compact"><p>확보한 CSV·TSV·JSON·TXT를 연결하세요.</p><small>파일 전체가 미리보기와 내려받은 웹앱에 함께 들어갑니다. 합계 320KB · 최대 8개</small></div>'; return; }
   list.innerHTML = state.project.datasets.map(d => {
     let detail; try { detail = describeDataset(d); } catch { detail = { rows: null, columns: [], error: '파일 형식을 다시 확인해주세요.' }; }
     return `<article class="dataset-card"><div class="dataset-heading"><span class="file-badge">${escapeHTML(d.format.toUpperCase())}</span><div><strong>${escapeHTML(d.name)}</strong><p>${(byteLength(d.text) / 1024).toFixed(1)} KB · ${detail.rows === null ? '구조 확인 필요' : `${detail.rows.toLocaleString('ko-KR')}행`}${detail.columns.length ? ` · ${detail.columns.length}열` : ''}</p></div><button class="icon-button" type="button" data-action="remove-dataset" data-id="${escapeHTML(d.id)}" aria-label="${escapeHTML(d.name)} 삭제">×</button></div>${detail.columns.length ? `<p class="dataset-columns">${escapeHTML(detail.columns.slice(0, 12).join(' · '))}${detail.columns.length > 12 ? ' …' : ''}</p>` : ''}${detail.error ? `<p>${detail.error}</p>` : ''}</article>`;
@@ -130,13 +150,13 @@ function renderChecks() {
   $('#checklist').innerHTML = CURRICULUM.checklist.map(item => `<label class="check-item"><input type="checkbox" data-check="${item.id}" ${state.project.checks[item.id] ? 'checked' : ''}><span><strong>${escapeHTML(item.label)}</strong><small>${escapeHTML(item.description)}</small></span></label>`).join('');
 }
 function renderRecords() {
-  $('#records-list').innerHTML = state.project.records.length ? state.project.records.map((r, i) => `<article class="record-card"><div class="card-heading"><h3>대표 사례 ${i + 1}</h3><button type="button" class="button secondary small" data-action="remove-record" data-id="${escapeHTML(r.id)}">삭제</button></div><div class="field"><label for="record-stage-${escapeHTML(r.id)}">활용 단계</label><input id="record-stage-${escapeHTML(r.id)}" value="${escapeHTML(r.stage)}" data-record="${escapeHTML(r.id)}" data-field="stage" maxlength="100" placeholder="예: 기능 구현 · 주요 오류 해결"></div>${[{ id: 'prompt', label: '실제 프롬프트', placeholder: '' }, { id: 'help', label: 'AI의 도움', placeholder: '' }, { id: 'verification', label: '팀이 직접 확인한 내용', placeholder: '직접 실행한 입력, 기대한 값, 실제 값과 확인 방법을 적어주세요.' }, { id: 'decision', label: '채택·수정·제외와 이유', placeholder: '무엇을 사용하거나 바꿨나요? 우리 팀의 판단과 이유를 적어주세요.' }].map(field => `<div class="field"><label for="record-${field.id}-${escapeHTML(r.id)}">${field.label}</label><textarea id="record-${field.id}-${escapeHTML(r.id)}" rows="3" maxlength="6000" data-record="${escapeHTML(r.id)}" data-field="${field.id}" placeholder="${escapeHTML(field.placeholder)}">${escapeHTML(r[field.id])}</textarea></div>`).join('')}</article>`).join('') : '<div class="empty-state compact"><h3>프로젝트를 바꾼 순간만 골라주세요.</h3><p>AI 답변의 ‘대표 기록에 담기’를 누르면 실제 요청과 도움을 가져옵니다. 확인한 내용과 팀의 판단은 직접 적습니다.</p></div>';
+  $('#records-list').innerHTML = state.project.records.length ? state.project.records.map((r, i) => `<article class="record-card"><div class="card-heading"><h3>대표 사례 ${i + 1}</h3><button type="button" class="button secondary small" data-action="remove-record" data-id="${escapeHTML(r.id)}">삭제</button></div><div class="field"><label for="record-stage-${escapeHTML(r.id)}">활용 단계</label><input id="record-stage-${escapeHTML(r.id)}" value="${escapeHTML(r.stage)}" data-record="${escapeHTML(r.id)}" data-field="stage" maxlength="100" placeholder="예: 기능 구현 · 주요 오류 해결"></div>${[{ id: 'prompt', label: '실제 프롬프트', placeholder: '' }, { id: 'help', label: 'AI의 도움', placeholder: '' }, { id: 'verification', label: '팀이 직접 확인한 내용', placeholder: '직접 실행한 입력, 기대한 값, 실제 값과 확인 방법을 적어주세요.' }, { id: 'decision', label: '채택·수정·제외와 이유', placeholder: '무엇을 사용하거나 바꿨나요? 우리 팀의 판단과 이유를 적어주세요.' }].map(field => `<div class="field"><label for="record-${field.id}-${escapeHTML(r.id)}">${field.label}</label><textarea id="record-${field.id}-${escapeHTML(r.id)}" rows="3" maxlength="6000" data-record="${escapeHTML(r.id)}" data-field="${field.id}" placeholder="${escapeHTML(field.placeholder)}">${escapeHTML(r[field.id])}</textarea></div>`).join('')}</article>`).join('') : '<div class="empty-state compact"><h3>활동지에 남길 AI 도움을 가져오세요.</h3><p>AI 답변의 ‘대표 기록에 담기’를 누르면 실제 요청과 도움을 가져옵니다. 확인한 내용과 팀의 판단은 직접 적습니다.</p></div>';
 }
 function renderVersions() {
   $('#versions-list').innerHTML = state.project.versions.length ? state.project.versions.map(v => `<article class="version-card"><div><span class="eyebrow">${fmtTime(v.createdAt)}</span><h3>${escapeHTML(v.note || '수정 전 버전')}</h3><p>${(byteLength(v.code) / 1024).toFixed(1)} KB · HTML 코드</p></div><button type="button" class="button secondary" data-action="restore-version" data-id="${escapeHTML(v.id)}">이 버전으로 복원</button></article>`).join('') : '<div class="empty-state"><h3>수정 전 코드를 보관합니다.</h3><p>코드를 가져오거나 AI 제안을 적용하면 이전 코드가 여기에 남습니다.<br>최근 6개까지 용량 안에서 보관합니다. 데이터·기록까지 보관하려면 프로젝트 백업을 내려받으세요.</p></div>';
 }
 function renderGuide() {
-  $('#guide-content').innerHTML = `<div class="guide-intro"><span class="pill">인공지능 원리탐구 · 2학기</span><h2>데이터를 찾은 다음,<br>실제로 작동하게 만드는 시간.</h2><p>이곳에서는 우리 팀의 코드와 데이터를 이어서 다룹니다.<br>활동지는 기존 구글 클래스룸 과제에서 계속 작성하세요.</p><a class="button secondary" href="${CURRICULUM.textbookUrl}" target="_blank" rel="noopener noreferrer">교과서 프로젝트 안내 ↗</a> <a class="text-link" href="${CURRICULUM.labUrl}" target="_blank" rel="noopener noreferrer">기본 실습 보기 ↗</a></div><div class="guide-steps">${CURRICULUM.stages.map((s, i) => `<article><span class="step-number">0${i + 1}</span><span class="eyebrow">${escapeHTML(s.worksheet)}</span><h3>${escapeHTML(s.label)}</h3><p>${escapeHTML(s.description)}</p></article>`).join('')}</div><div class="guide-submission"><h3>최종 제출은 웹앱 + 활동지</h3><ul>${CURRICULUM.submission.guidelines.map(v => `<li>${escapeHTML(v)}</li>`).join('')}</ul><p class="guide-note">팀원이 동시에 작업할 때는 한 기기에서 코드를 수정하는 것이 편리합니다. 다른 기기의 변경이 먼저 저장되면 충돌을 알려드리며 자동으로 덮어쓰지 않습니다.</p></div>`;
+  $('#guide-content').innerHTML = `<div class="guide-intro"><p class="eyebrow">인공지능 원리탐구 · 2학기</p><h2>활동지에서 지금 하는 일을 이어가세요.</h2><p>기존 활동지와 데이터, 만들던 HTML을 함께 펼쳐 두세요.<br>이번에 만들 기능 하나를 정하고, 실행한 결과를 원자료와 비교합니다.</p><a class="button secondary" href="${CURRICULUM.textbookUrl}" target="_blank" rel="noopener noreferrer">교과서 프로젝트 안내 ↗</a> <a class="text-link" href="${CURRICULUM.labUrl}" target="_blank" rel="noopener noreferrer">기본 실습 보기 ↗</a></div><section class="guide-task-section" aria-labelledby="guide-task-title"><h3 id="guide-task-title">지금 필요한 도움</h3><p>요청 초안을 열어 우리 팀의 내용으로 수정하세요. 선택만으로 AI를 호출하지 않습니다.</p><div class="guide-tasks">${workPrompts.map(item => `<button type="button" class="guide-task" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${state.user?.role === 'teacher' ? 'disabled' : ''}><small>${item.worksheet}</small><strong>${item.label}</strong><span aria-hidden="true">→</span></button>`).join('')}</div>${state.user?.role === 'teacher' ? '<p class="field-help">학생 계정의 수업 가이드에서 요청 초안을 열 수 있습니다.</p>' : ''}</section><div class="guide-steps">${CURRICULUM.stages.map((s, i) => `<article><span class="step-number">0${i + 1}</span><span class="eyebrow">${escapeHTML(s.worksheet)}</span><h3>${escapeHTML(s.label)}</h3><p>${escapeHTML(s.description)}</p></article>`).join('')}</div><section class="guide-boundaries"><h3>시작하기 전에 확인하세요</h3><dl><div><dt>데이터 파일을 함께 올려주세요.</dt><dd>출처 주소만 적으면 자료가 자동으로 연결되지는 않습니다. CSV·TSV·JSON·TXT 파일을 사용하며 합계 320KB, 최대 8개까지 연결할 수 있습니다.</dd></div><div><dt>숫자는 실제 파일로 계산하고 확인해요.</dt><dd>AI에는 데이터 구조와 일부 행이 전달됩니다. 전체 통계를 안다고 가정하지 말고, 전체 데이터를 계산하는 기능을 만든 뒤 원자료와 대조하세요.</dd></div><div><dt>이곳의 AI는 제작을 돕습니다.</dt><dd>완성한 웹앱 안에 유료 AI 기능이나 신청·결제를 넣으려면 별도 서버와 운영 설계가 필요합니다. 원본 API 키를 학생 코드에 넣지 마세요.</dd></div><div><dt>HTML 파일과 작업 백업을 구분해요.</dt><dd>HTML에는 실행할 코드와 연결한 전체 데이터가 들어갑니다. 프로젝트 백업에는 맥락과 기록도 포함됩니다. 내려받은 HTML을 공개 웹주소로 배포하는 일은 별도입니다.</dd></div></dl></section><div class="guide-submission"><h3>최종 제출은 웹앱 + 활동지</h3><ul>${CURRICULUM.submission.guidelines.map(v => `<li>${escapeHTML(v)}</li>`).join('')}</ul><p class="guide-note">한 기기에서 코드를 수정하고, 다른 팀원은 원자료 확인과 사용자 테스트를 맡아 보세요. 기능 하나를 마치면 역할을 바꿉니다. 중요한 AI 도움은 답변의 「대표 기록에 담기」를 눌러 옮기고, 확인한 사실과 판단은 직접 적습니다.</p></div>`;
 }
 
 function renderPreview() {
@@ -309,7 +329,11 @@ document.addEventListener('click', async event => {
   if (button.dataset.authTab) return authTab(button.dataset.authTab);
   if (button.dataset.view) return setView(button.dataset.view);
   if (button.dataset.mode) return setMode(button.dataset.mode);
-  if (button.dataset.prompt) { setMode(button.dataset.promptMode || 'build'); $('#prompt-input').value = button.dataset.prompt; $('#prompt-input').focus(); return; }
+  if (button.dataset.prompt) {
+    if (state.user?.role === 'teacher') return;
+    setView('work'); $('#surface-chat').checked = true;
+    setMode(button.dataset.promptMode || 'build'); $('#prompt-input').value = button.dataset.prompt; $('#prompt-input').focus(); return;
+  }
   const action = button.dataset.action; const id = button.dataset.id;
   try {
     if (action === 'apply-proposal') applyProposal();

@@ -6,6 +6,7 @@ import { normalizeSettings, MODELS } from '../lib/server/common.mjs';
 import { emptyProject, sanitizeProject } from '../lib/server/projects.mjs';
 import { getUsage, reserveUsage, settleUsage, dateKeys } from '../lib/server/usage.mjs';
 import { buildPrompt, datasetContext, parseDelimited } from '../lib/server/prompts.mjs';
+import { neisMealFixture } from './dataset-fixtures.mjs';
 import { normalizeResult } from '../lib/server/providers.mjs';
 import { RedisStore, PREFIX, decodeStored, RESERVE_SCRIPT, SETTLE_SCRIPT } from '../lib/server/store.mjs';
 import { MemoryStore, legacyTeams, securedTeams, testEnv, testNow, invoke, loginCookie, cookieOf, providerResponse, validAIResult, validCode } from './server-fixtures.mjs';
@@ -157,10 +158,12 @@ test('AI receives the complete current code and explicitly labeled dataset sampl
   let payload;const fetchImpl=async(url,init)=>{payload=JSON.parse(init.body);assert.equal(url,'https://api.openai.com/v1/responses');return providerResponse(validAIResult());};
   const {studio,ai}=setup({fetchImpl});const {cookie}=await loginCookie(studio);
   const code='<!DOCTYPE html><html><body>'+(' '.repeat(6000))+'LAST_CODE_MARKER</body></html>';
-  const project={...emptyProject(),code,datasets:[{id:'csv',name:'counts.csv',format:'csv',text:'name,value\n'+Array.from({length:20},(_,i)=>`row${i},${i}`).join('\n')}]};
+  const neis=neisMealFixture();
+  const project={...emptyProject(),code,datasets:[{id:'csv',name:'counts.csv',format:'csv',text:'name,value\n'+Array.from({length:20},(_,i)=>`row${i},${i}`).join('\n')},neis.dataset]};
   const result=await invoke(ai,{method:'POST',cookie,body:{mode:'edit',provider:'gpt',prompt:'검색을 추가해줘',project}});
   assert.equal(result.statusCode,200);assert.equal(result.body.code,validCode);assert.equal(payload.store,false);assert.equal(payload.model,'gpt-6.1-sol');
   const context=JSON.parse(payload.input[1].content[0].text);assert.equal(context.project.currentCode,code);assert.equal(context.datasets[0].totalDataRows,20);assert.equal(context.datasets[0].sampleRowsCount,8);assert.equal(context.datasets[0].truncated,true);
+  assert.equal(context.datasets[1].arrayPath,'$.mealServiceDietInfo[1].row');assert.equal(context.datasets[1].totalDataRows,12);assert.deepEqual(context.datasets[1].sampleRows,neis.rows.slice(0,8));assert.deepEqual(context.datasets[1].columns,Object.keys(neis.rows[0]));
   assert.equal(result.body.usage.remaining,11);assert.equal(result.body.usage.lastRequest.inputTokens,100);
 });
 test('incomplete provider output never becomes usable code and still records reported usage',async()=>{
@@ -185,6 +188,24 @@ test('paused AI and disabled providers never call a model',async()=>{
 test('CSV context handles quoted commas/newlines and does not invent full-data statistics',()=>{
   const parsed=parseDelimited('\uFEFFname,value\r\n"a,b",1\r\n"line\nbreak",2');assert.equal(parsed.rows.length,3);assert.equal(parsed.rows[1][0],'a,b');assert.equal(parsed.rows[2][0],'line\nbreak');
   const sample=datasetContext({id:'t',name:'t.csv',format:'csv',text:'name,value\na,1\nb,2'});assert.equal(sample.totalDataRows,2);assert.equal(sample.truncated,false);assert.equal(sample.mean,undefined);
+});
+test('NEIS AI context reports the file row count and exact row path rather than metadata totals',()=>{
+  const {rows,dataset}=neisMealFixture({bom:true});const originalText=dataset.text;
+  const context=datasetContext(dataset);
+  assert.equal(context.arrayPath,'$.mealServiceDietInfo[1].row');assert.equal(context.totalDataRows,12);
+  assert.equal(context.sampleRowsCount,8);assert.equal(context.truncated,true);assert.deepEqual(context.sampleRows,rows.slice(0,8));
+  assert.deepEqual(context.columns,Object.keys(rows[0]));assert.equal(context.fullDataAvailableAt,'window.HYFL_DATASETS');assert.equal(dataset.text,originalText);
+  const empty=datasetContext(neisMealFixture({count:0,declaredTotal:999}).dataset);
+  assert.equal(empty.arrayPath,'$.mealServiceDietInfo[1].row');assert.equal(empty.totalDataRows,0);assert.equal(empty.sampleRowsCount,0);assert.equal(empty.truncated,false);assert.deepEqual(empty.columns,[]);assert.deepEqual(empty.sampleRows,[]);
+  const missing=datasetContext({...dataset,text:'{"mealServiceDietInfo":[{"head":[{"list_total_count":999}]}]}'});
+  assert.equal(missing.totalDataRows,undefined);assert.equal(missing.arrayPath,undefined);
+});
+test('ordinary JSON arrays and shallow named arrays retain their row and sampling behavior',()=>{
+  const rows=Array.from({length:10},(_,index)=>({name:'synthetic-'+index,value:index}));
+  for(const [value,path] of [[rows,'$'],[{items:rows},'$.items']]) {
+    const context=datasetContext({id:'generic',name:'generic.json',format:'json',text:JSON.stringify(value)});
+    assert.equal(context.arrayPath,path);assert.equal(context.totalDataRows,10);assert.deepEqual(context.columns,['name','value']);assert.deepEqual(context.sampleRows,rows.slice(0,8));assert.equal(context.truncated,true);
+  }
 });
 test('retired endpoints cannot execute old unauthenticated actions',async()=>{
   const result=await invoke(retiredHandler,{method:'POST',body:{action:'approve',model:'gpt'}});assert.equal(result.statusCode,410);assert.equal(result.body.code,'API_RETIRED');
