@@ -36,3 +36,41 @@ test('API paste rejects credential fields, malformed XML and oversize payloads b
   const d=importApiResponse('empty', '{"data":[]}'); assert.equal(d.name,'empty.json');
   assert.throws(()=>normalizeProject({datasets:Array(9).fill(d)}),/8개/);
 });
+
+test('Seoul and NEIS nested totals report missing pages to the UI and AI', () => {
+  for (const payload of [
+    {CityService:{row:rows,list_total_count:999,RESULT:{CODE:'INFO-000'}}},
+    {mealServiceDietInfo:[{head:[{list_total_count:999},{RESULT:{CODE:'INFO-000'}}]},{row:rows}]},
+  ]) {
+    const dataset = importApiResponse('pages', JSON.stringify(payload));
+    assert.equal(describeDataset(dataset).rows, 30);
+    assert.match(apiResponseNotice(payload), /999.*30행.*자동 수집하지/);
+    assert.match(datasetContext(dataset).apiNotice, /999.*30행/);
+  }
+});
+
+test('Seoul and NEIS errors never count leftover rows and report bounded error messages', () => {
+  for (const payload of [
+    {RESULT:{CODE:'INFO-200',MESSAGE:'자료 없음'}},
+    {CityService:{row:rows,RESULT:{CODE:'ERROR-500',MESSAGE:'서버 오류'}}},
+    {mealServiceDietInfo:[{head:[{RESULT:{CODE:'ERROR-300',MESSAGE:'오류'}}]},{row:rows}]},
+  ]) {
+    assert.equal(selectJsonRows(payload), null);
+    assert.match(apiResponseNotice(payload), /API 응답 코드/);
+    const context = datasetContext(importApiResponse('error', JSON.stringify(payload)));
+    assert.equal(context.totalDataRows, undefined);
+    assert.match(context.apiNotice, /API 응답 코드/);
+  }
+  assert(apiResponseNotice({RESULT:{CODE:'ERROR-500',MESSAGE:'x'.repeat(500)}}).length < 300);
+});
+
+test('ODcloud uses query matchCount including zero, rather than flagging unfiltered totalCount as missing pages', () => {
+  const payload = {data:rows,totalCount:999,matchCount:30};
+  assert.doesNotMatch(apiResponseNotice(payload), /다음 페이지/);
+  assert.match(apiResponseNotice(payload), /조회 조건 일치 건수 30.*원본 전체 건수 999.*30행/);
+  assert.match(apiResponseNotice({...payload, matchCount:35}), /일치 건수 35.*30행.*자동 수집하지/);
+  assert.doesNotMatch(apiResponseNotice({data:[], totalCount:999, matchCount:0}), /다음 페이지/);
+  assert.match(apiResponseNotice({...payload,matchCount:1}), /건수가 일치하지/);
+  assert.match(apiResponseNotice({data:[], totalCount:0}), /데이터 행이 없습니다/);
+  assert.match(apiResponseNotice({response:{body:{totalCount:9,items:''}}}), /행 배열을 찾지 못했습니다/);
+});
