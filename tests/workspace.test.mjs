@@ -1,9 +1,43 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import { LIMITS, emptyProject, normalizeProject, fitProject, replaceCode, parseDelimited, describeDataset, buildDocument, importHtml, exportRecords, byteLength } from '../lib/workspace.mjs';
+import { LIMITS, emptyProject, normalizeProject, fitProject, replaceCode, decodeDatasetBytes, parseDelimited, describeDataset, buildDocument, importHtml, exportRecords, byteLength } from '../lib/workspace.mjs';
 import { CURRICULUM, buildSystemPrompt } from '../lib/curriculum.mjs';
 import { neisMealFixture } from './dataset-fixtures.mjs';
+import { datasetContext } from '../lib/server/prompts.mjs';
+
+test('dataset byte decoding preserves UTF-8 and CP949 Korean headers before AI context and HTML export', () => {
+  const source = '연도,합계출산율,데이터기준일자\r\n2021,0.64,2023-02-13\r\n';
+  const cp949 = Uint8Array.from([191,172,181,181,44,199,213,176,232,195,226,187,234,192,178,44,181,165,192,204,197,205,177,226,193,216,192,207,192,218,13,10,50,48,50,49,44,48,46,54,52,44,50,48,50,51,45,48,50,45,49,51,13,10]);
+  assert(new TextDecoder().decode(cp949).includes('\uFFFD'));
+  for (const bytes of [cp949, new TextEncoder().encode(source), new TextEncoder().encode('\uFEFF' + source)]) {
+    const {text} = decodeDatasetBytes(bytes);
+    assert.equal(text, source);
+    const dataset = {id:'synthetic-csv',name:'synthetic.csv',format:'csv',text};
+    assert.deepEqual(describeDataset(dataset).columns, ['연도','합계출산율','데이터기준일자']);
+    assert.deepEqual(datasetContext(dataset).columns, ['연도','합계출산율','데이터기준일자']);
+    assert.equal(describeDataset(dataset).rows,1);
+    assert.equal(importHtml(buildDocument('<h1>CSV</h1>',[dataset])).datasets[0].text,source);
+  }
+  assert.equal(decodeDatasetBytes(cp949).encoding,'euc-kr');
+  // WHATWG-compatible browsers decode this CP949 extension character. A host
+  // without that extension must fail clearly, never return an undecoded C1 byte.
+  try { assert.equal(decodeDatasetBytes(Uint8Array.from([0x8c,0x63])).text,'똠'); }
+  catch (error) { assert.match(error.message,/인코딩/); }
+});
+
+test('BOM-marked UTF-16 CSVs decode without changing Korean values or line boundaries', () => {
+  const source='지역\t값\r\n서울\t0\r\n';
+  const le=Buffer.concat([Buffer.from([0xff,0xfe]),Buffer.from(source,'utf16le')]);
+  const be=Buffer.from(le);for(let i=0;i<be.length;i+=2)[be[i],be[i+1]]=[be[i+1],be[i]];
+  assert.deepEqual(decodeDatasetBytes(le),{text:source,encoding:'utf-16le'});
+  assert.deepEqual(decodeDatasetBytes(be),{text:source,encoding:'utf-16be'});
+});
+
+test('unreadable bytes and previously damaged UTF-8 fail explicitly instead of supplying broken headers', () => {
+  assert.throws(()=>decodeDatasetBytes(Uint8Array.from([0xff])),/인코딩/);
+  assert.throws(()=>decodeDatasetBytes(new TextEncoder().encode('��,값\n2021,0.6')),/이미 깨진 문자/);
+});
 
 test('CSV preserves quoted commas, escaped quotes, CRLF, Korean text, and multiline cells', () => {
   const rows = parseDelimited('\uFEFF지역,설명,값\r\n서울,"가,나",12\r\n부산,"첫 줄\n둘째 ""인용""",0\r\n');

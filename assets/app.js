@@ -1,5 +1,5 @@
 import { CURRICULUM } from '/lib/curriculum.mjs';
-import { LIMITS, emptyProject, normalizeProject, fitProject, replaceCode, describeDataset, apiResponseNotice, importApiResponse, buildDocument, importHtml, exportRecords, safeFilename, byteLength, uid, now } from '/lib/workspace.mjs';
+import { LIMITS, emptyProject, normalizeProject, fitProject, replaceCode, decodeDatasetBytes, describeDataset, apiResponseNotice, importApiResponse, buildDocument, importHtml, exportRecords, safeFilename, byteLength, uid, now } from '/lib/workspace.mjs';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -137,7 +137,7 @@ function renderChat() {
   container.innerHTML = state.project.messages.map(m => {
     const pending = state.pending?.id === m.id;
     const recorded = state.project.records.some(r => r.prompt === m.prompt && r.help === (m.summary || m.text));
-    return `<article class="message ${m.role}"><div class="message-meta"><strong>${m.role === 'user' ? '우리 팀' : escapeHTML(m.provider === 'claude' ? 'Claude' : 'GPT')}</strong><span>${escapeHTML(modeNames[m.mode] || '')} · ${fmtTime(m.createdAt)}</span></div><div class="message-text">${escapeHTML(m.text)}</div>${m.role === 'assistant' ? `${m.model ? `<div class="model-caption">${escapeHTML(m.model)}</div>` : ''}${m.warnings?.length ? `<div class="ai-warning"><strong>확인할 한계</strong><ul>${m.warnings.map(v => `<li>${escapeHTML(v)}</li>`).join('')}</ul></div>` : ''}${m.checks?.length ? `<div class="ai-checks"><strong>직접 실행해 볼 것</strong><ul>${m.checks.map(v => `<li>${escapeHTML(v)}</li>`).join('')}</ul></div>` : ''}<div class="proposal-actions">${pending && state.pending.code ? '<button class="button primary small" data-action="apply-proposal" type="button">변경 내용 적용</button><button class="button secondary small" data-action="inspect-proposal" type="button">제안 코드 보기</button>' : ''}<button class="button secondary small" data-action="record-message" data-id="${escapeHTML(m.id)}" type="button" ${recorded ? 'disabled' : ''}>${recorded ? '대표 기록에 담음' : '대표 기록에 담기'}</button></div>` : ''}</article>`;
+    return `<article class="message ${m.role}"><div class="message-meta"><strong>${m.role === 'user' ? '우리 팀' : escapeHTML(m.provider === 'claude' ? 'Claude' : 'GPT')}</strong><span>${escapeHTML(modeNames[m.mode] || '')} · ${fmtTime(m.createdAt)}</span></div><div class="message-text">${escapeHTML(m.text)}</div>${m.role === 'assistant' ? `${m.model ? `<div class="model-caption">${escapeHTML(m.model)}</div>` : ''}${m.warnings?.length ? `<div class="ai-warning"><strong>확인할 한계</strong><ul>${m.warnings.map(v => `<li>${escapeHTML(v)}</li>`).join('')}</ul></div>` : ''}${m.checks?.length ? `<div class="ai-checks"><strong>직접 실행해 볼 것</strong><ul>${m.checks.map(v => `<li>${escapeHTML(v)}</li>`).join('')}</ul></div>` : ''}<div class="proposal-actions">${pending && state.pending.code ? '<button class="button primary small" data-action="apply-proposal" type="button">변경 내용 적용</button><button class="button secondary small" data-action="inspect-proposal" type="button">제안 코드 보기</button>' : ''}${m.mode === 'explain' && !state.project.code.trim() ? `<button class="button primary small" type="button" data-prompt-mode="build" data-prompt="${escapeHTML('선택한 기능 제안: ' + (m.summary || m.text).slice(0, 2000) + '\n이 제안과 프로젝트 맥락을 바탕으로 첨부한 전체 데이터를 사용하는 첫 기능을 실제로 구현해줘. 기존 HTML이 없어도 실행 가능한 HTML 한 파일을 만들어줘. 열의 의미가 불명확하면 임의로 정하지 말고 먼저 필요한 확인을 알려줘. 출처·기준일·단위가 아직 없으면 확인 필요로 표시하고, 검색 결과가 없을 때도 안내해줘.')}">이 제안으로 첫 기능 만들기</button><p class="field-help">만들기 모드의 요청 초안을 엽니다. 내용을 확인하고 AI에게 요청을 누르세요.</p>` : ''}<button class="button secondary small" data-action="record-message" data-id="${escapeHTML(m.id)}" type="button" ${recorded ? 'disabled' : ''}>${recorded ? '대표 기록에 담음' : '대표 기록에 담기'}</button></div>` : ''}</article>`;
   }).join('');
   container.scrollTop = container.scrollHeight;
 }
@@ -288,16 +288,19 @@ async function loadCode(file) {
 async function loadDatasets(files) {
   try {
     const next = structuredClone(state.project.datasets);
+    const converted = [];
     for (const file of files) {
       if (file.size > LIMITS.datasetBytes) throw new Error('첨부 데이터는 파일 합계 320KB까지 사용할 수 있습니다.');
       const ext = file.name.split('.').pop().toLowerCase(); if (!['csv', 'tsv', 'json', 'txt'].includes(ext)) throw new Error('CSV, TSV, JSON, TXT 파일을 선택해주세요.');
-      const content = await file.text(); const existing = next.find(d => d.name === file.name);
+      const decoded = decodeDatasetBytes(await file.arrayBuffer());
+      const content = decoded.text; if (decoded.encoding !== 'utf-8') converted.push(file.name);
+      const existing = next.find(d => d.name === file.name);
       const dataset = { id: existing?.id || uid(), name: file.name, format: ext === 'txt' ? 'text' : ext, text: content }; describeDataset(dataset);
       if (existing) next.splice(next.indexOf(existing), 1, dataset); else next.push(dataset);
     }
     if (next.length > 8) throw new Error('데이터 파일은 최대 8개까지 연결할 수 있습니다.');
     if (next.reduce((sum, d) => sum + byteLength(d.text), 0) > LIMITS.datasetBytes) throw new Error('첨부 데이터 합계가 320KB를 넘습니다. 필요한 열·행을 추려서 가져와 주세요.');
-    state.project = normalizeProject({ ...state.project, datasets: next, checks: {} }); markDirty(); renderDatasets(); renderPreview(); renderChecks(); toast('전체 파일을 연결했습니다. AI에 사용할 열과 계산 기준을 알려주세요.');
+    state.project = normalizeProject({ ...state.project, datasets: next, checks: {} }); markDirty(); renderDatasets(); renderPreview(); renderChecks(); toast(converted.length ? '한글 파일의 인코딩을 변환해 연결했습니다. 표시된 열 이름과 원자료를 확인하세요.' : '전체 파일을 연결했습니다. AI에 사용할 열과 계산 기준을 알려주세요.');
   } catch (error) { toast(errorMessage(error)); }
   finally { $('#dataset-file').value = ''; }
 }
