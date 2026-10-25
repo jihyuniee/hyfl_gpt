@@ -1048,3 +1048,25 @@ td input, td select { max-width: 110px; padding: 6px 8px; border: 1px solid var(
   .guide-task > strong { font-size: 13px; }
   .guide-boundaries dl { gap: 21px; }
 }
+
+/* Direct AI workspace: attachments and results, without duplicate worksheets. */
+.composer-files{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 16px 4px;border-top:1px solid var(--line)}
+.composer-files>span{font-size:11px;color:var(--muted)}
+.attachment-list{display:flex;gap:6px;flex-wrap:wrap;padding:6px 16px 10px;max-height:100px;overflow:auto}
+.attachment-list:empty{padding-bottom:0}
+.attachment-chip{font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--line);border-radius:20px;background:var(--mint);padding:5px 10px;text-align:left}
+.proposal-banner{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 14px;background:var(--warning-bg);border-bottom:1px solid var(--line);font-size:12px}
+.proposal-banner>span{flex:1}
+.optional-context,.api-response-panel{margin-top:22px;border-top:1px solid var(--line);padding-top:16px}
+.optional-context summary,.api-response-panel summary{cursor:pointer;font-weight:600}
+.optional-context form{padding-top:16px}
+.source-links>a{display:block;margin:16px 0;color:var(--green);font-weight:600}
+.source-links>p{font-size:13px;line-height:1.8;color:var(--muted)}
+.export-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.export-grid .surface-card{padding:24px}
+.export-grid p{margin:12px 0 20px;color:var(--muted);font-size:13px;line-height:1.8}
+.chat-welcome .prompt-suggestions{display:grid;gap:8px}
+.ai-warning summary,.ai-checks summary{cursor:pointer;font-size:12px;font-weight:500}
+.context-layout>.surface-card{padding:24px}
+.context-layout .dataset-card{margin-top:16px}
+@media(max-width:760px){.export-grid{grid-template-columns:1fr}.composer-files{padding:10px 12px 4px}.attachment-list{padding-left:12px;padding-right:12px}.proposal-banner .button{font-size:11px}.source-links{margin-top:0}}
