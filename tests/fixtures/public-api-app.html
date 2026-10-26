@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>공공 API 데이터 계약 검증 예시</title>
+<style>body{font:16px system-ui;max-width:960px;margin:2rem auto;padding:1rem;color:#152b32}label{display:inline-block;margin:0 1rem 1rem 0}select{display:block;padding:.5rem;max-width:95vw}pre{white-space:pre-wrap;background:#edf4f3;padding:1rem}</style></head><body>
+<h1>기상·환경 응답 확인</h1><p>실제 응답 구조를 따른 가상 값 검증 예시입니다. 저장된 응답을 읽으며 실시간으로 조회하지 않습니다.</p>
+<label>자료<select id="source"></select></label><label>항목<select id="metric"></select></label><label>발표·기준 회차<select id="base"></select></label><label>격자·측정소<select id="place"></select></label><label>예보 대상·측정 시각<select id="target"></select></label>
+<p id="status" role="status"></p><pre id="result"></pre>
+<p>출처 구조: 기상청 단기예보·초단기실황, 에어코리아 대기오염정보 공식 문서. 수치는 테스트용 가상 값입니다. TMP·T1H: ℃, REH: %, PM10·PM2.5: ㎍/㎥, O3: ppm. PCP는 범주·범위 원문을 표시합니다.</p>
+<script>
+const el = Object.fromEntries(['source','metric','base','place','target','status','result'].map(id => [id, document.getElementById(id)]));
+const datasets = window.HYFL_DATASETS || [];
+function options(select, values) {
+  select.replaceChildren();
+  for (const value of [...new Set(values)]) { const option = document.createElement('option'); option.value = value; option.textContent = value || '선택 범위 전체'; select.append(option); }
+  select.value = values[0] || '';
+}
+const numeric = value => value !== null && value !== undefined && String(value).trim() !== '' && /^[-+]?\d+(\.\d+)?$/.test(String(value).trim()) ? Number(value) : null;
+let rows = [], kind = '';
+function load() {
+  const dataset = datasets.find(d => d.name === el.source.value);
+  if (!dataset) { el.status.textContent = '데이터 파일을 연결하세요.'; el.result.textContent = ''; return; }
+  const parsed = JSON.parse(dataset.text);
+  kind = dataset.name === 'forecast.json' ? 'forecast' : dataset.name === 'observations.json' ? 'observation' : dataset.name === 'air.json' ? 'air' : 'other';
+  rows = kind === 'forecast' || kind === 'observation' ? parsed.response.body.items.item : kind === 'air' ? parsed.response.body.items : parsed.data || parsed.culturalEventInfo.row;
+  options(el.metric, kind === 'air' ? ['pm10Value','pm25Value','o3Value'] : kind === 'other' ? ['행'] : rows.map(r => r.category));
+  options(el.base, kind === 'air' || kind === 'other' ? [''] : rows.map(r => r.baseDate + ' ' + r.baseTime));
+  options(el.place, kind === 'air' ? ['', ...rows.map(r => r.stationName)] : kind === 'other' ? [''] : rows.map(r => r.nx + ',' + r.ny));
+  options(el.target, kind === 'air' ? rows.map(r => r.dataTime) : kind === 'forecast' ? ['', ...rows.map(r => r.fcstDate + ' ' + r.fcstTime)] : ['']);
+  render();
+}
+function render() {
+  const chosen = rows.filter(r => {
+    if (kind === 'other') return true;
+    if (kind === 'air') return (!el.place.value || r.stationName === el.place.value) && r.dataTime === el.target.value;
+    return r.category === el.metric.value && r.baseDate + ' ' + r.baseTime === el.base.value && r.nx + ',' + r.ny === el.place.value && (!el.target.value || r.fcstDate + ' ' + r.fcstTime === el.target.value);
+  });
+  el.status.textContent = `저장된 응답 ${rows.length}행 / 선택 ${chosen.length}행 · ${kind === 'forecast' ? '예보' : kind === 'observation' ? '관측' : kind === 'air' ? '대기 측정' : '행 목록'} · 기준 ${el.base.value || '해당 없음'} · 격자/측정소 ${el.place.value || '전체'} · 대상 시각 ${el.target.value || '선택 회차의 범위 전체'}`;
+  if (!chosen.length) { el.result.textContent = '결과 없음'; return; }
+  if (kind === 'other') { el.result.textContent = JSON.stringify(chosen, null, 2); return; }
+  const raw = chosen.map(r => kind === 'air' ? r[el.metric.value] : kind === 'forecast' ? r.fcstValue : r.obsrValue);
+  if (el.metric.value === 'PCP') { el.result.textContent = 'PCP 원문(범주·범위 값은 숫자로 합산하지 않음): ' + raw.join(', '); return; }
+  const valid = raw.map(numeric).filter(n => n !== null);
+  const unit = {TMP:'℃',T1H:'℃',REH:'%',RN1:'mm',pm10Value:'㎍/㎥',pm25Value:'㎍/㎥',o3Value:'ppm'}[el.metric.value];
+  el.result.textContent = `유효 ${valid.length} / 제외 ${raw.length - valid.length}\n` + (valid.length ? `평균 ${valid.reduce((a,b) => a+b,0) / valid.length} ${unit}\n최소 ${Math.min(...valid)} / 최대 ${Math.max(...valid)} ${unit}` : '유효한 숫자 없음');
+}
+options(el.source, datasets.filter(d => d.format === 'json').map(d => d.name));
+el.source.addEventListener('change', load);
+for (const field of ['metric','base','place','target']) el[field].addEventListener('change', render);
+load();
+</script></body></html>

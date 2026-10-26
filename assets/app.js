@@ -1,5 +1,4 @@
-import { CURRICULUM } from '/lib/curriculum.mjs';
-import { LIMITS, emptyProject, normalizeProject, fitProject, replaceCode, describeDataset, buildDocument, importHtml, exportRecords, safeFilename, byteLength, uid, now } from '/lib/workspace.mjs';
+import { LIMITS, emptyProject, normalizeProject, fitProject, replaceCode, decodeDatasetBytes, describeDataset, apiResponseNotice, importApiResponse, buildDocument, importHtml, buildQuickChart, exportConversation, safeFilename, byteLength, uid, now } from '/lib/workspace.mjs';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -7,50 +6,104 @@ const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '
 const text = (selector, value) => { const el = $(selector); if (el) el.textContent = value; };
 const show = (selector, visible = true) => { const el = $(selector); if (el) el.hidden = !visible; };
 const fmtTime = value => { try { return new Intl.DateTimeFormat('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' }).format(new Date(value)); } catch { return ''; } };
-const modeNames = { build: '기능 만들기', edit: '기능 수정', debug: '오류 해결', explain: '코드 이해' };
+const modeNames = { build: '자동 작업', edit: '기능 수정', debug: '오류 해결', explain: '질문·해석' };
 const workPrompts = [
-  {
-    label: '데이터에서 기능 정하기', mode: 'explain', worksheet: 'STEP 2-2',
-    prompt: '현재 프로젝트 맥락과 첨부 데이터의 열 이름·예시 행을 보고, 데이터에서 웹앱 기능으로 연결하는 일을 도와줘.\n1. 자료에서 실제로 확인되는 항목\n2. 사용자가 입력하거나 선택할 값\n3. 그 조건으로 보여줄 결과\n4. 지금 만들 수 있는 작은 기능 하나\n5. 추가로 확인하거나 확보해야 할 정보\n를 구분해서 설명해줘. 없는 항목·수치·이용 조건을 만들어내지 말고, 전체 데이터의 통계나 최신성을 확인한 것처럼 말하지 마. 아직 코드는 바꾸지 마.',
-  },
-  {
-    label: '첫 기능 만들기', mode: 'build', worksheet: 'STEP 2-3 · 2-4',
-    prompt: '프로젝트 맥락에 적은 「가장 먼저 작동해야 할 기능 하나」를 구현해줘. 첨부한 전체 데이터를 읽어 사용자의 입력에 맞는 결과를 보여줘. 기존 코드가 있으면 정상 작동하는 기능을 유지해줘. 출처·기준 시점·단위와 결과가 없는 경우의 안내를 표시해줘. 필요한 열이나 조건이 없으면 임의로 만들지 말고 먼저 확인할 점을 알려줘. 적용 후 원자료와 대조할 방법도 설명해줘.',
-  },
-  {
-    label: '잘못 나온 결과 고치기', mode: 'debug', worksheet: 'STEP 2-4',
-    prompt: '현재 앱에서 다음 문제를 고쳐줘.\n내가 입력하거나 누른 것: [직접 적기]\n원래 나와야 할 결과: [직접 적기]\n실제로 나온 결과나 오류: [직접 적기]\n원자료에서 확인한 값 또는 행: [직접 적기]\n유지해야 할 기존 기능: [직접 적기]\n현재 코드에서 원인을 살펴보고, 필요한 부분을 수정해줘. 수정 뒤 같은 입력으로 확인할 방법도 알려줘.',
-  },
-  {
-    label: '계산·결과 검증하기', mode: 'explain', worksheet: 'STEP 3-2',
-    prompt: '현재 코드가 어떤 데이터 항목을 어떤 조건으로 읽고 계산하는지 설명해줘. 원자료와 비교해 볼 테스트를 정상 입력, 결과 없음, 누락된 값으로 나누어 제안해줘. 각 테스트에서 사용할 입력과 원자료에서 직접 확인할 항목을 알려줘. 확인할 수 없는 기대 수치를 만들어내거나 실행하지 않은 테스트를 통과했다고 쓰지 마. 코드는 바꾸지 마.',
-  },
+  {label:'표·그래프 만들기',mode:'build',prompt:'첨부한 전체 자료를 읽어 데이터에 맞는 표와 그래프를 실제로 만들어줘. 연도·지역·항목을 고르며 살펴볼 수 있게 하고, 결측·단위·범위를 표시해줘. 기획 설명에서 멈추지 말고 실행 가능한 결과를 만들어줘. 없는 수치나 원인을 지어내지 마.'},
+  {label:'데이터 비교·분석',mode:'build',prompt:'첨부한 자료에서 비교할 수 있는 항목을 확인하고 실제 전체 데이터로 비교 표와 그래프를 만들어줘. 같은 지역·기간·단위인지 확인하고, 다른 조건은 분리해줘. 상관관계를 원인으로 단정하지 말고, 비교가 가능한 범위와 추가로 필요한 자료를 짧게 알려줘.'},
+  {label:'웹앱 만들기',mode:'build',prompt:'첨부 자료와 지금까지의 요청을 바탕으로 사용자가 입력하거나 조건을 골라 결과를 볼 수 있는 작은 웹앱을 실제로 만들어줘. 기존 HTML이 없어도 시작해줘. 필요한 기능은 [여기에 적기]. 전체 데이터를 사용하고, 출처·기준일·단위를 알 수 없으면 확인 필요로 표시해줘.'},
+  {label:'현재 결과 고치기',mode:'edit',prompt:'지금 결과에서 [바꿀 부분]을 수정해줘. 나머지 정상 기능과 첨부 데이터 연결은 유지하고, 변경된 전체 HTML을 만들어줘.'},
+  {label:'오류 해결',mode:'debug',prompt:'현재 결과에서 다음 오류를 고쳐줘. 내가 한 것: [입력·클릭] / 기대한 결과: [적기] / 실제 결과: [적기]. 현재 기능과 데이터를 보존하고 수정한 전체 HTML을 만들어줘.'},
+  {label:'API 데이터 활용',mode:'build',prompt:'첨부한 공공 API 응답의 실제 행을 전체 파싱해 표·그래프 또는 필요한 기능을 만들어줘. 전체 건수와 현재 행 수, 오류를 확인하고 기상 category·단위·발표 회차·관측/예보·대상 시각을 구분해줘. 저장된 응답을 실시간 자료처럼 표시하지 마. 인증키를 요청하거나 코드에 넣지 마.'},
+  {label:'데이터 구하기 도움',mode:'explain',prompt:'지금 요청한 프로젝트에 필요한 공공데이터를 구하는 일을 도와줘. 필요한 지역·기간·항목과 공식 기관, 검색어, 파일 또는 API 응답을 얻는 순서를 구체적으로 알려줘. 직접 검색·조회 도구가 연결되지 않았다면 조회했다고 말하거나 정확하지 않은 자료 주소를 만들지 마. 키를 요청하지 마.'},
 ];
-const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', dirty: false, generation: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
+// These examples prepare editable questions, never institution API requests.
+const apiHelpPrompts = [
+  {label:'인증키를 받았어요 · 첫 요청 준비',detail:'요청 주소와 필수 항목을 읽고, 공식 실행 화면에서 따라 할 순서를 도움받아요.',mode:'explain',prompt:`Open API 인증키를 발급받았는데 첫 데이터를 어떻게 요청해야 할지 모르겠어. 아래 공식 설명을 읽고 내가 실행할 수 있게 도와줘.
+서비스 이름: [적기]
+공식 문서 주소: [적기]
+문서의 요청 주소와 필수·선택 요청인자 표: [인증키를 빼고 붙이기]
+조회하고 싶은 지역·기간·항목: [적기]
+활용 신청 상태: [승인 완료 / 대기 / 모름]
+
+1. 어떤 조회 기능을 골라야 하는지, 각 필수 항목에 무엇을 넣는지 설명해줘.
+2. 실제 키 대신 YOUR_API_KEY를 넣은 요청 예시를 만들어줘. 기관별 키 발급처와 Encoding/Decoding 사용법은 제공한 공식 설명을 따라줘.
+3. 공식 사이트의 실행 화면이나 내 브라우저에서 요청하고 응답 본문을 저장하는 순서를 알려줘. JSON/XML 지원 여부와 성공 코드·행 수·다음 페이지 확인 방법도 알려줘.
+기상은 관측/예보·발표/대상 시각·격자, 병원은 지역·검색 조건을 확인해줘. 문서가 부족하면 가장 필요한 부분부터 요청해줘. 주소만으로 문서를 읽었다거나 API를 호출했다고 말하지 말고, 실제 인증키는 요구하지 마.`},
+  {label:'요청했는데 오류가 나요',detail:'키를 지운 요청 내용과 오류 메시지로 원인과 다음 확인 한 가지를 찾아요.',mode:'explain',prompt:`Open API 요청 오류를 해결하고 싶어.
+서비스·조회 기능: [적기]
+공식 문서의 요청 주소·인자 설명: [붙이기]
+내 요청 주소·인자: [인증키 값을 YOUR_API_KEY로 바꾼 뒤 붙이기]
+HTTP 상태와 응답의 오류 코드·메시지: [인증키·개인정보를 지우고 붙이기]
+기대한 결과: [적기]
+
+HTTP 상태, 기관의 결과 코드, 실제 데이터 유무를 나누어 읽어줘. 승인 상태·주소·필수 항목·키 인코딩·조회 시각/기간·호출 한도 중 근거가 있는 원인을 좁히고, 내가 다음에 바꿔 볼 한 가지를 알려줘. 기관마다 코드 의미가 다를 수 있으니 제공한 문서를 우선해줘. 실제 인증키나 전체 URL의 비밀 값을 요구하지 말고, 직접 실행하지 않았다면 해결됐다고 단정하지 마.`},
+  {label:'응답은 받았어요 · 어떻게 읽나요?',detail:'행의 위치, 값·시간·단위, 전체 건수와 받은 건수를 확인해요.',mode:'explain',prompt:`공공 API 응답을 받았어. 첨부한 전체 자료 또는 아래 본문을 읽는 일을 도와줘.
+서비스와 조회 조건: [키 없이 적기]
+공식 문서의 응답 항목·코드·단위 설명: [붙이기]
+응답 본문: [자료로 첨부했다면 이 줄을 지우기 / 키·개인정보 없는 본문 붙이기]
+
+성공/오류 여부, 실제 데이터 행 경로, 한 행의 의미, 주요 열·단위를 설명해줘. 전체 건수·조회 조건에 맞는 건수·실제 받은 행 수를 구분하고 다음 페이지가 필요한지 확인해줘. 기상 관측값과 예보값, 발표 시각과 대상 시각을 섞지 말고 범주형 코드와 결측을 숫자 0으로 바꾸지 마.
+JSON이면 스튜디오의 'API 응답 붙여넣기'로 연결하는 방법을 알려줘. XML이면 JSON 지원 여부를 문서에서 확인하고, 지원하지 않으면 원문을 TXT로 보존해 첨부하는 방법을 알려줘. XML 자동 행 인식이 된다고 말하지 마. 응답을 새로 받기 전에는 최신 정보로 갱신되지 않는다는 점도 짧게 알려줘.`},
+  {label:'받은 데이터로 그래프·웹앱 만들기',detail:'전체 응답을 연결한 뒤, 조건을 고르면 결과가 나오는 앱을 실제로 만들어요.',mode:'build',prompt:`첨부한 전체 API 응답으로 실행 가능한 작은 웹앱을 만들어줘.
+사용자가 고를 조건: [지역 / 날짜 / 항목 등]
+보여줄 결과: [목록 / 그래프 / 지도 등]
+공식 출처·응답 항목 설명: [알고 있는 내용 적기]
+
+샘플 몇 행만 사용하지 말고 window.HYFL_DATASETS의 전체 원문을 읽어 필터·집계해줘. 실제 행 수와 전체 건수의 차이, 자료 없음·결측·단위를 표시해줘. 기상 항목·관측/예보·발표 회차·대상 시각은 구분해줘. XML TXT 자료라면 DOMParser로 실제 구조를 확인해 파싱하고, 오류 응답을 행으로 취급하지 마.
+이 앱은 저장된 응답을 사용하는 버전으로 만들고 자료 시점을 표시해줘. 실시간 갱신 버튼이나 인증키를 넣지 마. 설명만 제안하지 말고 미리보기에서 실행하고 HTML로 내보낼 수 있는 전체 코드를 만들어줘.`},
+];
+const firstAppPrompt = {label:'조건을 골라 조회하기',mode:'build',prompt:'첨부 자료에서 지역·연도·항목처럼 조건으로 고를 수 있는 열을 확인해서, 조건을 선택하면 일치하는 행이 나오는 작은 웹앱을 만들어줘. 전체 데이터를 읽고 조건에 맞는 자료가 없으면 없다고 표시해줘. 자료에 없는 정보는 만들지 말고 실제로 실행되는 HTML을 만들어줘.'};
+const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', dirty: false, generation: 0, workspaceVersion: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
+const layout={share:48,sidebarCollapsed:false,drag:null};
+const layoutKey="hyfl-studio-layout-v1";
 let toastTimer;
 function toast(message) { text('#toast', message); $('#toast').classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 4500); }
 function errorMessage(error) { return error?.message || '요청을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.'; }
 
 async function api(action, payload, path = '/api/studio', timeout = 15000) {
+  const version=state.workspaceVersion;
+  const owner=!state.demo?state.user?.id:null;
+  const headers=payload===undefined?{}:{'Content-Type':'application/json'};
+  if(owner&&!['login','teacherLogin','register','teams','config'].includes(action)) headers['x-hyfl-team-id']=owner;
+  const bound=path==='/api/ai'||['project','save'].includes(action);
   let response;
   try {
-    response = await fetch(payload === undefined ? `${path}?action=${encodeURIComponent(action)}` : path, { method: payload === undefined ? 'GET' : 'POST', credentials: 'same-origin', headers: payload === undefined ? {} : { 'Content-Type': 'application/json' }, body: payload === undefined ? undefined : JSON.stringify(path === '/api/ai' ? payload : { action, ...payload }), signal: AbortSignal.timeout(timeout) });
+    response = await fetch(payload === undefined ? `${path}?action=${encodeURIComponent(action)}` : path, { method: payload === undefined ? 'GET' : 'POST', credentials: 'same-origin', headers, body: payload === undefined ? undefined : JSON.stringify(path === '/api/ai' ? payload : { action, ...payload }), signal: AbortSignal.timeout(timeout) });
   } catch (cause) {
+    if(version!==state.workspaceVersion) throw staleWorkspace();
     const error = new Error(cause.name === 'TimeoutError' ? '응답이 지연되고 있습니다. 사용 기록을 확인한 뒤 다시 시도해주세요.' : '연결을 확인해주세요. 지금 작업은 이 브라우저에 임시 보관됩니다.');
     error.code = 'NETWORK_ERROR'; throw error;
   }
   let body;
   try { body = await response.json(); } catch { throw new Error('서버 응답을 읽지 못했습니다. 잠시 후 다시 시도해주세요.'); }
-  if (!response.ok) { const error = new Error(body.message || body.error || '요청을 완료하지 못했습니다.'); error.status = response.status; error.code = body.code; throw error; }
+  if(version!==state.workspaceVersion) throw staleWorkspace();
+  if (!response.ok) { const error = new Error(body.message || body.error || '요청을 완료하지 못했습니다.'); error.status = response.status; error.code = body.code; if(owner&&['AUTH_REQUIRED','WORKSPACE_CHANGED','WORKSPACE_RELOAD_REQUIRED'].includes(error.code)) leaveWorkspace(error.message); throw error; }
+  if(bound&&(!owner||body.teamId!==owner)) { const error=new Error('작업의 팀이 일치하지 않습니다. 우리 팀으로 다시 로그인해주세요.'); error.code='WORKSPACE_CHANGED'; leaveWorkspace(error.message); throw error; }
   return body;
 }
 
 function cacheKey() { return `hyfl-studio-v2:${state.demo ? 'demo' : state.user?.id || 'anonymous'}`; }
 function cacheProject() {
-  if (!state.user && !state.demo) return;
-  try { localStorage.setItem(cacheKey(), JSON.stringify({ project: fitProject(state.project), revision: state.revision, dirty: state.dirty, savedAt: now() })); }
+  if (state.demo||state.user?.role!=='student') return;
+  try { localStorage.setItem(cacheKey(), JSON.stringify({ ownerId:state.user.id, project: fitProject(state.project), revision: state.revision, dirty: state.dirty, savedAt: now() })); }
   catch { text('#save-status', '임시 저장 공간 부족 · 백업을 내려받아 주세요'); }
 }
+function staleWorkspace() { const error=new Error('이전 팀의 요청 결과를 적용하지 않았습니다.');error.code='STALE_WORKSPACE';return error; }
+function resetWorkspace() {
+  clearTimeout(state.saveTimer);clearTimeout(state.localTimer);
+  setWorkspaceSurface('chat');
+  state.workspaceVersion++;state.user=null;state.demo=false;state.usage=null;state.project=emptyProject();state.revision=0;state.pending=null;state.recovery=null;state.dirty=false;state.saving=false;state.busy=false;state.conflict=false;state.aiError='';state.errors=[];state.admin=null;state.generation=0;
+  for(const selector of ['#prompt-input','#api-response-name','#api-response-text','#code-file','#chat-dataset-file','#dataset-file','#project-file']) $(selector).value='';
+  text('#api-response-status','');show('#conflict-banner',false);
+  $('#code-toggle').setAttribute('aria-pressed','false');$('#code-toggle').classList.remove('active');show('#code-editor',false);show('#apply-code-button',false);
+  text('#team-label','우리 팀');text('#project-heading',state.project.title);text('#save-status','팀 로그인 필요');
+  renderAll();
+}
+function leaveWorkspace(message) {
+  cacheProject();resetWorkspace();show('#app-screen',false);show('#auth-screen');authTab('student');text('#auth-message',message);
+}
+const sessionNoticeKey='hyfl-studio-session-change';
+function announceSession() {try{localStorage.setItem(sessionNoticeKey,JSON.stringify({ownerId:state.user?.id||null,nonce:uid()}));}catch{}}
 function markDirty() {
   state.dirty = true; state.generation++; text('#save-status', state.demo ? '이 브라우저에 저장 중' : '저장 대기 중');
   clearTimeout(state.localTimer); state.localTimer = setTimeout(cacheProject, 250);
@@ -62,19 +115,20 @@ async function saveNow() {
   if (!state.dirty || state.saving || state.conflict || (!state.user && !state.demo)) return;
   let project;
   try { project = fitProject(state.project); } catch (error) { text('#save-status', errorMessage(error)); return; }
-  if (state.demo) { state.dirty = false; cacheProject(); text('#save-status', '이 브라우저에 저장됨'); return; }
+  if (state.demo) { state.dirty = false; text('#save-status', '둘러보기 · 이 화면에서만 유지'); return; }
   if (state.user.role !== 'student') return;
-  state.saving = true; const generation = state.generation; text('#save-status', '팀 작업 저장 중…');
+  state.saving = true; const generation = state.generation; const version=state.workspaceVersion; text('#save-status', '팀 작업 저장 중…');
   try {
     const result = await api('save', { project, revision: state.revision });
     state.revision = result.revision;
     if (state.generation === generation) { state.dirty = false; state.project.versions = project.versions; state.project.messages = project.messages; }
     cacheProject(); text('#save-status', state.dirty ? '새 변경 저장 대기 중' : '팀 작업 저장됨');
   } catch (error) {
+    if(version!==state.workspaceVersion) return;
     if (error.status === 409) { state.conflict = true; show('#conflict-banner'); text('#save-status', '다른 기기의 변경을 확인해주세요'); }
     else { text('#save-status', '서버 저장 실패 · 이 기기에 임시 보관'); toast(errorMessage(error)); }
     cacheProject();
-  } finally { state.saving = false; if (state.dirty && !state.conflict) state.saveTimer = setTimeout(saveNow, 12000); }
+  } finally { if(version===state.workspaceVersion){state.saving = false; if (state.dirty && !state.conflict) state.saveTimer = setTimeout(saveNow, 12000);} }
 }
 
 function setView(view) {
@@ -84,35 +138,84 @@ function setView(view) {
   $$('[data-panel]').forEach(el => { el.hidden = el.dataset.panel !== view; });
   $$('[data-view]').forEach(el => { el.classList.toggle('active', el.dataset.view === view); el.setAttribute('aria-current', el.dataset.view === view ? 'page' : 'false'); });
   $('.sidebar')?.classList.remove('is-open');
-  $('#mobile-menu-button').setAttribute('aria-expanded', 'false');
+  $('#mobile-menu-button').setAttribute('aria-expanded',String(!layout.sidebarCollapsed));
   if (view === 'admin') loadAdmin();
 }
+function setWorkspaceSurface(surface) {
+  if(!['split','chat','preview'].includes(surface))return;
+  if(surface==='split'&&window.matchMedia?.('(max-width: 760px)').matches)surface='preview';
+  for(const name of ['split','chat','preview'])$('#surface-'+name).checked=name===surface;
+  resizePrompt();
+}
+function saveLayout(){try{localStorage.setItem(layoutKey,JSON.stringify({share:layout.share,sidebarCollapsed:layout.sidebarCollapsed}));}catch{}}
+function setWorkspaceShare(value,{save=true}={}){
+  if(!Number.isFinite(Number(value)))return;
+  layout.share=Math.max(25,Math.min(75,Number(value)));
+  $('#app-screen').style.setProperty('--chat-share',layout.share+'%');
+  $('#workspace-divider').setAttribute('aria-valuenow',String(Math.round(layout.share)));
+  resizePrompt();if(save)saveLayout();
+}
+function setSidebarCollapsed(collapsed,{save=true}={}){
+  layout.sidebarCollapsed=Boolean(collapsed);$('#app-screen').dataset.sidebar=collapsed?'collapsed':'expanded';
+  $('#app-sidebar').inert=Boolean(collapsed);$('#app-sidebar').setAttribute('aria-hidden',String(Boolean(collapsed)));
+  $('#mobile-menu-button').setAttribute('aria-expanded',String(!collapsed));
+  $('#mobile-menu-button').setAttribute('aria-label',collapsed?'사이드바 펼치기':'사이드바 접기');
+  resizePrompt();if(save)saveLayout();
+}
+function resizePrompt(){
+  const input=$('#prompt-input');input.style.height='0px';input.style.height=Math.max(44,Math.min(180,input.scrollHeight||44))+'px';
+}
+function startResize(event){
+  if(event.button!==0&&event.pointerType!=='touch')return;
+  const rect=$('.studio-grid').getBoundingClientRect();if(rect.width<650)return;
+  event.preventDefault();layout.drag={left:rect.left,width:rect.width,pointerId:event.pointerId};
+  $('#workspace-divider').setPointerCapture(event.pointerId);$('#app-screen').classList.add('is-resizing');
+}
+function moveResize(event){
+  if(!layout.drag||event.pointerId!==layout.drag.pointerId)return;
+  const {left,width}=layout.drag,min=Math.max(25,320/width*100);
+  setWorkspaceShare(Math.max(min,Math.min(100-min,(event.clientX-left)/width*100)),{save:false});
+}
+function stopResize(event){
+  if(!layout.drag||event.pointerId!==layout.drag.pointerId)return;
+  layout.drag=null;$('#app-screen').classList.remove('is-resizing');saveLayout();
+}
+function initializeLayout(){
+  let prefs;try{prefs=JSON.parse(localStorage.getItem(layoutKey)||'null');}catch{}
+  setWorkspaceShare(prefs?.share??48,{save:false});
+  setSidebarCollapsed(typeof prefs?.sidebarCollapsed==='boolean'?prefs.sidebarCollapsed:Boolean(window.matchMedia?.('(max-width: 760px)').matches),{save:false});
+  resizePrompt();
+}
+
 function setMode(mode) {
-  state.mode = mode;
+  state.mode = mode;$('#mode-select').value=mode;
   $$('[data-mode]').forEach(el => { el.classList.toggle('active', el.dataset.mode === mode); el.setAttribute('aria-pressed', String(el.dataset.mode === mode)); });
-  const placeholders = { build: '누구에게 필요한 어떤 기능을 만들까요? 예: 첨부한 CSV에서 지역을 고르면 해당 지역의 결과를 보여줘.', edit: '지금 앱에서 바꿀 부분을 구체적으로 적어주세요. 예: 검색 조건을 초기화하는 버튼을 추가해줘.', debug: '어떤 입력에서, 무엇이 나와야 하는데, 실제로 어떻게 되나요?', explain: '이 코드의 어떤 부분이 궁금한가요? 예: 누락된 값이 계산에서 어떻게 처리되는지 설명해줘.' };
+  const placeholders = { build: '무엇을 만들거나 고칠까요? 파일을 함께 넣어도 됩니다.', edit: '예: 동을 바꾸면 이전 검색 결과가 지워지게 고쳐 줘.', debug: '예: 2020년을 골랐는데 결과가 비어 있어. 원자료에는 값이 있으니 고쳐 줘.', explain: '자료나 실행 결과에서 궁금한 점을 물어보세요.' };
   $('#prompt-input').placeholder = placeholders[mode];
+  updateAiState();
 }
 function renderProviders() {
   const providers = state.config?.providers || [];
   const enabled = providers.filter(p => p.available && p.enabled !== false);
   const select = $('#provider-select');
-  select.innerHTML = (enabled.length ? enabled : [{ id: '', label: state.demo ? '둘러보기 · AI 호출 없음' : '사용 가능한 AI가 없습니다' }]).map(p => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.label)}${p.model ? ` · ${escapeHTML(p.model)}` : ''}</option>`).join('');
+  select.innerHTML = (enabled.length ? enabled : [{ id: '', label: state.demo ? '둘러보기 · AI 호출 없음' : '사용 가능한 AI가 없습니다' }]).map(p => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.id === 'gpt' ? 'GPT' : p.id === 'claude' ? 'Claude' : p.label)}${p.model ? ` · ${escapeHTML(p.model)}` : ''}</option>`).join('');
   if (!enabled.some(p => p.id === state.provider)) state.provider = enabled.find(p => p.id === state.config?.defaultProvider)?.id || enabled[0]?.id || '';
   select.value = state.provider; select.disabled = state.demo || state.busy || !enabled.length;
   updateAiState();
 }
 function updateAiState() {
-  const disabled = state.demo || state.user?.role !== 'student' || state.config?.aiEnabled === false || !state.provider || state.busy || state.conflict;
+  const disabled = state.demo || state.user?.role !== 'student' || state.config?.aiEnabled === false || !state.provider || state.busy || state.conflict || Boolean(state.pending);
   $('#ai-submit').disabled = disabled;
-  $('#ai-submit').textContent = state.busy ? '코드 검토 중…' : 'AI에게 요청';
-  if (state.busy) text('#ai-status', '현재 코드와 데이터 구조를 함께 살펴보고 있습니다. 결과가 나오면 변경 내용을 확인한 뒤 적용하세요.');
+  $('#ai-submit').textContent=state.busy?'…':'↑';$('#ai-submit').setAttribute('aria-label',state.busy?'AI 작업 중':state.mode==='explain'?'AI에게 물어보기':'요청 보내기');
+  resizePrompt();
+  if(state.busy)text('#ai-status',state.mode==='explain'?'답변을 준비하고 있습니다…':'웹앱을 만들고 있습니다. 결과가 준비되면 오른쪽에서 열립니다.');
   else if (state.aiError) text('#ai-status', state.aiError);
-  else if (state.demo) text('#ai-status', '둘러보기에서는 파일 가져오기·실행·내보내기를 사용할 수 있습니다. AI는 팀 로그인 후 이용합니다.');
+  else if(state.pending)text('#ai-status','수정안을 먼저 실행해 보세요. 적용하거나 원래 결과로 돌아온 뒤 다음 요청을 보낼 수 있습니다.');
+  else if (state.demo) text('#ai-status', '둘러보기는 팀 자료를 불러오거나 저장하지 않습니다. 새로고침하면 초기화됩니다. AI는 팀 로그인 후 이용합니다.');
   else if (state.user?.role === 'teacher') text('#ai-status', '교사 화면에서는 운영 상태를 확인합니다. 학생은 팀 계정으로 작업합니다.');
   else if (state.config?.aiEnabled === false) text('#ai-status', '선생님이 AI 요청을 잠시 멈췄습니다. 코드 편집과 저장은 계속할 수 있습니다.');
   else if (!state.provider) text('#ai-status', 'AI 연결을 준비 중입니다. 선생님에게 알려주세요.');
-  else text('#ai-status', '수정 제안은 확인 후 적용합니다. 실행 결과는 팀이 직접 검증해주세요.');
+  else text('#ai-status','Enter로 보내기 · Shift+Enter로 줄바꿈 · API 키·개인정보는 넣지 마세요.');
 }
 function renderUsage() {
   text('#usage-label', state.demo ? '둘러보기' : state.user?.role === 'teacher' ? '교사 관리' : state.usage ? `오늘 ${state.usage.requests ?? 0} / ${state.usage.dailyRequests ?? state.config?.limits?.dailyRequests ?? 12}회` : '사용량 확인 중');
@@ -122,50 +225,68 @@ function renderUsage() {
 function renderChat() {
   const container = $('#chat-messages');
   if (!state.project.messages.length) {
-    const choices = state.project.code.trim() ? [workPrompts[2], workPrompts[3]] : [workPrompts[0], workPrompts[1]];
-    container.innerHTML = `<div class="empty-state chat-welcome"><h3>${state.project.code.trim() ? '이번에 바꿀 부분을 정하세요.' : '자료를 기능으로 연결해요.'}</h3><p>현재 코드와 프로젝트 맥락이 함께 전달됩니다. 필요한 요청을 골라 우리 팀의 상황에 맞게 고쳐 쓰세요.</p><div class="prompt-suggestions">${choices.map(item => `<button type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}">${item.label} <span aria-hidden="true">→</span></button>`).join('')}</div><p class="prompt-draft-note">선택하면 요청 초안이 열립니다. AI에게 요청을 눌러야 전송돼요.</p><button type="button" class="button subtle small" data-view="guide">활동지와 연결하는 방법</button></div>`;
+    const hasData=state.project.datasets.length>0;
+    const hasCode=Boolean(state.project.code.trim());
+    const choices=[{label:'파일로 표·그래프 만들기',...workPrompts[0]},workPrompts[2]];
+    container.innerHTML=`<div class="chat-welcome"><h3>${hasData?'이 자료로 무엇을 해볼까요?':hasCode?'만들던 작업을 이어가세요.':'지금 필요한 작업을 말해보세요.'}</h3><p>${hasData?'자료를 살펴보거나, 원하는 웹앱 기능을 요청하세요.':hasCode?'앱을 실행해 보고 고칠 부분이나 추가할 기능을 말하면 됩니다.':'파일을 넣고 분석하거나, 만들던 HTML을 가져와 고칠 수 있어요.'}</p><div class="prompt-suggestions">${choices.map(item=>`<button type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}">${item.label}<span aria-hidden="true">↗</span></button>`).join('')}<button type="button" data-action="import-app">만들던 앱 이어서 고치기<span aria-hidden="true">↗</span></button></div></div>`;
     return;
   }
-  container.innerHTML = state.project.messages.map(m => {
-    const pending = state.pending?.id === m.id;
-    const recorded = state.project.records.some(r => r.prompt === m.prompt && r.help === (m.summary || m.text));
-    return `<article class="message ${m.role}"><div class="message-meta"><strong>${m.role === 'user' ? '우리 팀' : escapeHTML(m.provider === 'claude' ? 'Claude' : 'GPT')}</strong><span>${escapeHTML(modeNames[m.mode] || '')} · ${fmtTime(m.createdAt)}</span></div><div class="message-text">${escapeHTML(m.text)}</div>${m.role === 'assistant' ? `${m.model ? `<div class="model-caption">${escapeHTML(m.model)}</div>` : ''}${m.warnings?.length ? `<div class="ai-warning"><strong>확인할 한계</strong><ul>${m.warnings.map(v => `<li>${escapeHTML(v)}</li>`).join('')}</ul></div>` : ''}${m.checks?.length ? `<div class="ai-checks"><strong>직접 실행해 볼 것</strong><ul>${m.checks.map(v => `<li>${escapeHTML(v)}</li>`).join('')}</ul></div>` : ''}<div class="proposal-actions">${pending && state.pending.code ? '<button class="button primary small" data-action="apply-proposal" type="button">변경 내용 적용</button><button class="button secondary small" data-action="inspect-proposal" type="button">제안 코드 보기</button>' : ''}<button class="button secondary small" data-action="record-message" data-id="${escapeHTML(m.id)}" type="button" ${recorded ? 'disabled' : ''}>${recorded ? '대표 기록에 담음' : '대표 기록에 담기'}</button></div>` : ''}</article>`;
+  container.innerHTML=state.project.messages.map(m=>{
+    const pending=state.pending?.id===m.id;
+    return `<article class="message ${m.role}"><div class="message-meta"><strong>${m.role==='user'?'우리 팀':escapeHTML(m.provider==='claude'?'Claude':'GPT')}</strong><span>${escapeHTML(modeNames[m.mode]||'')}</span></div><div class="message-text">${escapeHTML(m.text)}</div>${m.role==='assistant'?`${m.model?`<div class="model-caption">${escapeHTML(m.model)}</div>`:''}${m.warnings?.length?`<details class="ai-warning"><summary>데이터·실행 확인</summary><ul>${m.warnings.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ul></details>`:''}${m.checks?.length?`<details class="ai-checks"><summary>결과 확인 방법</summary><ul>${m.checks.map(v=>`<li>${escapeHTML(v)}</li>`).join('')}</ul></details>`:''}${pending?'<div class="proposal-actions"><button type="button" class="button primary small" data-action="apply-proposal">이 수정 적용</button><button type="button" class="button secondary small" data-action="inspect-proposal">코드 보기</button></div>':''}`:''}</article>`;
   }).join('');
-  container.scrollTop = container.scrollHeight;
+  container.scrollTop=container.scrollHeight;
 }
 function renderProjectFields() {
   $('#project-title').value = state.project.title;
   for (const key of Object.keys(state.project.brief)) { const el = $(`#brief-${key}`); if (el) el.value = state.project.brief[key]; }
-  $('#app-url').value = state.project.appUrl;
 }
 function renderDatasets() {
   const list = $('#dataset-list');
-  if (!state.project.datasets.length) { list.innerHTML = '<div class="empty-state compact"><p>확보한 CSV·TSV·JSON·TXT를 연결하세요.</p><small>파일 전체가 미리보기와 내려받은 웹앱에 함께 들어갑니다. 합계 320KB · 최대 8개</small></div>'; return; }
+  const owner=state.demo?'둘러보기 자료 · 팀에 저장되지 않습니다.':state.user?.role==='student'?`2학년 ${state.user.cls}반 · ${state.user.name}의 자료 · 같은 팀원과 공유`:'팀 로그인 후 우리 팀 자료만 불러옵니다.';
+  text('#data-owner-label',owner);text('#project-data-owner-label',owner);
+  show('#composer-attachments',state.project.datasets.length>0);
+  text('#attachment-count', state.project.datasets.length ? `${state.project.datasets.length}개 자료 연결 · 원문 전체 사용` : 'CSV · TSV · JSON · TXT');
+  $('#chat-datasets').innerHTML=state.project.datasets.map(d=>`<button type="button" class="attachment-chip" data-view="project" title="연결된 자료 정보 보기">${escapeHTML(d.name)}</button>`).join('');
+  if (!state.project.datasets.length) { list.innerHTML = '<div class="empty-state compact"><p>파일을 연결하면 바로 표·그래프를 볼 수 있어요.</p><small>파일 전체가 미리보기와 내려받은 웹앱에 함께 들어갑니다. 합계 320KB · 최대 8개</small></div>'; return; }
   list.innerHTML = state.project.datasets.map(d => {
-    let detail; try { detail = describeDataset(d); } catch { detail = { rows: null, columns: [], error: '파일 형식을 다시 확인해주세요.' }; }
-    return `<article class="dataset-card"><div class="dataset-heading"><span class="file-badge">${escapeHTML(d.format.toUpperCase())}</span><div><strong>${escapeHTML(d.name)}</strong><p>${(byteLength(d.text) / 1024).toFixed(1)} KB · ${detail.rows === null ? '구조 확인 필요' : `${detail.rows.toLocaleString('ko-KR')}행`}${detail.columns.length ? ` · ${detail.columns.length}열` : ''}</p></div><button class="icon-button" type="button" data-action="remove-dataset" data-id="${escapeHTML(d.id)}" aria-label="${escapeHTML(d.name)} 삭제">×</button></div>${detail.columns.length ? `<p class="dataset-columns">${escapeHTML(detail.columns.slice(0, 12).join(' · '))}${detail.columns.length > 12 ? ' …' : ''}</p>` : ''}${detail.error ? `<p>${detail.error}</p>` : ''}</article>`;
+    let notice = ''; let detail; try { detail = describeDataset(d); if (d.format === 'json') notice = apiResponseNotice(JSON.parse(d.text.replace(/^\uFEFF/, ''))); } catch { detail = { rows: null, columns: [], error: '파일 형식을 다시 확인해주세요.' }; }
+    return `<article class="dataset-card"><div class="dataset-heading"><span class="file-badge">${escapeHTML(d.format.toUpperCase())}</span><div><strong>${escapeHTML(d.name)}</strong><p>${(byteLength(d.text) / 1024).toFixed(1)} KB · ${detail.rows === null ? '구조 확인 필요' : `${detail.rows.toLocaleString('ko-KR')}행`}${detail.columns.length ? ` · ${detail.columns.length}열` : ''}</p></div><button class="icon-button" type="button" data-action="remove-dataset" data-id="${escapeHTML(d.id)}" aria-label="${escapeHTML(d.name)} 삭제">×</button></div>${detail.columns.length ? `<p class="dataset-columns">${escapeHTML(detail.columns.slice(0, 12).join(' · '))}${detail.columns.length > 12 ? ' …' : ''}</p>` : ''}${detail.arrayPath ? `<p class="field-help">실제 행: ${escapeHTML(detail.arrayPath)}</p>` : ''}${notice ? `<p role="status">${escapeHTML(notice)}</p>` : ''}${detail.error ? `<p>${escapeHTML(detail.error)}</p>` : ''}<button type="button" class="button secondary small" data-action="quick-chart" data-id="${escapeHTML(d.id)}">표·그래프 바로 만들기</button></article>`;
   }).join('');
-}
-function renderChecks() {
-  $('#checklist').innerHTML = CURRICULUM.checklist.map(item => `<label class="check-item"><input type="checkbox" data-check="${item.id}" ${state.project.checks[item.id] ? 'checked' : ''}><span><strong>${escapeHTML(item.label)}</strong><small>${escapeHTML(item.description)}</small></span></label>`).join('');
-}
-function renderRecords() {
-  $('#records-list').innerHTML = state.project.records.length ? state.project.records.map((r, i) => `<article class="record-card"><div class="card-heading"><h3>대표 사례 ${i + 1}</h3><button type="button" class="button secondary small" data-action="remove-record" data-id="${escapeHTML(r.id)}">삭제</button></div><div class="field"><label for="record-stage-${escapeHTML(r.id)}">활용 단계</label><input id="record-stage-${escapeHTML(r.id)}" value="${escapeHTML(r.stage)}" data-record="${escapeHTML(r.id)}" data-field="stage" maxlength="100" placeholder="예: 기능 구현 · 주요 오류 해결"></div>${[{ id: 'prompt', label: '실제 프롬프트', placeholder: '' }, { id: 'help', label: 'AI의 도움', placeholder: '' }, { id: 'verification', label: '팀이 직접 확인한 내용', placeholder: '직접 실행한 입력, 기대한 값, 실제 값과 확인 방법을 적어주세요.' }, { id: 'decision', label: '채택·수정·제외와 이유', placeholder: '무엇을 사용하거나 바꿨나요? 우리 팀의 판단과 이유를 적어주세요.' }].map(field => `<div class="field"><label for="record-${field.id}-${escapeHTML(r.id)}">${field.label}</label><textarea id="record-${field.id}-${escapeHTML(r.id)}" rows="3" maxlength="6000" data-record="${escapeHTML(r.id)}" data-field="${field.id}" placeholder="${escapeHTML(field.placeholder)}">${escapeHTML(r[field.id])}</textarea></div>`).join('')}</article>`).join('') : '<div class="empty-state compact"><h3>활동지에 남길 AI 도움을 가져오세요.</h3><p>AI 답변의 ‘대표 기록에 담기’를 누르면 실제 요청과 도움을 가져옵니다. 확인한 내용과 팀의 판단은 직접 적습니다.</p></div>';
 }
 function renderVersions() {
   $('#versions-list').innerHTML = state.project.versions.length ? state.project.versions.map(v => `<article class="version-card"><div><span class="eyebrow">${fmtTime(v.createdAt)}</span><h3>${escapeHTML(v.note || '수정 전 버전')}</h3><p>${(byteLength(v.code) / 1024).toFixed(1)} KB · HTML 코드</p></div><button type="button" class="button secondary" data-action="restore-version" data-id="${escapeHTML(v.id)}">이 버전으로 복원</button></article>`).join('') : '<div class="empty-state"><h3>수정 전 코드를 보관합니다.</h3><p>코드를 가져오거나 AI 제안을 적용하면 이전 코드가 여기에 남습니다.<br>최근 6개까지 용량 안에서 보관합니다. 데이터·기록까지 보관하려면 프로젝트 백업을 내려받으세요.</p></div>';
 }
 function renderGuide() {
-  $('#guide-content').innerHTML = `<div class="guide-intro"><p class="eyebrow">인공지능 원리탐구 · 2학기</p><h2>활동지에서 지금 하는 일을 이어가세요.</h2><p>기존 활동지와 데이터, 만들던 HTML을 함께 펼쳐 두세요.<br>이번에 만들 기능 하나를 정하고, 실행한 결과를 원자료와 비교합니다.</p><a class="button secondary" href="${CURRICULUM.textbookUrl}" target="_blank" rel="noopener noreferrer">교과서 프로젝트 안내 ↗</a> <a class="text-link" href="${CURRICULUM.labUrl}" target="_blank" rel="noopener noreferrer">기본 실습 보기 ↗</a></div><section class="guide-task-section" aria-labelledby="guide-task-title"><h3 id="guide-task-title">지금 필요한 도움</h3><p>요청 초안을 열어 우리 팀의 내용으로 수정하세요. 선택만으로 AI를 호출하지 않습니다.</p><div class="guide-tasks">${workPrompts.map(item => `<button type="button" class="guide-task" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${state.user?.role === 'teacher' ? 'disabled' : ''}><small>${item.worksheet}</small><strong>${item.label}</strong><span aria-hidden="true">→</span></button>`).join('')}</div>${state.user?.role === 'teacher' ? '<p class="field-help">학생 계정의 수업 가이드에서 요청 초안을 열 수 있습니다.</p>' : ''}</section><div class="guide-steps">${CURRICULUM.stages.map((s, i) => `<article><span class="step-number">0${i + 1}</span><span class="eyebrow">${escapeHTML(s.worksheet)}</span><h3>${escapeHTML(s.label)}</h3><p>${escapeHTML(s.description)}</p></article>`).join('')}</div><section class="guide-boundaries"><h3>시작하기 전에 확인하세요</h3><dl><div><dt>데이터 파일을 함께 올려주세요.</dt><dd>출처 주소만 적으면 자료가 자동으로 연결되지는 않습니다. CSV·TSV·JSON·TXT 파일을 사용하며 합계 320KB, 최대 8개까지 연결할 수 있습니다.</dd></div><div><dt>숫자는 실제 파일로 계산하고 확인해요.</dt><dd>AI에는 데이터 구조와 일부 행이 전달됩니다. 전체 통계를 안다고 가정하지 말고, 전체 데이터를 계산하는 기능을 만든 뒤 원자료와 대조하세요.</dd></div><div><dt>이곳의 AI는 제작을 돕습니다.</dt><dd>완성한 웹앱 안에 유료 AI 기능이나 신청·결제를 넣으려면 별도 서버와 운영 설계가 필요합니다. 원본 API 키를 학생 코드에 넣지 마세요.</dd></div><div><dt>HTML 파일과 작업 백업을 구분해요.</dt><dd>HTML에는 실행할 코드와 연결한 전체 데이터가 들어갑니다. 프로젝트 백업에는 맥락과 기록도 포함됩니다. 내려받은 HTML을 공개 웹주소로 배포하는 일은 별도입니다.</dd></div></dl></section><div class="guide-submission"><h3>최종 제출은 웹앱 + 활동지</h3><ul>${CURRICULUM.submission.guidelines.map(v => `<li>${escapeHTML(v)}</li>`).join('')}</ul><p class="guide-note">한 기기에서 코드를 수정하고, 다른 팀원은 원자료 확인과 사용자 테스트를 맡아 보세요. 기능 하나를 마치면 역할을 바꿉니다. 중요한 AI 도움은 답변의 「대표 기록에 담기」를 눌러 옮기고, 확인한 사실과 판단은 직접 적습니다.</p></div>`;
+  const teacher=state.user?.role==='teacher';
+  const disabled=teacher?'disabled':'';
+  $('#guide-content').innerHTML=`<section class="surface-card api-coach" aria-labelledby="api-help-title"><h3 id="api-help-title" tabindex="-1">API에서 막힌 부분을 고르세요.</h3><p>질문 초안을 넣고 [대괄호]를 우리 팀 내용으로 고치세요. 전송할 때 학교가 제공하는 AI로 도움받습니다. 예시 복사는 다른 생성형 AI에서도 쓸 수 있어요.</p><div class="api-help-tasks">${apiHelpPrompts.map((item,index)=>`<article class="api-help-task"><h4>${escapeHTML(item.label)}</h4><p>${escapeHTML(item.detail)}</p><div class="button-row"><button class="button secondary small" type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${disabled}>질문 초안 넣기<span class="sr-only"> · ${escapeHTML(item.label)}</span></button><button class="button subtle small" type="button" data-action="copy-api-prompt" data-id="${index}">예시 복사<span class="sr-only"> · ${escapeHTML(item.label)}</span></button></div></article>`).join('')}</div><div class="api-help-boundary"><p><strong>데이터를 받기 전</strong> · 이곳의 AI는 요청 방법·오류를 설명합니다. 실제 요청은 공식 사이트의 실행 화면 등에서 합니다. 스튜디오가 인증키로 기관 API를 직접 호출하지는 않습니다.</p><p><strong>데이터를 받은 뒤</strong> · CSV·JSON 파일이나 JSON 응답을 연결해 표·그래프·웹앱을 만들고 실행·수정·HTML 내보내기를 합니다. 저장된 응답은 새로고침해도 최신 자료로 바뀌지 않습니다.</p><p>실제 인증키·개인정보는 입력하지 마세요. 요청 URL 속 키 값도 YOUR_API_KEY로 바꾸세요. 문서 주소만으로 내용을 읽을 수 없으니 요청 주소·인자 표의 필요한 부분을 함께 붙이세요. XML 자동 행 인식은 지원하지 않습니다.</p></div><details class="api-official-help"><summary>공식 설명에서 무엇을 가져오나요?</summary><p>기상: 관측/예보 기능, 발표·대상 시각, 격자 좌표와 단위. 병원: 지역·기관/진료 검색 조건, 응답 형식(JSON/XML). API마다 필수 항목과 키 사용법이 다릅니다.</p><p>키는 공식 실행 환경에만 넣으세요. Encoding/Decoding 중 무엇을 쓰는지는 실행 도구의 설명을 따르며 이미 인코딩된 키를 다시 인코딩하지 않도록 확인하세요. 전체 건수보다 받은 행이 적으면 페이지별 응답을 더 받아야 할 수 있습니다.</p><div class="source-links"><a href="https://www.data.go.kr/data/15084084/openapi.do" target="_blank" rel="noopener noreferrer">기상청 단기예보 조회 설명 ↗</a><a href="https://www.data.go.kr/data/15000736/openapi.do" target="_blank" rel="noopener noreferrer">전국 병·의원 찾기 설명 ↗</a></div></details></section><section class="surface-card"><h3 id="work-help-title" tabindex="-1">자료와 요청으로 바로 시작하세요.</h3><p>① 자료 첨부 → ② 원하는 작업 요청 → ③ 결과 실행·수정. 기록은 기존 활동지에 남깁니다.</p><div class="guide-tasks">${workPrompts.map(item=>`<button class="guide-task" type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${disabled}><strong>${item.label}</strong><span>→</span></button>`).join('')}</div></section><section class="surface-card guide-boundaries"><h3>자료와 결과</h3><p>CSV·TSV·JSON을 첨부하면 AI 호출 없이 전체 파일로 표·그래프를 먼저 만듭니다. 작은 자료는 AI에도 전체 행을 전달하며 큰 자료는 기초 통계와 구조를 전달합니다. 실행 코드는 연결한 전체 데이터를 읽습니다.</p><p>데이터가 없으면 AI가 실제 수치를 만들어낼 수 없습니다. 공식 자료를 찾는 방법을 물어보거나 파일·응답을 연결하세요. KOSIS MCP 자동 조회와 실시간 API 호출은 현재 연결되어 있지 않습니다.</p><p>대화는 저장·내보내기에서 내려받을 수 있습니다. 활동지와 최종 제출은 기존 구글 클래스룸에서 진행하세요.</p></section>`;
+}
+function usePromptDraft(prompt,mode='build') {
+  if(state.user?.role==='teacher')return;
+  if(state.busy){toast('진행 중인 AI 요청이 끝난 뒤 초안을 넣어주세요.');return;}
+  const previous=$('#prompt-input').value.trim();
+  if(previous&&previous!==prompt.trim()&&!confirm('작성 중인 요청을 이 예시로 바꿀까요?'))return;
+  setView('work');setWorkspaceSurface('chat');setMode(mode);
+  $('#prompt-input').value=prompt;resizePrompt();$('#prompt-input').focus();
+  toast('초안을 넣었습니다. 대괄호 내용을 고친 뒤 전송하세요. 아직 AI 사용량은 차감되지 않았습니다.');
 }
 
 function renderPreview() {
   state.errors = []; state.nonce = uid(); renderErrors();
-  const hasCode = Boolean(state.project.code.trim()); show('#workspace-empty', !hasCode); show('#preview-frame', hasCode);
-  if (hasCode) $('#preview-frame').srcdoc = buildDocument(state.project.code, state.project.datasets, { preview: true, nonce: state.nonce });
-  else $('#preview-frame').srcdoc = '';
-  $('#code-editor').value = state.project.code;
-  $('#download-html').disabled = !hasCode;
+  const code = state.pending?.code || state.project.code;
+  show('#proposal-banner', Boolean(state.pending));show('#show-pending',Boolean(state.pending));updateAiState();
+  const hasCode = Boolean(code.trim()); show('#workspace-empty', !hasCode); show('#preview-frame', hasCode);
+  // A fresh browsing context also paints reliably after the workspace was
+  // hidden. Reusing an opaque srcdoc frame left a calculated but blank result
+  // in deployed Chromium. Preserve all sandbox/referrer attributes.
+  const previousFrame = $('#preview-frame');
+  const frame = previousFrame.cloneNode(false);
+  frame.removeAttribute('srcdoc');
+  previousFrame.replaceWith(frame);
+  if (hasCode) frame.srcdoc = buildDocument(code, state.project.datasets, { preview: true, nonce: state.nonce });
+  $('#code-editor').value = code;
+  $('#download-html').disabled = !hasCode;$('#open-result').disabled=!hasCode;
 }
 function renderErrors() {
   $('#runtime-errors').innerHTML = state.errors.length ? `<div class="error-heading"><strong>실행 중 확인된 오류 ${state.errors.length}개</strong><button class="button secondary small" type="button" data-action="debug-errors">이 오류를 AI와 해결</button></div>${state.errors.slice(-4).map(e => `<p>${escapeHTML(e.message)}${e.where ? `<small>${escapeHTML(e.where)}</small>` : ''}</p>`).join('')}` : '';
@@ -177,24 +298,26 @@ function renderRecovery() {
   banner.hidden = !state.recovery;
   if (state.recovery) banner.innerHTML = '<div><strong>이 기기에 별도 임시 작업이 남아 있습니다.</strong><p>현재 화면은 서버의 최신 작업입니다. 이전 임시 작업은 백업으로 내려받아 비교할 수 있습니다.</p></div><button type="button" class="button secondary small" data-action="download-recovery">임시 작업 백업</button>';
 }
-function renderAll() { renderProviders(); renderUsage(); renderChat(); renderProjectFields(); renderDatasets(); renderChecks(); renderRecords(); renderVersions(); renderGuide(); renderPreview(); renderRecovery(); text('#project-heading', state.project.title); }
+function renderAll() { renderProviders(); renderUsage(); renderChat(); renderProjectFields(); renderDatasets(); renderVersions(); renderGuide(); renderPreview(); renderRecovery(); text('#project-heading', state.project.title); }
 
 async function enterWorkspace(result, demo = false) {
+  resetWorkspace();
   state.demo = demo; state.user = result.user || null; state.config = result.config || state.config; state.usage = result.usage || null; state.project = emptyProject(); state.revision = 0; state.pending = null; state.recovery = null; state.aiError = ''; state.dirty = false; state.conflict = false; show('#conflict-banner', false);
   if (!demo && state.user?.role === 'student') {
     const loaded = await api('project'); state.project = normalizeProject(loaded.project || emptyProject()); state.revision = loaded.revision ?? 0;
   }
   try {
-    const cached = JSON.parse(localStorage.getItem(cacheKey()) || 'null');
-    if (cached?.project && (demo || (cached.dirty && cached.revision === state.revision))) { state.project = normalizeProject(cached.project); state.dirty = Boolean(cached.dirty); if (!demo) toast('이 기기에 남아 있던 미저장 작업을 복원했습니다.'); }
-    else if (cached?.dirty && cached.revision !== state.revision) { localStorage.setItem(cacheKey() + ':recovery', JSON.stringify(cached)); }
-    const recovery = JSON.parse(localStorage.getItem(cacheKey() + ':recovery') || 'null');
-    if (recovery?.project) state.recovery = normalizeProject(recovery.project);
+    const owner=state.user?.role==='student'?state.user.id:null;
+    const cached = owner?JSON.parse(localStorage.getItem(cacheKey()) || 'null'):null;
+    if (cached?.ownerId===owner && owner && cached.project && cached.dirty && cached.revision === state.revision) { state.project = normalizeProject(cached.project); state.dirty = true; toast('우리 팀의 미저장 작업을 복원했습니다.'); }
+    else if (owner&&cached?.ownerId===owner&&cached.dirty&&cached.revision!==state.revision) { localStorage.setItem(cacheKey() + ':recovery', JSON.stringify(cached)); }
+    const recovery = owner?JSON.parse(localStorage.getItem(cacheKey() + ':recovery') || 'null'):null;
+    if (owner&&recovery?.ownerId===owner&&recovery.project) state.recovery = normalizeProject(recovery.project);
   } catch { /* A damaged local backup must never prevent server workspace access. */ }
   show('#auth-screen', false); show('#app-screen'); show('#admin-nav', state.user?.role === 'teacher');
   $$('[data-view]').filter(el => !['guide', 'admin'].includes(el.dataset.view)).forEach(el => { el.hidden = state.user?.role === 'teacher'; });
   text('#team-label', demo ? '둘러보기 · 내 기기 작업' : state.user?.role === 'teacher' ? '선생님' : `2학년 ${state.user.cls}반 · ${state.user.name}`);
-  text('#save-status', demo ? '이 브라우저에만 저장' : state.user?.role === 'teacher' ? '교사 관리 화면' : '팀 작업 불러옴');
+  text('#save-status', demo ? '둘러보기 · 이 화면에서만 유지' : state.user?.role === 'teacher' ? '교사 관리 화면' : '우리 팀 작업 불러옴');
   renderAll(); if (state.user?.role === 'teacher') text('#project-heading', '2학기 수업 운영'); setMode('build'); setView(state.user?.role === 'teacher' ? 'admin' : 'work'); if (state.dirty) markDirty();
 }
 async function loadTeams() {
@@ -226,7 +349,7 @@ async function submitAuth(event, kind) {
     } else {
       const payload = kind === 'teacher' ? { password: $('#teacher-password').value } : { cls: $('#login-class').value, name: $('#login-team').value, password: $('#login-password').value };
       if (kind === 'student' && !payload.name) throw new Error('반과 팀을 선택해주세요.');
-      const result = await api(kind === 'teacher' ? 'teacherLogin' : 'login', payload); await enterWorkspace(result); event.target.querySelector('input[type="password"]').value = ''; text('#auth-message', '');
+      const result = await api(kind === 'teacher' ? 'teacherLogin' : 'login', payload); await enterWorkspace(result); announceSession(); event.target.querySelector('input[type="password"]').value = ''; text('#auth-message', '');
     }
   } catch (error) { text('#auth-message', errorMessage(error)); }
   finally { button.disabled = false; }
@@ -235,63 +358,73 @@ async function submitAuth(event, kind) {
 async function requestAI(event) {
   event.preventDefault(); const prompt = $('#prompt-input').value.trim();
   if (!prompt || state.busy || state.demo) return;
+  if(state.pending){toast('먼저 현재 수정안을 적용하거나 원래 결과로 돌아가세요.');setWorkspaceSurface('preview');return;}
   if (state.conflict) { toast('먼저 다른 기기의 저장 내용과 충돌을 해결해주세요.'); return; }
   const codeAtRequest = state.project.code; const dataAtRequest = JSON.stringify(state.project.datasets);
+  const version=state.workspaceVersion;
   state.project.messages.push({ id: uid(), role: 'user', text: prompt, createdAt: now(), mode: state.mode, provider: state.provider });
-  const mode = state.mode; const provider = state.provider; state.pending = null; state.aiError = ''; state.busy = true; $('#prompt-input').value = ''; markDirty(); renderChat(); renderProviders();
+  const mode = state.mode; const provider = state.provider; state.pending = null; renderPreview(); state.aiError = ''; state.busy = true; $('#prompt-input').value = ''; markDirty(); renderChat(); renderProviders();
   try {
     const result = await api('', { mode, prompt, provider, project: { title: state.project.title, brief: state.project.brief, code: state.project.code, datasets: state.project.datasets, messages: state.project.messages.slice(-8) }, runtimeErrors: state.errors.slice(-8) }, '/api/ai', 135000);
     const id = uid(); state.project.messages.push({ id, role: 'assistant', text: result.summary, summary: result.summary, prompt, createdAt: now(), mode, provider: result.provider || provider, model: result.model || '', checks: result.checks || [], warnings: result.warnings || [] });
-    if (result.code) state.pending = { id, code: result.code, before: codeAtRequest, datasets: dataAtRequest, summary: result.summary };
-    if (result.usage) state.usage = result.usage; markDirty(); renderChat(); renderUsage();
-    if (result.code) toast('수정 제안이 도착했습니다. 내용을 확인한 뒤 적용해주세요.');
-  } catch (error) { state.aiError = errorMessage(error); toast(state.aiError); text('#ai-status', state.aiError); $('#prompt-input').value = prompt; try { const session = await api('session'); state.usage = session.usage; state.config = session.config || state.config; renderUsage(); } catch {} }
-  finally { state.busy = false; renderProviders(); }
+    if (result.code && state.project.code === codeAtRequest && JSON.stringify(state.project.datasets) === dataAtRequest) state.pending = { id, code: result.code, before: codeAtRequest, datasets: dataAtRequest, summary: result.summary };
+    else if(result.code) toast('요청 중 코드나 자료가 바뀌어 제안을 적용하지 않았습니다. 현재 자료로 다시 요청하세요.');
+    if (result.usage) state.usage = result.usage; markDirty();
+    if (result.code && !codeAtRequest.trim() && state.project.code === codeAtRequest && JSON.stringify(state.project.datasets) === dataAtRequest) { state.project=replaceCode(state.project,result.code,'AI 첫 결과'); state.pending=null; markDirty(); toast('AI가 만든 첫 결과를 실행했습니다.'); }
+    renderChat(); renderUsage(); renderPreview(); renderVersions();
+    if(result.code){setWorkspaceSurface('split');}
+    if (state.pending) toast('수정 제안을 오른쪽에서 미리 볼 수 있습니다.');
+  } catch (error) { if(version!==state.workspaceVersion)return;state.aiError = errorMessage(error); toast(state.aiError); text('#ai-status', state.aiError); $('#prompt-input').value = prompt; try { const session = await api('session'); state.usage = session.usage; state.config = session.config || state.config; renderUsage(); } catch {} }
+  finally { if(version===state.workspaceVersion){state.busy = false; renderProviders();} }
 }
 function applyProposal() {
   if (!state.pending) return;
   if (state.project.code !== state.pending.before || JSON.stringify(state.project.datasets) !== state.pending.datasets) { toast('요청 이후 코드나 데이터가 바뀌었습니다. 현재 상태를 기준으로 다시 요청해주세요.'); return; }
-  try { state.project = replaceCode(state.project, state.pending.code, `AI 적용 전 · ${state.pending.summary.slice(0, 70)}`); state.pending = null; state.project.checks = {}; markDirty(); renderChat(); renderPreview(); renderVersions(); renderChecks(); toast('제안을 적용했습니다. 입력과 결과를 직접 확인해주세요.'); }
+  try { state.project = replaceCode(state.project, state.pending.code, `AI 적용 전 · ${state.pending.summary.slice(0, 70)}`); state.pending = null; state.project.checks = {}; markDirty(); renderChat(); renderPreview(); renderVersions(); toast('제안을 적용했습니다. 입력과 결과를 직접 확인해주세요.'); }
   catch (error) { toast(errorMessage(error)); }
 }
-function addRecord(id) {
-  const message = state.project.messages.find(m => m.id === id); if (!message) return;
-  if (state.project.records.length >= LIMITS.records) { toast('대표 기록은 24개까지 담을 수 있습니다. 중요한 사례를 골라주세요.'); return; }
-  state.project.records.push({ id: uid(), createdAt: now(), stage: modeNames[message.mode] || '', prompt: message.prompt || '', help: message.summary || message.text, verification: '', decision: '' });
-  markDirty(); renderRecords(); renderChat(); toast('대표 기록에 담았습니다. 검증·기록에서 직접 확인한 내용과 판단을 적어주세요.');
-}
+
 function download(content, filename, type) {
   const url = URL.createObjectURL(new Blob([content], { type })); const link = document.createElement('a'); link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
-function exportProject() { download(JSON.stringify({ format: 'hyfl-studio', version: 2, exportedAt: now(), project: fitProject(state.project) }, null, 2), safeFilename(state.project.title + '-백업', 'json'), 'application/json;charset=utf-8'); toast('코드·데이터·대표 기록이 담긴 백업을 내려받았습니다.'); }
+function exportProject() { download(JSON.stringify({ format: 'hyfl-studio', version: 2, exportedAt: now(), project: fitProject(state.project) }, null, 2), safeFilename(state.project.title + '-백업', 'json'), 'application/json;charset=utf-8'); toast('코드·데이터·대화가 담긴 백업을 내려받았습니다.'); }
 
 async function loadCode(file) {
   if (!file) return;
+  const version=state.workspaceVersion;
   try {
     if (file.size > 700000) throw new Error('가져올 HTML 파일은 700KB 이하여야 합니다. 프로젝트 백업은 JSON 가져오기를 이용해주세요.');
     const imported = importHtml(await file.text());
+    if(version!==state.workspaceVersion)return;
     if (state.project.code && !confirm('현재 코드를 이전 버전에 보관하고 가져온 HTML로 바꿀까요?')) return;
     state.project = replaceCode(state.project, imported.code, 'HTML 가져오기 전');
     if (imported.datasets) state.project.datasets = imported.datasets;
-    state.project.checks = {}; state.pending = null; markDirty(); renderPreview(); renderVersions(); renderDatasets(); renderChecks(); renderChat(); setView('work'); toast('HTML을 가져왔습니다. 오른쪽에서 바로 실행해보세요.');
+    state.project.checks = {}; state.pending = null; markDirty(); renderPreview(); renderVersions(); renderDatasets(); renderChat(); setView('work');setWorkspaceSurface('split'); toast('HTML을 가져왔습니다. 오른쪽에서 바로 실행해보세요.');
   } catch (error) { toast(errorMessage(error)); }
-  finally { $('#code-file').value = ''; }
+  finally { if(version===state.workspaceVersion)$('#code-file').value = ''; }
 }
 async function loadDatasets(files) {
+  const version=state.workspaceVersion;
   try {
     const next = structuredClone(state.project.datasets);
+    const converted = [];
     for (const file of files) {
       if (file.size > LIMITS.datasetBytes) throw new Error('첨부 데이터는 파일 합계 320KB까지 사용할 수 있습니다.');
       const ext = file.name.split('.').pop().toLowerCase(); if (!['csv', 'tsv', 'json', 'txt'].includes(ext)) throw new Error('CSV, TSV, JSON, TXT 파일을 선택해주세요.');
-      const content = await file.text(); const existing = next.find(d => d.name === file.name);
+      const decoded = decodeDatasetBytes(await file.arrayBuffer());
+      if(version!==state.workspaceVersion)return;
+      const content = decoded.text; if (decoded.encoding !== 'utf-8') converted.push(file.name);
+      const existing = next.find(d => d.name === file.name);
       const dataset = { id: existing?.id || uid(), name: file.name, format: ext === 'txt' ? 'text' : ext, text: content }; describeDataset(dataset);
       if (existing) next.splice(next.indexOf(existing), 1, dataset); else next.push(dataset);
     }
     if (next.length > 8) throw new Error('데이터 파일은 최대 8개까지 연결할 수 있습니다.');
     if (next.reduce((sum, d) => sum + byteLength(d.text), 0) > LIMITS.datasetBytes) throw new Error('첨부 데이터 합계가 320KB를 넘습니다. 필요한 열·행을 추려서 가져와 주세요.');
-    state.project = normalizeProject({ ...state.project, datasets: next, checks: {} }); markDirty(); renderDatasets(); renderPreview(); renderChecks(); toast('전체 파일을 연결했습니다. AI에 사용할 열과 계산 기준을 알려주세요.');
+    state.project = normalizeProject({ ...state.project, datasets: next, checks: {} }); state.pending=null;
+    if (!state.project.code.trim()) { const first=next.find(d=>['csv','tsv','json'].includes(d.format)); if(first) state.project=replaceCode(state.project,buildQuickChart(first.id),'첫 자료 표·그래프'); }
+    markDirty(); renderDatasets(); renderPreview(); renderChat(); toast(converted.length ? '한글 파일의 인코딩을 변환해 연결했습니다. 표시된 열 이름과 원자료를 확인하세요.' : '자료를 넣었습니다. 이제 만들 기능을 쓰고 결과 만들기를 누르세요.');
   } catch (error) { toast(errorMessage(error)); }
-  finally { $('#dataset-file').value = ''; }
+  finally { if(version===state.workspaceVersion)$('#dataset-file').value = ''; }
 }
 
 function renderTeamRow(team, settings) {
@@ -326,22 +459,31 @@ async function saveAdmin(event) {
 
 document.addEventListener('click', async event => {
   const button = event.target.closest('button'); if (!button) return;
+  $('#attach-menu').open=false;
   if (button.dataset.authTab) return authTab(button.dataset.authTab);
   if (button.dataset.view) return setView(button.dataset.view);
   if (button.dataset.mode) return setMode(button.dataset.mode);
+  if(button.dataset.surface)return setWorkspaceSurface(button.dataset.surface);
   if (button.dataset.prompt) {
-    if (state.user?.role === 'teacher') return;
-    setView('work'); $('#surface-chat').checked = true;
-    setMode(button.dataset.promptMode || 'build'); $('#prompt-input').value = button.dataset.prompt; $('#prompt-input').focus(); return;
+    return usePromptDraft(button.dataset.prompt,button.dataset.promptMode||'build');
   }
   const action = button.dataset.action; const id = button.dataset.id;
   try {
-    if (action === 'apply-proposal') applyProposal();
+    if(action==='api-help'){setView('guide');$('#api-help-title').focus();}
+    else if(action==='import-app')$('#code-file').click();
+    else if(action==='request-help'){setView('guide');$('#work-help-title').focus();}
+    else if(action==='copy-api-prompt'){
+      const item=apiHelpPrompts[Number(id)];if(!item)return;
+      try{await navigator.clipboard.writeText(item.prompt);toast('예시를 복사했습니다. 대괄호 내용을 고치고 실제 키는 넣지 마세요.');}
+      catch{toast('복사하지 못했습니다. 질문 초안 넣기를 누른 뒤 입력창에서 직접 복사해주세요.');}
+    }
+    else if (action === 'paste-response') { setView('project'); $('.api-response-panel').open=true; $('#api-response-text').focus(); }
+    else if (action === 'apply-proposal') applyProposal();
+    else if (action === 'discard-proposal') { state.pending=null; renderChat(); renderPreview(); }
+    else if (action === 'quick-chart') { const dataset=state.project.datasets.find(d=>d.id===id); if(!dataset)return; if(state.project.code.trim()&&!confirm('현재 결과를 이전 버전에 보관하고 이 자료의 표·그래프를 만들까요?'))return; state.project=replaceCode(state.project,buildQuickChart(id),'표·그래프 만들기 전'); state.pending=null; markDirty(); renderAll(); setView('work'); }
     else if (action === 'inspect-proposal' && state.pending) { download(state.pending.code, 'AI-제안-검토용.html.txt', 'text/plain;charset=utf-8'); toast('검토용 코드입니다. 실행에는 전체 데이터 연결과 적용이 필요합니다.'); }
-    else if (action === 'record-message') addRecord(id);
-    else if (action === 'remove-record' && confirm('이 대표 기록을 삭제할까요?')) { state.project.records = state.project.records.filter(r => r.id !== id); markDirty(); renderRecords(); renderChat(); }
-    else if (action === 'remove-dataset' && confirm('이 데이터 연결을 해제할까요? 사용하는 앱 기능을 다시 확인해주세요.')) { state.project.datasets = state.project.datasets.filter(d => d.id !== id); state.project.checks = {}; markDirty(); renderDatasets(); renderPreview(); renderChecks(); }
-    else if (action === 'restore-version') { const version = state.project.versions.find(v => v.id === id); if (version && confirm('현재 코드를 보관하고 이 버전으로 돌아갈까요? 데이터 파일과 대표 기록은 그대로 유지됩니다.')) { state.project = replaceCode(state.project, version.code, '이전 버전 복원 전'); state.pending = null; state.project.checks = {}; markDirty(); renderPreview(); renderVersions(); renderChecks(); renderChat(); setView('work'); toast('코드를 복원했습니다. 데이터 연결과 동작을 다시 확인해주세요.'); } }
+    else if (action === 'remove-dataset' && confirm('이 데이터 연결을 해제할까요? 사용하는 앱 기능을 다시 확인해주세요.')) { state.project.datasets = state.project.datasets.filter(d => d.id !== id); state.project.checks = {}; markDirty(); renderDatasets(); renderPreview(); }
+    else if (action === 'restore-version') { const version = state.project.versions.find(v => v.id === id); if (version && confirm('현재 코드를 보관하고 이 버전으로 돌아갈까요? 데이터 파일과 대표 기록은 그대로 유지됩니다.')) { state.project = replaceCode(state.project, version.code, '이전 버전 복원 전'); state.pending = null; state.project.checks = {}; markDirty(); renderPreview(); renderVersions(); renderChat(); setView('work'); toast('코드를 복원했습니다. 데이터 연결과 동작을 다시 확인해주세요.'); } }
     else if (action === 'debug-errors') { setMode('debug'); $('#prompt-input').value = `실행 중 다음 오류가 나와. 현재 기능을 유지하면서 원인을 설명하고 수정해줘.\n\n${state.errors.map(e => e.message).join('\n')}\n\n내가 기대한 결과: `; $('#prompt-input').focus(); }
     else if (action === 'download-recovery' && state.recovery) { download(JSON.stringify({ format: 'hyfl-studio', version: 2, exportedAt: now(), project: state.recovery }, null, 2), safeFilename(state.recovery.title + '-이전임시작업', 'json'), 'application/json;charset=utf-8'); toast('이전 임시 작업을 백업으로 내려받았습니다.'); }
     else if (action === 'refresh-admin') await loadAdmin();
@@ -357,13 +499,15 @@ $('#login-class').addEventListener('change', loadTeams);
 $('#demo-button').addEventListener('click', () => enterWorkspace({}, true));
 $('#ai-form').addEventListener('submit', requestAI);
 $('#provider-select').addEventListener('change', e => { state.provider = e.target.value; updateAiState(); });
-$('#mobile-menu-button').addEventListener('click', () => { const open = $('.sidebar').classList.toggle('is-open'); $('#mobile-menu-button').setAttribute('aria-expanded', String(open)); });
+$('#mobile-menu-button').addEventListener('click',()=>setSidebarCollapsed(!layout.sidebarCollapsed));
 $('#logout-button').addEventListener('click', async () => {
+  const version=state.workspaceVersion;
   if (state.busy) { toast('AI 요청이 끝난 뒤 나가주세요.'); return; }
   await saveNow();
+  if(version!==state.workspaceVersion)return;
   if (state.dirty && !confirm('아직 서버에 저장되지 않은 작업이 있습니다. 이 기기의 임시 백업을 남기고 나갈까요?')) return;
   try { if (!state.demo) await api('logout', {}); } catch (error) { toast(errorMessage(error)); return; }
-  clearTimeout(state.saveTimer); clearTimeout(state.localTimer); state.user = null; state.demo = false; state.project = emptyProject(); state.dirty = false; show('#app-screen', false); show('#auth-screen'); authTab('student'); loadTeams();
+  resetWorkspace();announceSession();show('#app-screen', false); show('#auth-screen'); authTab('student'); loadTeams();
 });
 $('#project-form').addEventListener('submit', event => event.preventDefault());
 $('#project-form').addEventListener('input', event => {
@@ -372,32 +516,62 @@ $('#project-form').addEventListener('input', event => {
   else if (id.startsWith('brief-')) state.project.brief[id.slice(6)] = event.target.value.slice(0, 5000);
   else return; markDirty();
 });
-$('#app-url').addEventListener('input', e => { state.project.appUrl = e.target.value.slice(0, 2000); markDirty(); });
-$('#checklist').addEventListener('change', e => { if (e.target.dataset.check) { state.project.checks[e.target.dataset.check] = e.target.checked; markDirty(); } });
-$('#records-list').addEventListener('input', e => { const r = state.project.records.find(r => r.id === e.target.dataset.record); if (r && ['stage', 'prompt', 'help', 'verification', 'decision'].includes(e.target.dataset.field)) { r[e.target.dataset.field] = e.target.value.slice(0, 6000); markDirty(); } });
 $('#import-code-button').addEventListener('click', () => $('#code-file').click());
 $('#code-file').addEventListener('change', e => loadCode(e.target.files[0]));
 $('#dataset-file').addEventListener('change', e => loadDatasets([...e.target.files]));
+$('#attach-data').addEventListener('click',()=>$('#chat-dataset-file').click());
+$('#chat-dataset-file').addEventListener('change',async e=>{const version=state.workspaceVersion;await attachFiles([...e.target.files]);if(version===state.workspaceVersion){e.target.value='';setView('work');}});
+async function attachFiles(files){
+  if(!files.length)return;const version=state.workspaceVersion;
+  const html=files.filter(file=>/\.html?$/i.test(file.name));
+  if(html.length&&files.length!==1){toast('HTML은 한 개씩 가져오세요. 데이터 파일은 그다음에 추가할 수 있습니다.');return;}
+  if(html.length)await loadCode(html[0]);else await loadDatasets(files);
+  if(version===state.workspaceVersion){setView('work');$('#attach-menu').open=false;}
+}
+$('#mode-select').addEventListener('change',event=>setMode(event.target.value));
+$('#prompt-input').addEventListener('input',resizePrompt);
+$$('input[name="workspace-surface"]').forEach(input=>input.addEventListener('change',resizePrompt));
+window.addEventListener('resize',resizePrompt);
+$('#prompt-input').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&!$('#ai-submit').disabled&&$('#prompt-input').value.trim()){event.preventDefault();requestAI(event);}});
+$('#workspace-divider').addEventListener('pointerdown',startResize);
+window.addEventListener('pointermove',moveResize);window.addEventListener('pointerup',stopResize);window.addEventListener('pointercancel',stopResize);
+$('#workspace-divider').addEventListener('dblclick',()=>setWorkspaceShare(48));
+$('#workspace-divider').addEventListener('keydown',event=>{const values={ArrowLeft:layout.share-3,ArrowRight:layout.share+3,Home:25,End:75,Enter:48};if(values[event.key]!==undefined){event.preventDefault();setWorkspaceShare(values[event.key]);}});
+$('#workspace-main').addEventListener('dragover',event=>{if([...event.dataTransfer.types].includes('Files')){event.preventDefault();show('#file-drop-hint');}});
+$('#workspace-main').addEventListener('dragleave',event=>{if(!event.currentTarget.contains(event.relatedTarget))show('#file-drop-hint',false);});
+$('#workspace-main').addEventListener('drop',async event=>{event.preventDefault();show('#file-drop-hint',false);await attachFiles([...event.dataTransfer.files]);});
+$('#import-api-response').addEventListener('click', () => {
+  try {
+    const dataset = importApiResponse($('#api-response-name').value, $('#api-response-text').value);
+    const next = normalizeProject({ ...state.project, datasets: [...state.project.datasets, dataset], checks: {} });
+    state.project = next; state.pending=null; if(!state.project.code.trim()) state.project=replaceCode(state.project,buildQuickChart(dataset.id),'API 응답 표·그래프'); markDirty(); renderDatasets(); renderPreview();renderChat();setView('work');setWorkspaceSurface('split');
+    $('#api-response-text').value = ''; text('#api-response-status', '응답을 연결했습니다. 실제 행 경로와 기간·페이지 범위를 확인하세요.');
+    toast('API 응답 전체를 데이터로 연결했습니다.');
+  } catch (error) { text('#api-response-status', errorMessage(error)); }
+});
+
 $('#preview-refresh').addEventListener('click', () => { renderPreview(); toast('현재 코드로 다시 실행했습니다.'); });
 $('#code-toggle').addEventListener('click', () => { const visible = $('#code-editor').hidden; show('#code-editor', visible); show('#apply-code-button', visible); $('#code-toggle').classList.toggle('active', visible); $('#code-toggle').setAttribute('aria-pressed', String(visible)); if (visible) $('#code-editor').value = state.project.code; });
 $('#apply-code-button').addEventListener('click', () => {
-  try { state.project = replaceCode(state.project, $('#code-editor').value, '직접 코드 편집 전'); state.project.checks = {}; state.pending = null; markDirty(); renderPreview(); renderVersions(); renderChecks(); renderChat(); toast('직접 편집한 코드를 적용했습니다.'); }
+  try { state.project = replaceCode(state.project, $('#code-editor').value, '직접 코드 편집 전'); state.project.checks = {}; state.pending = null; markDirty(); renderPreview(); renderVersions(); renderChat(); toast('직접 편집한 코드를 적용했습니다.'); }
   catch (error) { toast(errorMessage(error)); }
 });
-$('#download-html').addEventListener('click', () => { if (state.project.code) { download(buildDocument(state.project.code, state.project.datasets), safeFilename(state.project.title, 'html'), 'text/html;charset=utf-8'); toast('전체 데이터가 포함된 HTML을 내려받았습니다. 파일을 열어 핵심 기능을 다시 확인해주세요.'); } });
-$('#export-records').addEventListener('click', () => download(exportRecords(state.project, CURRICULUM.checklist), safeFilename(state.project.title + '-활용기록', 'txt'), 'text/plain;charset=utf-8'));
+$('#download-html').addEventListener('click', () => { if (state.project.code) { download(buildDocument(state.pending?.code || state.project.code, state.project.datasets), safeFilename(state.project.title, 'html'), 'text/html;charset=utf-8'); toast('전체 데이터가 포함된 HTML을 내려받았습니다. 파일을 열어 핵심 기능을 다시 확인해주세요.'); } });
+$('#export-conversation').addEventListener('click',()=>download(exportConversation(state.project),safeFilename(state.project.title+'-대화','txt'),'text/plain;charset=utf-8'));
 $('#export-project').addEventListener('click', exportProject);
 $('#import-project').addEventListener('click', () => $('#project-file').click());
 $('#project-file').addEventListener('change', async e => {
   const file = e.target.files[0]; if (!file) return;
+  const version=state.workspaceVersion;
   try {
     if (file.size > 3000000) throw new Error('백업 파일은 3MB 이하여야 합니다.');
     const parsed = JSON.parse(await file.text()); if (parsed.format !== 'hyfl-studio' || parsed.version !== 2) throw new Error('이 작업실에서 내려받은 프로젝트 백업 파일을 선택해주세요.');
+    if(version!==state.workspaceVersion)return;
     const project = normalizeProject(parsed.project);
     if (!confirm('현재 프로젝트 전체를 백업 내용으로 바꿀까요? 현재 작업이 필요하면 취소하고 먼저 백업을 내려받으세요.')) return;
     state.project = project; state.pending = null; markDirty(); renderAll(); setView('work'); toast('프로젝트 백업을 가져왔습니다.');
   } catch (error) { toast(errorMessage(error)); }
-  finally { e.target.value = ''; }
+  finally { if(version===state.workspaceVersion)e.target.value = ''; }
 });
 $('#conflict-reload').addEventListener('click', async () => {
   if (!confirm('현재 기기의 작업을 백업 파일로 내려받고, 다른 기기에서 저장한 최신 작업을 불러올까요?')) return;
@@ -411,9 +585,16 @@ window.addEventListener('message', event => {
   if (message && !state.errors.some(e => e.message === message && e.where === where)) { state.errors.push({ message, where }); renderErrors(); }
 });
 window.addEventListener('beforeunload', event => { if (state.dirty || state.busy) { cacheProject(); event.preventDefault(); event.returnValue = ''; } });
+window.addEventListener('storage',event=>{
+  if(event.key!==sessionNoticeKey||!state.user||state.demo)return;
+  try{if(JSON.parse(event.newValue||'null')?.ownerId===state.user.id)return;}catch{}
+  leaveWorkspace('다른 탭에서 로그인한 팀이 바뀌었습니다. 우리 팀으로 다시 로그인해주세요.');
+});
+window.addEventListener('focus',()=>{if(state.user&&!state.demo)api('session').catch(()=>{});});
 document.addEventListener('visibilitychange', () => { if (document.hidden) { cacheProject(); saveNow(); } });
 
 async function init() {
+  initializeLayout();
   try {
     const session = await api('session'); state.config = session.config; state.provider = session.config?.defaultProvider || 'gpt';
     if (session.user) { await enterWorkspace(session); return; }
