@@ -4,10 +4,11 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {webcrypto} from 'node:crypto';
 import * as workspace from '../lib/workspace.mjs';
+import * as worksheet from '../assets/worksheet-help.mjs';
 
 // Runs the actual client with an isolated DOM/transport adapter. No real login,
 // credentials, storage or provider calls; live layout is checked separately.
-const source=readFileSync(new URL('../assets/app.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/,'').replace(/\ninit\(\);\s*$/,'');
+const source=readFileSync(new URL('../assets/app.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/gm,'').replace(/\ninit\(\);\s*$/,'');
 const A={id:'team_a',name:'A',cls:'1',role:'student'},B={id:'team_b',name:'B',cls:'1',role:'student'};
 const project=label=>({...workspace.emptyProject(),title:label,code:'<!doctype html><html><body>'+label+'</body></html>',datasets:[{id:label,name:label+'.csv',format:'csv',text:'항목,値\n'+label+',1'}],messages:[{role:'user',text:label,createdAt:'2026-10-26'}]});
 const config={providers:[{id:'gpt',available:true,enabled:true}],defaultProvider:'gpt',aiEnabled:true};
@@ -25,7 +26,7 @@ function app(transport) {
     prepend(){}focus(){}querySelectorAll(){return [];}querySelector(){return new Element();}
   }
   const node=selector=>{if(!nodes.has(selector))nodes.set(selector,new Element(selector));return nodes.get(selector);};
-  const context=vm.createContext({...workspace,console,crypto:webcrypto,structuredClone,TextEncoder,TextDecoder,URL,AbortSignal,Intl,navigator:{clipboard:{writeText:async value=>clipboard.push(value)}},setTimeout:()=>1,clearTimeout(){},confirm:()=>true,fetch:async(url,options)=>transport?transport(url,options):response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0}),localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},document:{querySelector:node,querySelectorAll:()=>[],createElement:()=>new Element(),addEventListener:(name,fn)=>documentEvents.set(name,fn)},window:{addEventListener:(name,fn)=>events.set(name,fn)}});
+  const context=vm.createContext({...workspace,...worksheet,console,crypto:webcrypto,structuredClone,TextEncoder,TextDecoder,URL,AbortSignal,Intl,navigator:{clipboard:{writeText:async value=>clipboard.push(value)}},setTimeout:()=>1,clearTimeout(){},confirm:()=>true,fetch:async(url,options)=>transport?transport(url,options):response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0}),localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},document:{querySelector:node,querySelectorAll:()=>[],createElement:()=>new Element(),addEventListener:(name,fn)=>documentEvents.set(name,fn)},window:{addEventListener:(name,fn)=>events.set(name,fn)}});
   vm.runInContext(source,context);
   return {context,node,events,storage,clipboard,click:dataset=>documentEvents.get('click')({target:{closest:()=>({dataset})}}),run:code=>vm.runInContext(code,context),enter:user=>{context.testUser=user;context.testConfig=config;return vm.runInContext('enterWorkspace({user:testUser,config:testConfig})',context);}};
 }

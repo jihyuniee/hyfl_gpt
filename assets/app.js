@@ -1,4 +1,5 @@
 import { LIMITS, emptyProject, normalizeProject, fitProject, replaceCode, decodeDatasetBytes, describeDataset, apiResponseNotice, importApiResponse, buildDocument, importHtml, buildQuickChart, exportConversation, safeFilename, byteLength, uid, now } from '/lib/workspace.mjs';
+import { WORKSHEET_TASKS, worksheetFacts, worksheetRequest } from './worksheet-help.mjs';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -53,7 +54,7 @@ JSON이면 스튜디오의 'API 응답 붙여넣기'로 연결하는 방법을 �
 이 앱은 저장된 응답을 사용하는 버전으로 만들고 자료 시점을 표시해줘. 실시간 갱신 버튼이나 인증키를 넣지 마. 설명만 제안하지 말고 미리보기에서 실행하고 HTML로 내보낼 수 있는 전체 코드를 만들어줘.`},
 ];
 const firstAppPrompt = {label:'조건을 골라 조회하기',mode:'build',prompt:'첨부 자료에서 지역·연도·항목처럼 조건으로 고를 수 있는 열을 확인해서, 조건을 선택하면 일치하는 행이 나오는 작은 웹앱을 만들어줘. 전체 데이터를 읽고 조건에 맞는 자료가 없으면 없다고 표시해줘. 자료에 없는 정보는 만들지 말고 실제로 실행되는 HTML을 만들어줘.'};
-const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', dirty: false, generation: 0, workspaceVersion: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
+const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', worksheetTask: 'scope', dirty: false, generation: 0, workspaceVersion: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
 const layout={share:48,sidebarCollapsed:false,drag:null};
 const layoutKey="hyfl-studio-layout-v1";
 let toastTimer;
@@ -93,6 +94,7 @@ function resetWorkspace() {
   clearTimeout(state.saveTimer);clearTimeout(state.localTimer);
   setWorkspaceSurface('chat');
   state.workspaceVersion++;state.user=null;state.demo=false;state.usage=null;state.project=emptyProject();state.revision=0;state.pending=null;state.recovery=null;state.dirty=false;state.saving=false;state.busy=false;state.conflict=false;state.aiError='';state.errors=[];state.admin=null;state.generation=0;
+  state.worksheetTask='scope';
   for(const selector of ['#prompt-input','#api-response-name','#api-response-text','#code-file','#chat-dataset-file','#dataset-file','#project-file']) $(selector).value='';
   text('#api-response-status','');show('#conflict-banner',false);
   $('#code-toggle').setAttribute('aria-pressed','false');$('#code-toggle').classList.remove('active');show('#code-editor',false);show('#apply-code-button',false);
@@ -140,6 +142,7 @@ function setView(view) {
   $('.sidebar')?.classList.remove('is-open');
   $('#mobile-menu-button').setAttribute('aria-expanded',String(!layout.sidebarCollapsed));
   if (view === 'admin') loadAdmin();
+  if (view === 'worksheet') renderWorksheet();
 }
 function setWorkspaceSurface(surface) {
   if(!['split','chat','preview'].includes(surface))return;
@@ -242,6 +245,7 @@ function renderProjectFields() {
   for (const key of Object.keys(state.project.brief)) { const el = $(`#brief-${key}`); if (el) el.value = state.project.brief[key]; }
 }
 function renderDatasets() {
+  renderWorksheet();
   const list = $('#dataset-list');
   const owner=state.demo?'둘러보기 자료 · 팀에 저장되지 않습니다.':state.user?.role==='student'?`2학년 ${state.user.cls}반 · ${state.user.name}의 자료 · 같은 팀원과 공유`:'팀 로그인 후 우리 팀 자료만 불러옵니다.';
   text('#data-owner-label',owner);text('#project-data-owner-label',owner);
@@ -256,6 +260,13 @@ function renderDatasets() {
 }
 function renderVersions() {
   $('#versions-list').innerHTML = state.project.versions.length ? state.project.versions.map(v => `<article class="version-card"><div><span class="eyebrow">${fmtTime(v.createdAt)}</span><h3>${escapeHTML(v.note || '수정 전 버전')}</h3><p>${(byteLength(v.code) / 1024).toFixed(1)} KB · HTML 코드</p></div><button type="button" class="button secondary" data-action="restore-version" data-id="${escapeHTML(v.id)}">이 버전으로 복원</button></article>`).join('') : '<div class="empty-state"><h3>수정 전 코드를 보관합니다.</h3><p>코드를 가져오거나 AI 제안을 적용하면 이전 코드가 여기에 남습니다.<br>최근 6개까지 용량 안에서 보관합니다. 데이터·기록까지 보관하려면 프로젝트 백업을 내려받으세요.</p></div>';
+}
+function renderWorksheet() {
+  const task=WORKSHEET_TASKS.find(t=>t.id===state.worksheetTask)||WORKSHEET_TASKS[0];
+  text('#worksheet-materials',`연결 자료 ${state.project.datasets.length}개 · ${state.project.code.trim()?'현재 HTML 있음':'HTML 없이도 시작할 수 있어요'}`);
+  $('#worksheet-tasks').innerHTML=WORKSHEET_TASKS.map(t=>`<button type="button" class="worksheet-task" data-action="worksheet-task" data-id="${t.id}" aria-pressed="${t.id===task.id}"><small>${t.step}</small><strong>${t.label}</strong></button>`).join('');
+  $('#worksheet-detail').innerHTML=`<span class="worksheet-step-label">${task.step}</span><h3>${task.label}</h3><p>${task.detail}</p><ul class="worksheet-outputs">${task.outputs.map(v=>`<li>${v}</li>`).join('')}</ul><p class="worksheet-next">${task.question}</p><button type="button" class="button primary" data-action="worksheet-request" data-id="${task.id}">우리 팀 자료로 질문 준비</button><p class="worksheet-note">초안을 확인하고 전송하세요. 활동지 내용을 다시 입력할 필요는 없습니다.</p>`;
+  $('#worksheet-facts').innerHTML=worksheetFacts(state.project).map(f=>`<details class="worksheet-file" open><summary>${escapeHTML(f.name)} <span>${f.rows===null?'행 단위 확인 필요':f.rows+'행'}</span></summary><p>${escapeHTML(f.notice||f.error||'첨부 파일의 실제 값입니다. 최대 3행·8열을 보여줍니다.')}</p>${f.columns.length?`<div class="worksheet-table-wrap"><table class="worksheet-table"><thead><tr>${f.columns.map(c=>`<th>${escapeHTML(c)}</th>`).join('')}</tr></thead><tbody>${f.sample.map(r=>`<tr>${r.map(v=>`<td>${escapeHTML(v===''?'(빈 값)':v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:`<pre>${escapeHTML(f.excerpt)}</pre>`}</details>`).join('')||'<div class="worksheet-empty">자료를 연결하면 실제 행과 열이 여기에 표시됩니다. 파일 없이도 문제 범위를 좁히는 도움을 받을 수 있어요.<div class="button-row"><button class="button secondary small" type="button" data-view="project">자료 연결하기</button><button class="button subtle small" type="button" data-action="api-help">API 도움</button></div></div>';
 }
 function renderGuide() {
   const teacher=state.user?.role==='teacher';
@@ -318,7 +329,7 @@ async function enterWorkspace(result, demo = false) {
   $$('[data-view]').filter(el => !['guide', 'admin'].includes(el.dataset.view)).forEach(el => { el.hidden = state.user?.role === 'teacher'; });
   text('#team-label', demo ? '둘러보기 · 내 기기 작업' : state.user?.role === 'teacher' ? '선생님' : `2학년 ${state.user.cls}반 · ${state.user.name}`);
   text('#save-status', demo ? '둘러보기 · 이 화면에서만 유지' : state.user?.role === 'teacher' ? '교사 관리 화면' : '우리 팀 작업 불러옴');
-  renderAll(); if (state.user?.role === 'teacher') text('#project-heading', '2학기 수업 운영'); setMode('build'); setView(state.user?.role === 'teacher' ? 'admin' : 'work'); if (state.dirty) markDirty();
+  renderAll(); if (state.user?.role === 'teacher') text('#project-heading', '2학기 수업 운영'); setMode('build'); setView(state.user?.role === 'teacher' ? 'admin' : 'worksheet'); if (state.dirty) markDirty();
 }
 async function loadTeams() {
   const cls = $('#login-class').value;
@@ -469,7 +480,9 @@ document.addEventListener('click', async event => {
   }
   const action = button.dataset.action; const id = button.dataset.id;
   try {
-    if(action==='api-help'){setView('guide');$('#api-help-title').focus();}
+    if(action==='worksheet-task'){state.worksheetTask=id;renderWorksheet();}
+    else if(action==='worksheet-request'){usePromptDraft(worksheetRequest(id,state.project),WORKSHEET_TASKS.find(t=>t.id===id)?.mode||'explain');}
+    else if(action==='api-help'){setView('guide');$('#api-help-title').focus();}
     else if(action==='import-app')$('#code-file').click();
     else if(action==='request-help'){setView('guide');$('#work-help-title').focus();}
     else if(action==='copy-api-prompt'){
