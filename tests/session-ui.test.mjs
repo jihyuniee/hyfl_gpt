@@ -13,7 +13,7 @@ const project=label=>({...workspace.emptyProject(),title:label,code:'<!doctype h
 const config={providers:[{id:'gpt',available:true,enabled:true}],defaultProvider:'gpt',aiEnabled:true};
 const response=body=>({ok:true,json:async()=>body});
 function app(transport) {
-  const nodes=new Map(),events=new Map(),storage=new Map();
+  const nodes=new Map(),events=new Map(),documentEvents=new Map(),storage=new Map(),clipboard=[];
   class Element {
     constructor(key=''){this.key=key;this.value='';this.hidden=false;this.innerHTML='';this.textContent='';this.dataset={};this.listeners={};this.attributes={};this.files=[];this.classList={add(){},remove(){},toggle(){}};}
     addEventListener(name,fn){this.listeners[name]=fn;}
@@ -24,9 +24,9 @@ function app(transport) {
     prepend(){}focus(){}querySelectorAll(){return [];}querySelector(){return new Element();}
   }
   const node=selector=>{if(!nodes.has(selector))nodes.set(selector,new Element(selector));return nodes.get(selector);};
-  const context=vm.createContext({...workspace,console,crypto:webcrypto,structuredClone,TextEncoder,TextDecoder,URL,AbortSignal,Intl,setTimeout:()=>1,clearTimeout(){},confirm:()=>true,fetch:async(url,options)=>transport?transport(url,options):response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0}),localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},document:{querySelector:node,querySelectorAll:()=>[],createElement:()=>new Element(),addEventListener(){}},window:{addEventListener:(name,fn)=>events.set(name,fn)}});
+  const context=vm.createContext({...workspace,console,crypto:webcrypto,structuredClone,TextEncoder,TextDecoder,URL,AbortSignal,Intl,navigator:{clipboard:{writeText:async value=>clipboard.push(value)}},setTimeout:()=>1,clearTimeout(){},confirm:()=>true,fetch:async(url,options)=>transport?transport(url,options):response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0}),localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},document:{querySelector:node,querySelectorAll:()=>[],createElement:()=>new Element(),addEventListener:(name,fn)=>documentEvents.set(name,fn)},window:{addEventListener:(name,fn)=>events.set(name,fn)}});
   vm.runInContext(source,context);
-  return {context,node,events,storage,run:code=>vm.runInContext(code,context),enter:user=>{context.testUser=user;context.testConfig=config;return vm.runInContext('enterWorkspace({user:testUser,config:testConfig})',context);}};
+  return {context,node,events,storage,clipboard,click:dataset=>documentEvents.get('click')({target:{closest:()=>({dataset})}}),run:code=>vm.runInContext(code,context),enter:user=>{context.testUser=user;context.testConfig=config;return vm.runInContext('enterWorkspace({user:testUser,config:testConfig})',context);}};
 }
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};}
 
@@ -77,4 +77,33 @@ test('a response tagged for a different team clears the workspace before its dat
   await ui.enter(A);wrong=true;
   await assert.rejects(ui.run('api("project")'),{code:'WORKSPACE_CHANGED'});
   assert.equal(ui.run('state.user'),null);assert.equal(ui.node('#app-screen').hidden,true);assert.equal(ui.run('state.project.datasets.length'),0);assert.doesNotMatch(ui.node('#dataset-list').innerHTML,/B_SECRET|team_a/);
+});
+
+
+test('API help opens from the workspace and routes editable questions without calling AI or changing team data',async()=>{
+  let requests=0;const ui=app((url,options)=>{requests++;return response({teamId:options.headers['x-hyfl-team-id'],project:project(A.id),revision:0});});
+  await ui.enter(A);requests=0;const before=ui.run('JSON.stringify(state.project)');
+  await ui.click({action:'api-help'});assert.equal(ui.run('state.view'),'guide');
+  const examples=ui.run('apiHelpPrompts');assert.equal(examples.length,4);
+  for(const item of examples){
+    ui.node('#prompt-input').value='';
+    await ui.click({prompt:item.prompt,promptMode:item.mode});
+    assert.equal(ui.run('state.view'),'work');assert.equal(ui.run('state.mode'),item.mode);
+    assert.equal(ui.node('#prompt-input').value,item.prompt);assert.equal(ui.node('#surface-chat').checked,true);
+  }
+  assert.equal(requests,0);assert.equal(ui.run('JSON.stringify(state.project)'),before);assert.equal(ui.run('state.dirty'),false);
+});
+
+test('declining a prompt replacement or having a request in progress preserves the student draft',async()=>{
+  const ui=app();await ui.enter(A);ui.node('#prompt-input').value='우리 팀이 쓰던 요청';ui.context.confirm=()=>false;
+  await ui.click({prompt:'다른 예시',promptMode:'explain'});assert.equal(ui.node('#prompt-input').value,'우리 팀이 쓰던 요청');assert.equal(ui.run('state.mode'),'build');
+  ui.context.confirm=()=>true;ui.run('state.busy=true');
+  await ui.click({prompt:'다른 예시',promptMode:'explain'});assert.equal(ui.node('#prompt-input').value,'우리 팀이 쓰던 요청');assert.equal(ui.run('state.mode'),'build');
+});
+
+test('copying an API example copies only the template and preserves the draft and team workspace',async()=>{
+  const ui=app();await ui.enter(A);const before=ui.run('JSON.stringify(state.project)');ui.node('#prompt-input').value='우리 팀 초안';
+  await ui.click({action:'copy-api-prompt',id:'0'});
+  assert.equal(ui.clipboard.length,1);assert.equal(ui.clipboard[0],ui.run('apiHelpPrompts[0].prompt'));assert.match(ui.clipboard[0],/YOUR_API_KEY/);
+  assert.equal(ui.node('#prompt-input').value,'우리 팀 초안');assert.equal(ui.run('JSON.stringify(state.project)'),before);
 });

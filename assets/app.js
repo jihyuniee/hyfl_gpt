@@ -16,6 +16,42 @@ const workPrompts = [
   {label:'API 데이터 활용',mode:'build',prompt:'첨부한 공공 API 응답의 실제 행을 전체 파싱해 표·그래프 또는 필요한 기능을 만들어줘. 전체 건수와 현재 행 수, 오류를 확인하고 기상 category·단위·발표 회차·관측/예보·대상 시각을 구분해줘. 저장된 응답을 실시간 자료처럼 표시하지 마. 인증키를 요청하거나 코드에 넣지 마.'},
   {label:'데이터 구하기 도움',mode:'explain',prompt:'지금 요청한 프로젝트에 필요한 공공데이터를 구하는 일을 도와줘. 필요한 지역·기간·항목과 공식 기관, 검색어, 파일 또는 API 응답을 얻는 순서를 구체적으로 알려줘. 직접 검색·조회 도구가 연결되지 않았다면 조회했다고 말하거나 정확하지 않은 자료 주소를 만들지 마. 키를 요청하지 마.'},
 ];
+// These examples prepare editable questions, never institution API requests.
+const apiHelpPrompts = [
+  {label:'인증키를 받았어요 · 첫 요청 준비',detail:'요청 주소와 필수 항목을 읽고, 공식 실행 화면에서 따라 할 순서를 도움받아요.',mode:'explain',prompt:`Open API 인증키를 발급받았는데 첫 데이터를 어떻게 요청해야 할지 모르겠어. 아래 공식 설명을 읽고 내가 실행할 수 있게 도와줘.
+서비스 이름: [적기]
+공식 문서 주소: [적기]
+문서의 요청 주소와 필수·선택 요청인자 표: [인증키를 빼고 붙이기]
+조회하고 싶은 지역·기간·항목: [적기]
+활용 신청 상태: [승인 완료 / 대기 / 모름]
+
+1. 어떤 조회 기능을 골라야 하는지, 각 필수 항목에 무엇을 넣는지 설명해줘.
+2. 실제 키 대신 YOUR_API_KEY를 넣은 요청 예시를 만들어줘. 기관별 키 발급처와 Encoding/Decoding 사용법은 제공한 공식 설명을 따라줘.
+3. 공식 사이트의 실행 화면이나 내 브라우저에서 요청하고 응답 본문을 저장하는 순서를 알려줘. JSON/XML 지원 여부와 성공 코드·행 수·다음 페이지 확인 방법도 알려줘.
+기상은 관측/예보·발표/대상 시각·격자, 병원은 지역·검색 조건을 확인해줘. 문서가 부족하면 가장 필요한 부분부터 요청해줘. 주소만으로 문서를 읽었다거나 API를 호출했다고 말하지 말고, 실제 인증키는 요구하지 마.`},
+  {label:'요청했는데 오류가 나요',detail:'키를 지운 요청 내용과 오류 메시지로 원인과 다음 확인 한 가지를 찾아요.',mode:'explain',prompt:`Open API 요청 오류를 해결하고 싶어.
+서비스·조회 기능: [적기]
+공식 문서의 요청 주소·인자 설명: [붙이기]
+내 요청 주소·인자: [인증키 값을 YOUR_API_KEY로 바꾼 뒤 붙이기]
+HTTP 상태와 응답의 오류 코드·메시지: [인증키·개인정보를 지우고 붙이기]
+기대한 결과: [적기]
+
+HTTP 상태, 기관의 결과 코드, 실제 데이터 유무를 나누어 읽어줘. 승인 상태·주소·필수 항목·키 인코딩·조회 시각/기간·호출 한도 중 근거가 있는 원인을 좁히고, 내가 다음에 바꿔 볼 한 가지를 알려줘. 기관마다 코드 의미가 다를 수 있으니 제공한 문서를 우선해줘. 실제 인증키나 전체 URL의 비밀 값을 요구하지 말고, 직접 실행하지 않았다면 해결됐다고 단정하지 마.`},
+  {label:'응답은 받았어요 · 어떻게 읽나요?',detail:'행의 위치, 값·시간·단위, 전체 건수와 받은 건수를 확인해요.',mode:'explain',prompt:`공공 API 응답을 받았어. 첨부한 전체 자료 또는 아래 본문을 읽는 일을 도와줘.
+서비스와 조회 조건: [키 없이 적기]
+공식 문서의 응답 항목·코드·단위 설명: [붙이기]
+응답 본문: [자료로 첨부했다면 이 줄을 지우기 / 키·개인정보 없는 본문 붙이기]
+
+성공/오류 여부, 실제 데이터 행 경로, 한 행의 의미, 주요 열·단위를 설명해줘. 전체 건수·조회 조건에 맞는 건수·실제 받은 행 수를 구분하고 다음 페이지가 필요한지 확인해줘. 기상 관측값과 예보값, 발표 시각과 대상 시각을 섞지 말고 범주형 코드와 결측을 숫자 0으로 바꾸지 마.
+JSON이면 스튜디오의 'API 응답 붙여넣기'로 연결하는 방법을 알려줘. XML이면 JSON 지원 여부를 문서에서 확인하고, 지원하지 않으면 원문을 TXT로 보존해 첨부하는 방법을 알려줘. XML 자동 행 인식이 된다고 말하지 마. 응답을 새로 받기 전에는 최신 정보로 갱신되지 않는다는 점도 짧게 알려줘.`},
+  {label:'받은 데이터로 그래프·웹앱 만들기',detail:'전체 응답을 연결한 뒤, 조건을 고르면 결과가 나오는 앱을 실제로 만들어요.',mode:'build',prompt:`첨부한 전체 API 응답으로 실행 가능한 작은 웹앱을 만들어줘.
+사용자가 고를 조건: [지역 / 날짜 / 항목 등]
+보여줄 결과: [목록 / 그래프 / 지도 등]
+공식 출처·응답 항목 설명: [알고 있는 내용 적기]
+
+샘플 몇 행만 사용하지 말고 window.HYFL_DATASETS의 전체 원문을 읽어 필터·집계해줘. 실제 행 수와 전체 건수의 차이, 자료 없음·결측·단위를 표시해줘. 기상 항목·관측/예보·발표 회차·대상 시각은 구분해줘. XML TXT 자료라면 DOMParser로 실제 구조를 확인해 파싱하고, 오류 응답을 행으로 취급하지 마.
+이 앱은 저장된 응답을 사용하는 버전으로 만들고 자료 시점을 표시해줘. 실시간 갱신 버튼이나 인증키를 넣지 마. 설명만 제안하지 말고 미리보기에서 실행하고 HTML로 내보낼 수 있는 전체 코드를 만들어줘.`},
+];
 const firstAppPrompt = {label:'조건을 골라 조회하기',mode:'build',prompt:'첨부 자료에서 지역·연도·항목처럼 조건으로 고를 수 있는 열을 확인해서, 조건을 선택하면 일치하는 행이 나오는 작은 웹앱을 만들어줘. 전체 데이터를 읽고 조건에 맞는 자료가 없으면 없다고 표시해줘. 자료에 없는 정보는 만들지 말고 실제로 실행되는 HTML을 만들어줘.'};
 const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', dirty: false, generation: 0, workspaceVersion: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
 let toastTimer;
@@ -170,8 +206,21 @@ function renderVersions() {
   $('#versions-list').innerHTML = state.project.versions.length ? state.project.versions.map(v => `<article class="version-card"><div><span class="eyebrow">${fmtTime(v.createdAt)}</span><h3>${escapeHTML(v.note || '수정 전 버전')}</h3><p>${(byteLength(v.code) / 1024).toFixed(1)} KB · HTML 코드</p></div><button type="button" class="button secondary" data-action="restore-version" data-id="${escapeHTML(v.id)}">이 버전으로 복원</button></article>`).join('') : '<div class="empty-state"><h3>수정 전 코드를 보관합니다.</h3><p>코드를 가져오거나 AI 제안을 적용하면 이전 코드가 여기에 남습니다.<br>최근 6개까지 용량 안에서 보관합니다. 데이터·기록까지 보관하려면 프로젝트 백업을 내려받으세요.</p></div>';
 }
 function renderGuide() {
-  $('#guide-content').innerHTML=`<section class="surface-card"><h3>자료와 요청으로 바로 시작하세요.</h3><p>① 자료 첨부 → ② 원하는 작업 요청 → ③ 결과 실행·수정. 별도 활동지·검증 기록은 입력하지 않습니다.</p><div class="guide-tasks">${workPrompts.map(item=>`<button class="guide-task" type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${state.user?.role==='teacher'?'disabled':''}><strong>${item.label}</strong><span>→</span></button>`).join('')}</div></section><section class="surface-card guide-boundaries"><h3>자료와 결과</h3><p>CSV·TSV·JSON을 첨부하면 AI 호출 없이 전체 파일로 표·그래프를 먼저 만듭니다. 작은 자료는 AI에도 전체 행을 전달하며 큰 자료는 기초 통계와 구조를 전달합니다. 실행 코드는 언제나 연결한 전체 데이터를 읽습니다.</p><p>데이터가 없으면 AI가 실제 수치를 만들어낼 수 없습니다. 공식 자료를 찾는 방법을 물어보거나 파일·응답을 연결하세요. KOSIS MCP 자동 조회와 실시간 API 호출은 현재 연결되어 있지 않습니다.</p><p>대화는 저장·내보내기에서 내려받을 수 있습니다. 활동지와 최종 제출은 기존 구글 클래스룸에서 진행하세요.</p></section>`;
+  const teacher=state.user?.role==='teacher';
+  const disabled=teacher?'disabled':'';
+  $('#guide-content').innerHTML=`<section class="surface-card api-coach" aria-labelledby="api-help-title"><h3 id="api-help-title" tabindex="-1">API에서 막힌 부분을 고르세요.</h3><p>질문 초안을 넣고 [대괄호]를 우리 팀 내용으로 고치세요. 전송할 때 학교가 제공하는 AI로 도움받습니다. 예시 복사는 다른 생성형 AI에서도 쓸 수 있어요.</p><div class="api-help-tasks">${apiHelpPrompts.map((item,index)=>`<article class="api-help-task"><h4>${escapeHTML(item.label)}</h4><p>${escapeHTML(item.detail)}</p><div class="button-row"><button class="button secondary small" type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${disabled}>질문 초안 넣기<span class="sr-only"> · ${escapeHTML(item.label)}</span></button><button class="button subtle small" type="button" data-action="copy-api-prompt" data-id="${index}">예시 복사<span class="sr-only"> · ${escapeHTML(item.label)}</span></button></div></article>`).join('')}</div><div class="api-help-boundary"><p><strong>데이터를 받기 전</strong> · 이곳의 AI는 요청 방법·오류를 설명합니다. 실제 요청은 공식 사이트의 실행 화면 등에서 합니다. 스튜디오가 인증키로 기관 API를 직접 호출하지는 않습니다.</p><p><strong>데이터를 받은 뒤</strong> · CSV·JSON 파일이나 JSON 응답을 연결해 표·그래프·웹앱을 만들고 실행·수정·HTML 내보내기를 합니다. 저장된 응답은 새로고침해도 최신 자료로 바뀌지 않습니다.</p><p>실제 인증키·개인정보는 입력하지 마세요. 요청 URL 속 키 값도 YOUR_API_KEY로 바꾸세요. 문서 주소만으로 내용을 읽을 수 없으니 요청 주소·인자 표의 필요한 부분을 함께 붙이세요. XML 자동 행 인식은 지원하지 않습니다.</p></div><details class="api-official-help"><summary>공식 설명에서 무엇을 가져오나요?</summary><p>기상: 관측/예보 기능, 발표·대상 시각, 격자 좌표와 단위. 병원: 지역·기관/진료 검색 조건, 응답 형식(JSON/XML). API마다 필수 항목과 키 사용법이 다릅니다.</p><p>키는 공식 실행 환경에만 넣으세요. Encoding/Decoding 중 무엇을 쓰는지는 실행 도구의 설명을 따르며 이미 인코딩된 키를 다시 인코딩하지 않도록 확인하세요. 전체 건수보다 받은 행이 적으면 페이지별 응답을 더 받아야 할 수 있습니다.</p><div class="source-links"><a href="https://www.data.go.kr/data/15084084/openapi.do" target="_blank" rel="noopener noreferrer">기상청 단기예보 조회 설명 ↗</a><a href="https://www.data.go.kr/data/15000736/openapi.do" target="_blank" rel="noopener noreferrer">전국 병·의원 찾기 설명 ↗</a></div></details></section><section class="surface-card"><h3>자료와 요청으로 바로 시작하세요.</h3><p>① 자료 첨부 → ② 원하는 작업 요청 → ③ 결과 실행·수정. 기록은 기존 활동지에 남깁니다.</p><div class="guide-tasks">${workPrompts.map(item=>`<button class="guide-task" type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${disabled}><strong>${item.label}</strong><span>→</span></button>`).join('')}</div></section><section class="surface-card guide-boundaries"><h3>자료와 결과</h3><p>CSV·TSV·JSON을 첨부하면 AI 호출 없이 전체 파일로 표·그래프를 먼저 만듭니다. 작은 자료는 AI에도 전체 행을 전달하며 큰 자료는 기초 통계와 구조를 전달합니다. 실행 코드는 연결한 전체 데이터를 읽습니다.</p><p>데이터가 없으면 AI가 실제 수치를 만들어낼 수 없습니다. 공식 자료를 찾는 방법을 물어보거나 파일·응답을 연결하세요. KOSIS MCP 자동 조회와 실시간 API 호출은 현재 연결되어 있지 않습니다.</p><p>대화는 저장·내보내기에서 내려받을 수 있습니다. 활동지와 최종 제출은 기존 구글 클래스룸에서 진행하세요.</p></section>`;
 }
+function usePromptDraft(prompt,mode='build') {
+  if(state.user?.role==='teacher')return;
+  if(state.busy){toast('진행 중인 AI 요청이 끝난 뒤 초안을 넣어주세요.');return;}
+  const previous=$('#prompt-input').value.trim();
+  if(previous&&previous!==prompt.trim()&&!confirm('작성 중인 요청을 이 예시로 바꿀까요?'))return;
+  setView('work');$('#surface-chat').checked=true;setMode(mode);
+  if(mode==='explain')$('.ai-options').open=true;
+  $('#prompt-input').value=prompt;$('#prompt-input').focus();
+  toast('초안을 넣었습니다. 대괄호 내용을 고친 뒤 전송하세요. 아직 AI 사용량은 차감되지 않았습니다.');
+}
+
 function renderPreview() {
   state.errors = []; state.nonce = uid(); renderErrors();
   const code = state.pending?.code || state.project.code;
@@ -361,13 +410,17 @@ document.addEventListener('click', async event => {
   if (button.dataset.view) return setView(button.dataset.view);
   if (button.dataset.mode) return setMode(button.dataset.mode);
   if (button.dataset.prompt) {
-    if (state.user?.role === 'teacher') return;
-    setView('work'); $('#surface-chat').checked = true;
-    setMode(button.dataset.promptMode || 'build'); $('#prompt-input').value = button.dataset.prompt; $('#prompt-input').focus(); return;
+    return usePromptDraft(button.dataset.prompt,button.dataset.promptMode||'build');
   }
   const action = button.dataset.action; const id = button.dataset.id;
   try {
-    if (action === 'paste-response') { setView('project'); $('.api-response-panel').open=true; $('#api-response-text').focus(); }
+    if(action==='api-help'){setView('guide');$('#api-help-title').focus();}
+    else if(action==='copy-api-prompt'){
+      const item=apiHelpPrompts[Number(id)];if(!item)return;
+      try{await navigator.clipboard.writeText(item.prompt);toast('예시를 복사했습니다. 대괄호 내용을 고치고 실제 키는 넣지 마세요.');}
+      catch{toast('복사하지 못했습니다. 질문 초안 넣기를 누른 뒤 입력창에서 직접 복사해주세요.');}
+    }
+    else if (action === 'paste-response') { setView('project'); $('.api-response-panel').open=true; $('#api-response-text').focus(); }
     else if (action === 'apply-proposal') applyProposal();
     else if (action === 'discard-proposal') { state.pending=null; renderChat(); renderPreview(); }
     else if (action === 'quick-chart') { const dataset=state.project.datasets.find(d=>d.id===id); if(!dataset)return; if(state.project.code.trim()&&!confirm('현재 결과를 이전 버전에 보관하고 이 자료의 표·그래프를 만들까요?'))return; state.project=replaceCode(state.project,buildQuickChart(id),'표·그래프 만들기 전'); state.pending=null; markDirty(); renderAll(); setView('work'); }

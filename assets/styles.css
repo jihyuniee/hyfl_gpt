@@ -1098,3 +1098,18 @@ td input, td select { max-width: 110px; padding: 6px 8px; border: 1px solid var(
 .preview-title h3{font-size:14px}
 .work-heading h2{font-size:23px}
 @media(max-width:760px){.task-materials{padding:14px}.ai-options{margin-left:14px;margin-right:14px}.work-heading h2{font-size:20px}.task-materials .button{min-height:40px}.preview-title h3{font-size:12px}}
+
+/* API assistance prepares questions; it never collects service credentials. */
+.api-help-link{display:block;margin-top:10px;border:0;padding:5px 0;background:transparent;color:var(--green);font-size:11px;font-weight:600;text-align:left;line-height:1.8}
+.api-coach>p,.api-official-help p{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.85}
+.api-help-tasks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}
+.api-help-task{padding:18px;border:1px solid var(--line);background:var(--canvas)}
+.api-help-task h4{font-size:14px;font-weight:600;line-height:1.7}
+.api-help-task p{margin:8px 0 14px;color:var(--muted);font-size:12px;line-height:1.8}
+.api-help-task .button-row{gap:6px;flex-wrap:wrap}
+.api-help-boundary{margin-top:20px;padding:14px 18px;border-left:3px solid var(--green);background:var(--mint)}
+.api-help-boundary p{font-size:12px;line-height:1.85}
+.api-help-boundary p+p{margin-top:10px}
+.api-official-help{margin-top:18px;font-size:12px}
+.api-official-help>summary{cursor:pointer;font-weight:600;line-height:1.8}
+@media(max-width:760px){.api-help-tasks{grid-template-columns:1fr}.api-help-task{padding:15px}.api-help-link{min-height:40px}}
