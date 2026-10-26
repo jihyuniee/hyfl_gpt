@@ -145,6 +145,7 @@ function setWorkspaceSurface(surface) {
   if(!['split','chat','preview'].includes(surface))return;
   if(surface==='split'&&window.matchMedia?.('(max-width: 760px)').matches)surface='preview';
   for(const name of ['split','chat','preview'])$('#surface-'+name).checked=name===surface;
+  resizePrompt();
 }
 function saveLayout(){try{localStorage.setItem(layoutKey,JSON.stringify({share:layout.share,sidebarCollapsed:layout.sidebarCollapsed}));}catch{}}
 function setWorkspaceShare(value,{save=true}={}){
@@ -152,14 +153,14 @@ function setWorkspaceShare(value,{save=true}={}){
   layout.share=Math.max(25,Math.min(75,Number(value)));
   $('#app-screen').style.setProperty('--chat-share',layout.share+'%');
   $('#workspace-divider').setAttribute('aria-valuenow',String(Math.round(layout.share)));
-  if(save)saveLayout();
+  resizePrompt();if(save)saveLayout();
 }
 function setSidebarCollapsed(collapsed,{save=true}={}){
   layout.sidebarCollapsed=Boolean(collapsed);$('#app-screen').dataset.sidebar=collapsed?'collapsed':'expanded';
   $('#app-sidebar').inert=Boolean(collapsed);$('#app-sidebar').setAttribute('aria-hidden',String(Boolean(collapsed)));
   $('#mobile-menu-button').setAttribute('aria-expanded',String(!collapsed));
   $('#mobile-menu-button').setAttribute('aria-label',collapsed?'사이드바 펼치기':'사이드바 접기');
-  if(save)saveLayout();
+  resizePrompt();if(save)saveLayout();
 }
 function resizePrompt(){
   const input=$('#prompt-input');input.style.height='0px';input.style.height=Math.max(44,Math.min(180,input.scrollHeight||44))+'px';
@@ -529,6 +530,8 @@ async function attachFiles(files){
 }
 $('#mode-select').addEventListener('change',event=>setMode(event.target.value));
 $('#prompt-input').addEventListener('input',resizePrompt);
+$$('input[name="workspace-surface"]').forEach(input=>input.addEventListener('change',resizePrompt));
+window.addEventListener('resize',resizePrompt);
 $('#prompt-input').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&!$('#ai-submit').disabled&&$('#prompt-input').value.trim()){event.preventDefault();requestAI(event);}});
 $('#workspace-divider').addEventListener('pointerdown',startResize);
 window.addEventListener('pointermove',moveResize);window.addEventListener('pointerup',stopResize);window.addEventListener('pointercancel',stopResize);

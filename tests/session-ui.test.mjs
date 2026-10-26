@@ -148,3 +148,11 @@ test('HTML attachments open the sandboxed result and mixed batches never overwri
   await ui.run('attachFiles(uploads)');assert.equal(ui.run('state.project.code'),before);
   await ui.run('attachFiles([uploads[0]])');assert.match(ui.run('state.project.code'),/IMPORTED_APP/);assert.equal(ui.node('#surface-split').checked,true);
 });
+
+
+test('changing layout recalculates the composer height so wrapped drafts do not stay clipped',async()=>{
+  const ui=app();await ui.enter(A);ui.node('#prompt-input').value='KEEP_WRAPPED_DRAFT';
+  ui.node('#prompt-input').scrollHeight=140;ui.run('setWorkspaceShare(30)');assert.equal(ui.node('#prompt-input').style.height,'140px');
+  ui.node('#prompt-input').scrollHeight=61;ui.run('setSidebarCollapsed(true)');assert.equal(ui.node('#prompt-input').style.height,'61px');
+  assert.equal(ui.node('#prompt-input').value,'KEEP_WRAPPED_DRAFT');
+});
