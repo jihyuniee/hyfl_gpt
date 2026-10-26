@@ -47,12 +47,15 @@ export const securedTeams=()=>legacyTeams().map((team,index)=>{
 });
 export const testEnv=()=>({KV_REST_API_TOKEN:'test-only-kv-token',SESSION_SECRET:'test-only-session-secret',ADMIN_PASSWORD:'test-only-teacher-password',OPENAI_KEY:'test-only-openai-key',CLAUDE_KEY:'test-only-claude-key'});
 export const testNow=()=>Date.parse('2026-10-23T01:00:00.000Z');
-export function request({method='GET',action,body,cookie='',origin='https://school.test',query={}}={}) {
-  return {method,query:{...(action?{action}:{}),...query},body,headers:{host:'school.test',origin,'x-forwarded-proto':'https',cookie,'x-real-ip':'127.0.0.1'},socket:{remoteAddress:'127.0.0.1'}};
+const cookieOwners=new Map();
+export function request({method='GET',action,body,cookie='',origin='https://school.test',query={},workspaceId=cookieOwners.get(cookie),headers={}}={}) {
+  return {method,query:{...(action?{action}:{}),...query},body,headers:{host:'school.test',origin,'x-forwarded-proto':'https',cookie,'x-real-ip':'127.0.0.1',...(workspaceId?{'x-hyfl-team-id':workspaceId}:{}),...headers},socket:{remoteAddress:'127.0.0.1'}};
 }
 export async function invoke(handler,options={}) {
   const response={statusCode:200,headers:{},body:null,setHeader(k,v){this.headers[k.toLowerCase()]=v;},status(n){this.statusCode=n;return this;},json(value){this.body=value;return this;}};
-  await handler(request(options),response);return response;
+  await handler(request(options),response);
+  const issued=cookieOf(response);if(issued&&response.body?.user?.id)cookieOwners.set(issued,response.body.user.id);
+  return response;
 }
 export function cookieOf(response) {return response.headers['set-cookie']?.split(';')[0]||'';}
 export async function loginCookie(studio,name='하늘',password='legacy-short') {

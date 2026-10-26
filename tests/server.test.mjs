@@ -92,7 +92,8 @@ test('teacher can approve teams, change limits, and revocation invalidates exist
   assert.equal(limit.statusCode,200);assert.equal(limit.body.team.dailyRequests,3);
   const revoke=await invoke(studio,{method:'POST',cookie:adminCookie,body:{action:'teamStatus',teamId:id,status:'inactive'}});
   assert.equal(revoke.statusCode,200);
-  assert.equal((await invoke(studio,{action:'session',cookie})).body.user,null);
+  assert.equal((await invoke(studio,{action:'session',cookie})).body.code,'WORKSPACE_CHANGED');
+  assert.equal((await invoke(studio,{action:'session',cookie,workspaceId:null})).body.user,null);
   assert.equal((await invoke(studio,{action:'project',cookie})).statusCode,401);
   const admin=await invoke(studio,{action:'admin',cookie:adminCookie});assert.equal(admin.statusCode,200);assert.ok(!JSON.stringify(admin.body).includes('passwordHash'));
 });
@@ -112,6 +113,26 @@ test('project saves are session-scoped and prevent cross-team overwrites',async(
   const saved=await invoke(studio,{method:'POST',cookie:a,body:{action:'save',teamId:teamId(legacyTeams()[1]),revision:0,project}});
   assert.equal(saved.statusCode,200);assert.equal(saved.body.revision,1);
   const other=await invoke(studio,{action:'project',cookie:b});assert.equal(other.body.revision,0);assert.notEqual(other.body.project.title,'A only');
+});
+test('a stale team tab cannot read, save, call AI or log out the newly signed-in team',async()=>{
+  let providerCalls=0;const {studio,ai,ctx}=setup({fetchImpl:async()=>{providerCalls++;return providerResponse(validAIResult());}});
+  const {cookie:a,response:ar}=await loginCookie(studio);const {cookie:b,response:br}=await loginCookie(studio,'바다','other-password');
+  const aid=ar.body.user.id,bid=br.body.user.id;
+  const project=label=>({...emptyProject(),title:label,code:validCode.replace('Test',label),datasets:[{id:label,name:label+'.csv',format:'csv',text:'항목,값\n'+label+',1'}],messages:[{role:'user',text:label,createdAt:'2026-10-26'}],records:[{prompt:label,help:label}]});
+  for(const [cookie,label] of [[a,'A_PRIVATE'],[b,'B_PRIVATE']])assert.equal((await invoke(studio,{method:'POST',cookie,body:{action:'save',revision:0,project:project(label)}})).statusCode,200);
+  const read=await invoke(studio,{action:'project',cookie:b,workspaceId:aid});assert.equal(read.statusCode,409);assert.equal(read.body.code,'WORKSPACE_CHANGED');assert.doesNotMatch(JSON.stringify(read.body),/PRIVATE/);
+  const save=await invoke(studio,{method:'POST',cookie:b,workspaceId:aid,body:{action:'save',revision:1,project:project('A_PRIVATE')}});assert.equal(save.body.code,'WORKSPACE_CHANGED');
+  const generated=await invoke(ai,{method:'POST',cookie:b,workspaceId:aid,body:{provider:'gpt',prompt:'비교',project:project('A_PRIVATE')}});assert.equal(generated.body.code,'WORKSPACE_CHANGED');assert.equal(providerCalls,0);
+  assert.equal((await getUsage(ctx,{id:bid,role:'student'},normalizeSettings({}))).requests,0);
+  const logout=await invoke(studio,{method:'POST',cookie:b,workspaceId:aid,body:{action:'logout'}});assert.equal(logout.body.code,'WORKSPACE_CHANGED');assert.equal(logout.headers['set-cookie'],undefined);
+  for(const [cookie,label,id] of [[a,'A_PRIVATE',aid],[b,'B_PRIVATE',bid]]){const own=await invoke(studio,{action:'project',cookie,query:{teamId:id===aid?bid:aid}});assert.equal(own.body.teamId,id);assert.equal(own.body.project.title,label);assert.equal(own.body.revision,1);}
+});
+test('old clients without a workspace binding fail before returning data, saving or spending AI quota',async()=>{
+  let calls=0;const {studio,ai}=setup({fetchImpl:async()=>{calls++;return providerResponse(validAIResult());}});const {cookie}=await loginCookie(studio);
+  for(const [handler,options] of [[studio,{action:'project'}],[studio,{method:'POST',body:{action:'save',revision:0,project:emptyProject()}}],[ai,{method:'POST',body:{provider:'gpt',prompt:'요청',project:emptyProject()}}]]){
+    const result=await invoke(handler,{...options,cookie,workspaceId:null});assert.equal(result.statusCode,428);assert.equal(result.body.code,'WORKSPACE_RELOAD_REQUIRED');assert.equal(result.body.project,undefined);
+  }
+  assert.equal(calls,0);assert.equal((await invoke(studio,{action:'project',cookie})).body.revision,0);
 });
 test('concurrent stale saves allow exactly one commit and preserve winner',async()=>{
   const {studio}=setup();const {cookie}=await loginCookie(studio);

@@ -17,31 +17,54 @@ const workPrompts = [
   {label:'데이터 구하기 도움',mode:'explain',prompt:'지금 요청한 프로젝트에 필요한 공공데이터를 구하는 일을 도와줘. 필요한 지역·기간·항목과 공식 기관, 검색어, 파일 또는 API 응답을 얻는 순서를 구체적으로 알려줘. 직접 검색·조회 도구가 연결되지 않았다면 조회했다고 말하거나 정확하지 않은 자료 주소를 만들지 마. 키를 요청하지 마.'},
 ];
 const firstAppPrompt = {label:'조건을 골라 조회하기',mode:'build',prompt:'첨부 자료에서 지역·연도·항목처럼 조건으로 고를 수 있는 열을 확인해서, 조건을 선택하면 일치하는 행이 나오는 작은 웹앱을 만들어줘. 전체 데이터를 읽고 조건에 맞는 자료가 없으면 없다고 표시해줘. 자료에 없는 정보는 만들지 말고 실제로 실행되는 HTML을 만들어줘.'};
-const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', dirty: false, generation: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
+const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', dirty: false, generation: 0, workspaceVersion: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
 let toastTimer;
 function toast(message) { text('#toast', message); $('#toast').classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 4500); }
 function errorMessage(error) { return error?.message || '요청을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.'; }
 
 async function api(action, payload, path = '/api/studio', timeout = 15000) {
+  const version=state.workspaceVersion;
+  const owner=!state.demo?state.user?.id:null;
+  const headers=payload===undefined?{}:{'Content-Type':'application/json'};
+  if(owner&&!['login','teacherLogin','register','teams','config'].includes(action)) headers['x-hyfl-team-id']=owner;
+  const bound=path==='/api/ai'||['project','save'].includes(action);
   let response;
   try {
-    response = await fetch(payload === undefined ? `${path}?action=${encodeURIComponent(action)}` : path, { method: payload === undefined ? 'GET' : 'POST', credentials: 'same-origin', headers: payload === undefined ? {} : { 'Content-Type': 'application/json' }, body: payload === undefined ? undefined : JSON.stringify(path === '/api/ai' ? payload : { action, ...payload }), signal: AbortSignal.timeout(timeout) });
+    response = await fetch(payload === undefined ? `${path}?action=${encodeURIComponent(action)}` : path, { method: payload === undefined ? 'GET' : 'POST', credentials: 'same-origin', headers, body: payload === undefined ? undefined : JSON.stringify(path === '/api/ai' ? payload : { action, ...payload }), signal: AbortSignal.timeout(timeout) });
   } catch (cause) {
+    if(version!==state.workspaceVersion) throw staleWorkspace();
     const error = new Error(cause.name === 'TimeoutError' ? '응답이 지연되고 있습니다. 사용 기록을 확인한 뒤 다시 시도해주세요.' : '연결을 확인해주세요. 지금 작업은 이 브라우저에 임시 보관됩니다.');
     error.code = 'NETWORK_ERROR'; throw error;
   }
   let body;
   try { body = await response.json(); } catch { throw new Error('서버 응답을 읽지 못했습니다. 잠시 후 다시 시도해주세요.'); }
-  if (!response.ok) { const error = new Error(body.message || body.error || '요청을 완료하지 못했습니다.'); error.status = response.status; error.code = body.code; throw error; }
+  if(version!==state.workspaceVersion) throw staleWorkspace();
+  if (!response.ok) { const error = new Error(body.message || body.error || '요청을 완료하지 못했습니다.'); error.status = response.status; error.code = body.code; if(owner&&['AUTH_REQUIRED','WORKSPACE_CHANGED','WORKSPACE_RELOAD_REQUIRED'].includes(error.code)) leaveWorkspace(error.message); throw error; }
+  if(bound&&(!owner||body.teamId!==owner)) { const error=new Error('작업의 팀이 일치하지 않습니다. 우리 팀으로 다시 로그인해주세요.'); error.code='WORKSPACE_CHANGED'; leaveWorkspace(error.message); throw error; }
   return body;
 }
 
 function cacheKey() { return `hyfl-studio-v2:${state.demo ? 'demo' : state.user?.id || 'anonymous'}`; }
 function cacheProject() {
-  if (!state.user && !state.demo) return;
-  try { localStorage.setItem(cacheKey(), JSON.stringify({ project: fitProject(state.project), revision: state.revision, dirty: state.dirty, savedAt: now() })); }
+  if (state.demo||state.user?.role!=='student') return;
+  try { localStorage.setItem(cacheKey(), JSON.stringify({ ownerId:state.user.id, project: fitProject(state.project), revision: state.revision, dirty: state.dirty, savedAt: now() })); }
   catch { text('#save-status', '임시 저장 공간 부족 · 백업을 내려받아 주세요'); }
 }
+function staleWorkspace() { const error=new Error('이전 팀의 요청 결과를 적용하지 않았습니다.');error.code='STALE_WORKSPACE';return error; }
+function resetWorkspace() {
+  clearTimeout(state.saveTimer);clearTimeout(state.localTimer);
+  state.workspaceVersion++;state.user=null;state.demo=false;state.usage=null;state.project=emptyProject();state.revision=0;state.pending=null;state.recovery=null;state.dirty=false;state.saving=false;state.busy=false;state.conflict=false;state.aiError='';state.errors=[];state.admin=null;state.generation=0;
+  for(const selector of ['#prompt-input','#api-response-name','#api-response-text','#code-file','#chat-dataset-file','#dataset-file','#project-file']) $(selector).value='';
+  text('#api-response-status','');show('#conflict-banner',false);
+  $('#code-toggle').setAttribute('aria-pressed','false');$('#code-toggle').classList.remove('active');show('#code-editor',false);show('#apply-code-button',false);
+  text('#team-label','우리 팀');text('#project-heading',state.project.title);text('#save-status','팀 로그인 필요');
+  renderAll();
+}
+function leaveWorkspace(message) {
+  cacheProject();resetWorkspace();show('#app-screen',false);show('#auth-screen');authTab('student');text('#auth-message',message);
+}
+const sessionNoticeKey='hyfl-studio-session-change';
+function announceSession() {try{localStorage.setItem(sessionNoticeKey,JSON.stringify({ownerId:state.user?.id||null,nonce:uid()}));}catch{}}
 function markDirty() {
   state.dirty = true; state.generation++; text('#save-status', state.demo ? '이 브라우저에 저장 중' : '저장 대기 중');
   clearTimeout(state.localTimer); state.localTimer = setTimeout(cacheProject, 250);
@@ -53,19 +76,20 @@ async function saveNow() {
   if (!state.dirty || state.saving || state.conflict || (!state.user && !state.demo)) return;
   let project;
   try { project = fitProject(state.project); } catch (error) { text('#save-status', errorMessage(error)); return; }
-  if (state.demo) { state.dirty = false; cacheProject(); text('#save-status', '이 브라우저에 저장됨'); return; }
+  if (state.demo) { state.dirty = false; text('#save-status', '둘러보기 · 이 화면에서만 유지'); return; }
   if (state.user.role !== 'student') return;
-  state.saving = true; const generation = state.generation; text('#save-status', '팀 작업 저장 중…');
+  state.saving = true; const generation = state.generation; const version=state.workspaceVersion; text('#save-status', '팀 작업 저장 중…');
   try {
     const result = await api('save', { project, revision: state.revision });
     state.revision = result.revision;
     if (state.generation === generation) { state.dirty = false; state.project.versions = project.versions; state.project.messages = project.messages; }
     cacheProject(); text('#save-status', state.dirty ? '새 변경 저장 대기 중' : '팀 작업 저장됨');
   } catch (error) {
+    if(version!==state.workspaceVersion) return;
     if (error.status === 409) { state.conflict = true; show('#conflict-banner'); text('#save-status', '다른 기기의 변경을 확인해주세요'); }
     else { text('#save-status', '서버 저장 실패 · 이 기기에 임시 보관'); toast(errorMessage(error)); }
     cacheProject();
-  } finally { state.saving = false; if (state.dirty && !state.conflict) state.saveTimer = setTimeout(saveNow, 12000); }
+  } finally { if(version===state.workspaceVersion){state.saving = false; if (state.dirty && !state.conflict) state.saveTimer = setTimeout(saveNow, 12000);} }
 }
 
 function setView(view) {
@@ -100,7 +124,7 @@ function updateAiState() {
   $('#ai-submit').textContent = state.busy ? '만드는 중…' : state.mode==='explain' ? 'AI에게 물어보기' : '결과 만들기';
   if (state.busy) text('#ai-status', '자료와 요청을 바탕으로 작업하고 있습니다. 완성한 결과는 오른쪽에 표시됩니다.');
   else if (state.aiError) text('#ai-status', state.aiError);
-  else if (state.demo) text('#ai-status', '둘러보기에서는 파일 가져오기·실행·내보내기를 사용할 수 있습니다. AI는 팀 로그인 후 이용합니다.');
+  else if (state.demo) text('#ai-status', '둘러보기는 팀 자료를 불러오거나 저장하지 않습니다. 새로고침하면 초기화됩니다. AI는 팀 로그인 후 이용합니다.');
   else if (state.user?.role === 'teacher') text('#ai-status', '교사 화면에서는 운영 상태를 확인합니다. 학생은 팀 계정으로 작업합니다.');
   else if (state.config?.aiEnabled === false) text('#ai-status', '선생님이 AI 요청을 잠시 멈췄습니다. 코드 편집과 저장은 계속할 수 있습니다.');
   else if (!state.provider) text('#ai-status', 'AI 연결을 준비 중입니다. 선생님에게 알려주세요.');
@@ -132,6 +156,8 @@ function renderProjectFields() {
 }
 function renderDatasets() {
   const list = $('#dataset-list');
+  const owner=state.demo?'둘러보기 자료 · 팀에 저장되지 않습니다.':state.user?.role==='student'?`2학년 ${state.user.cls}반 · ${state.user.name}의 자료 · 같은 팀원과 공유`:'팀 로그인 후 우리 팀 자료만 불러옵니다.';
+  text('#data-owner-label',owner);text('#project-data-owner-label',owner);
   text('#attachment-count', state.project.datasets.length ? `${state.project.datasets.length}개 자료 연결됨` : 'CSV · TSV · JSON · TXT');
   $('#chat-datasets').innerHTML=state.project.datasets.map(d=>`<button type="button" class="attachment-chip" data-action="quick-chart" data-id="${escapeHTML(d.id)}" title="전체 자료로 표·그래프 만들기">${escapeHTML(d.name)} ↗</button>`).join('');
   if (!state.project.datasets.length) { list.innerHTML = '<div class="empty-state compact"><p>파일을 연결하면 바로 표·그래프를 볼 수 있어요.</p><small>파일 전체가 미리보기와 내려받은 웹앱에 함께 들어갑니다. 합계 320KB · 최대 8개</small></div>'; return; }
@@ -175,21 +201,23 @@ function renderRecovery() {
 function renderAll() { renderProviders(); renderUsage(); renderChat(); renderProjectFields(); renderDatasets(); renderVersions(); renderGuide(); renderPreview(); renderRecovery(); text('#project-heading', state.project.title); }
 
 async function enterWorkspace(result, demo = false) {
+  resetWorkspace();
   state.demo = demo; state.user = result.user || null; state.config = result.config || state.config; state.usage = result.usage || null; state.project = emptyProject(); state.revision = 0; state.pending = null; state.recovery = null; state.aiError = ''; state.dirty = false; state.conflict = false; show('#conflict-banner', false);
   if (!demo && state.user?.role === 'student') {
     const loaded = await api('project'); state.project = normalizeProject(loaded.project || emptyProject()); state.revision = loaded.revision ?? 0;
   }
   try {
-    const cached = JSON.parse(localStorage.getItem(cacheKey()) || 'null');
-    if (cached?.project && (demo || (cached.dirty && cached.revision === state.revision))) { state.project = normalizeProject(cached.project); state.dirty = Boolean(cached.dirty); if (!demo) toast('이 기기에 남아 있던 미저장 작업을 복원했습니다.'); }
-    else if (cached?.dirty && cached.revision !== state.revision) { localStorage.setItem(cacheKey() + ':recovery', JSON.stringify(cached)); }
-    const recovery = JSON.parse(localStorage.getItem(cacheKey() + ':recovery') || 'null');
-    if (recovery?.project) state.recovery = normalizeProject(recovery.project);
+    const owner=state.user?.role==='student'?state.user.id:null;
+    const cached = owner?JSON.parse(localStorage.getItem(cacheKey()) || 'null'):null;
+    if (cached?.ownerId===owner && owner && cached.project && cached.dirty && cached.revision === state.revision) { state.project = normalizeProject(cached.project); state.dirty = true; toast('우리 팀의 미저장 작업을 복원했습니다.'); }
+    else if (owner&&cached?.ownerId===owner&&cached.dirty&&cached.revision!==state.revision) { localStorage.setItem(cacheKey() + ':recovery', JSON.stringify(cached)); }
+    const recovery = owner?JSON.parse(localStorage.getItem(cacheKey() + ':recovery') || 'null'):null;
+    if (owner&&recovery?.ownerId===owner&&recovery.project) state.recovery = normalizeProject(recovery.project);
   } catch { /* A damaged local backup must never prevent server workspace access. */ }
   show('#auth-screen', false); show('#app-screen'); show('#admin-nav', state.user?.role === 'teacher');
   $$('[data-view]').filter(el => !['guide', 'admin'].includes(el.dataset.view)).forEach(el => { el.hidden = state.user?.role === 'teacher'; });
   text('#team-label', demo ? '둘러보기 · 내 기기 작업' : state.user?.role === 'teacher' ? '선생님' : `2학년 ${state.user.cls}반 · ${state.user.name}`);
-  text('#save-status', demo ? '이 브라우저에만 저장' : state.user?.role === 'teacher' ? '교사 관리 화면' : '팀 작업 불러옴');
+  text('#save-status', demo ? '둘러보기 · 이 화면에서만 유지' : state.user?.role === 'teacher' ? '교사 관리 화면' : '우리 팀 작업 불러옴');
   renderAll(); if (state.user?.role === 'teacher') text('#project-heading', '2학기 수업 운영'); setMode('build'); setView(state.user?.role === 'teacher' ? 'admin' : 'work'); if (state.dirty) markDirty();
 }
 async function loadTeams() {
@@ -221,7 +249,7 @@ async function submitAuth(event, kind) {
     } else {
       const payload = kind === 'teacher' ? { password: $('#teacher-password').value } : { cls: $('#login-class').value, name: $('#login-team').value, password: $('#login-password').value };
       if (kind === 'student' && !payload.name) throw new Error('반과 팀을 선택해주세요.');
-      const result = await api(kind === 'teacher' ? 'teacherLogin' : 'login', payload); await enterWorkspace(result); event.target.querySelector('input[type="password"]').value = ''; text('#auth-message', '');
+      const result = await api(kind === 'teacher' ? 'teacherLogin' : 'login', payload); await enterWorkspace(result); announceSession(); event.target.querySelector('input[type="password"]').value = ''; text('#auth-message', '');
     }
   } catch (error) { text('#auth-message', errorMessage(error)); }
   finally { button.disabled = false; }
@@ -232,6 +260,7 @@ async function requestAI(event) {
   if (!prompt || state.busy || state.demo) return;
   if (state.conflict) { toast('먼저 다른 기기의 저장 내용과 충돌을 해결해주세요.'); return; }
   const codeAtRequest = state.project.code; const dataAtRequest = JSON.stringify(state.project.datasets);
+  const version=state.workspaceVersion;
   state.project.messages.push({ id: uid(), role: 'user', text: prompt, createdAt: now(), mode: state.mode, provider: state.provider });
   const mode = state.mode; const provider = state.provider; state.pending = null; renderPreview(); state.aiError = ''; state.busy = true; $('#prompt-input').value = ''; markDirty(); renderChat(); renderProviders();
   try {
@@ -243,8 +272,8 @@ async function requestAI(event) {
     if (result.code && !codeAtRequest.trim() && state.project.code === codeAtRequest && JSON.stringify(state.project.datasets) === dataAtRequest) { state.project=replaceCode(state.project,result.code,'AI 첫 결과'); state.pending=null; markDirty(); toast('AI가 만든 첫 결과를 실행했습니다.'); }
     renderChat(); renderUsage(); renderPreview(); renderVersions();
     if (state.pending) toast('수정 제안을 오른쪽에서 미리 볼 수 있습니다.');
-  } catch (error) { state.aiError = errorMessage(error); toast(state.aiError); text('#ai-status', state.aiError); $('#prompt-input').value = prompt; try { const session = await api('session'); state.usage = session.usage; state.config = session.config || state.config; renderUsage(); } catch {} }
-  finally { state.busy = false; renderProviders(); }
+  } catch (error) { if(version!==state.workspaceVersion)return;state.aiError = errorMessage(error); toast(state.aiError); text('#ai-status', state.aiError); $('#prompt-input').value = prompt; try { const session = await api('session'); state.usage = session.usage; state.config = session.config || state.config; renderUsage(); } catch {} }
+  finally { if(version===state.workspaceVersion){state.busy = false; renderProviders();} }
 }
 function applyProposal() {
   if (!state.pending) return;
@@ -260,17 +289,20 @@ function exportProject() { download(JSON.stringify({ format: 'hyfl-studio', vers
 
 async function loadCode(file) {
   if (!file) return;
+  const version=state.workspaceVersion;
   try {
     if (file.size > 700000) throw new Error('가져올 HTML 파일은 700KB 이하여야 합니다. 프로젝트 백업은 JSON 가져오기를 이용해주세요.');
     const imported = importHtml(await file.text());
+    if(version!==state.workspaceVersion)return;
     if (state.project.code && !confirm('현재 코드를 이전 버전에 보관하고 가져온 HTML로 바꿀까요?')) return;
     state.project = replaceCode(state.project, imported.code, 'HTML 가져오기 전');
     if (imported.datasets) state.project.datasets = imported.datasets;
     state.project.checks = {}; state.pending = null; markDirty(); renderPreview(); renderVersions(); renderDatasets(); renderChat(); setView('work'); toast('HTML을 가져왔습니다. 오른쪽에서 바로 실행해보세요.');
   } catch (error) { toast(errorMessage(error)); }
-  finally { $('#code-file').value = ''; }
+  finally { if(version===state.workspaceVersion)$('#code-file').value = ''; }
 }
 async function loadDatasets(files) {
+  const version=state.workspaceVersion;
   try {
     const next = structuredClone(state.project.datasets);
     const converted = [];
@@ -278,6 +310,7 @@ async function loadDatasets(files) {
       if (file.size > LIMITS.datasetBytes) throw new Error('첨부 데이터는 파일 합계 320KB까지 사용할 수 있습니다.');
       const ext = file.name.split('.').pop().toLowerCase(); if (!['csv', 'tsv', 'json', 'txt'].includes(ext)) throw new Error('CSV, TSV, JSON, TXT 파일을 선택해주세요.');
       const decoded = decodeDatasetBytes(await file.arrayBuffer());
+      if(version!==state.workspaceVersion)return;
       const content = decoded.text; if (decoded.encoding !== 'utf-8') converted.push(file.name);
       const existing = next.find(d => d.name === file.name);
       const dataset = { id: existing?.id || uid(), name: file.name, format: ext === 'txt' ? 'text' : ext, text: content }; describeDataset(dataset);
@@ -289,7 +322,7 @@ async function loadDatasets(files) {
     if (!state.project.code.trim()) { const first=next.find(d=>['csv','tsv','json'].includes(d.format)); if(first) state.project=replaceCode(state.project,buildQuickChart(first.id),'첫 자료 표·그래프'); }
     markDirty(); renderDatasets(); renderPreview(); renderChat(); toast(converted.length ? '한글 파일의 인코딩을 변환해 연결했습니다. 표시된 열 이름과 원자료를 확인하세요.' : '자료를 넣었습니다. 이제 만들 기능을 쓰고 결과 만들기를 누르세요.');
   } catch (error) { toast(errorMessage(error)); }
-  finally { $('#dataset-file').value = ''; }
+  finally { if(version===state.workspaceVersion)$('#dataset-file').value = ''; }
 }
 
 function renderTeamRow(team, settings) {
@@ -358,11 +391,13 @@ $('#ai-form').addEventListener('submit', requestAI);
 $('#provider-select').addEventListener('change', e => { state.provider = e.target.value; updateAiState(); });
 $('#mobile-menu-button').addEventListener('click', () => { const open = $('.sidebar').classList.toggle('is-open'); $('#mobile-menu-button').setAttribute('aria-expanded', String(open)); });
 $('#logout-button').addEventListener('click', async () => {
+  const version=state.workspaceVersion;
   if (state.busy) { toast('AI 요청이 끝난 뒤 나가주세요.'); return; }
   await saveNow();
+  if(version!==state.workspaceVersion)return;
   if (state.dirty && !confirm('아직 서버에 저장되지 않은 작업이 있습니다. 이 기기의 임시 백업을 남기고 나갈까요?')) return;
   try { if (!state.demo) await api('logout', {}); } catch (error) { toast(errorMessage(error)); return; }
-  clearTimeout(state.saveTimer); clearTimeout(state.localTimer); state.user = null; state.demo = false; state.project = emptyProject(); state.dirty = false; show('#app-screen', false); show('#auth-screen'); authTab('student'); loadTeams();
+  resetWorkspace();announceSession();show('#app-screen', false); show('#auth-screen'); authTab('student'); loadTeams();
 });
 $('#project-form').addEventListener('submit', event => event.preventDefault());
 $('#project-form').addEventListener('input', event => {
@@ -375,7 +410,7 @@ $('#import-code-button').addEventListener('click', () => $('#code-file').click()
 $('#code-file').addEventListener('change', e => loadCode(e.target.files[0]));
 $('#dataset-file').addEventListener('change', e => loadDatasets([...e.target.files]));
 $('#attach-data').addEventListener('click',()=>$('#chat-dataset-file').click());
-$('#chat-dataset-file').addEventListener('change',async e=>{await loadDatasets([...e.target.files]);e.target.value='';setView('work');});
+$('#chat-dataset-file').addEventListener('change',async e=>{const version=state.workspaceVersion;await loadDatasets([...e.target.files]);if(version===state.workspaceVersion){e.target.value='';setView('work');}});
 $('#import-api-response').addEventListener('click', () => {
   try {
     const dataset = importApiResponse($('#api-response-name').value, $('#api-response-text').value);
@@ -398,14 +433,16 @@ $('#export-project').addEventListener('click', exportProject);
 $('#import-project').addEventListener('click', () => $('#project-file').click());
 $('#project-file').addEventListener('change', async e => {
   const file = e.target.files[0]; if (!file) return;
+  const version=state.workspaceVersion;
   try {
     if (file.size > 3000000) throw new Error('백업 파일은 3MB 이하여야 합니다.');
     const parsed = JSON.parse(await file.text()); if (parsed.format !== 'hyfl-studio' || parsed.version !== 2) throw new Error('이 작업실에서 내려받은 프로젝트 백업 파일을 선택해주세요.');
+    if(version!==state.workspaceVersion)return;
     const project = normalizeProject(parsed.project);
     if (!confirm('현재 프로젝트 전체를 백업 내용으로 바꿀까요? 현재 작업이 필요하면 취소하고 먼저 백업을 내려받으세요.')) return;
     state.project = project; state.pending = null; markDirty(); renderAll(); setView('work'); toast('프로젝트 백업을 가져왔습니다.');
   } catch (error) { toast(errorMessage(error)); }
-  finally { e.target.value = ''; }
+  finally { if(version===state.workspaceVersion)e.target.value = ''; }
 });
 $('#conflict-reload').addEventListener('click', async () => {
   if (!confirm('현재 기기의 작업을 백업 파일로 내려받고, 다른 기기에서 저장한 최신 작업을 불러올까요?')) return;
@@ -419,6 +456,12 @@ window.addEventListener('message', event => {
   if (message && !state.errors.some(e => e.message === message && e.where === where)) { state.errors.push({ message, where }); renderErrors(); }
 });
 window.addEventListener('beforeunload', event => { if (state.dirty || state.busy) { cacheProject(); event.preventDefault(); event.returnValue = ''; } });
+window.addEventListener('storage',event=>{
+  if(event.key!==sessionNoticeKey||!state.user||state.demo)return;
+  try{if(JSON.parse(event.newValue||'null')?.ownerId===state.user.id)return;}catch{}
+  leaveWorkspace('다른 탭에서 로그인한 팀이 바뀌었습니다. 우리 팀으로 다시 로그인해주세요.');
+});
+window.addEventListener('focus',()=>{if(state.user&&!state.demo)api('session').catch(()=>{});});
 document.addEventListener('visibilitychange', () => { if (document.hidden) { cacheProject(); saveNow(); } });
 
 async function init() {
