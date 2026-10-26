@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import {datasetTable,dataNumber,numericSummary,datasetProfile,buildQuickChart,buildDocument,importHtml,exportConversation,emptyProject} from '../lib/workspace.mjs';
+import {datasetTable,dataNumber,numericSummary,datasetProfile,seriesInfo,buildQuickChart,buildDocument,importHtml,exportConversation,emptyProject} from '../lib/workspace.mjs';
 import {datasetContext,buildPrompt} from '../lib/server/prompts.mjs';
 import {fixtures} from './fixtures/public-api-data.mjs';
 
@@ -65,12 +65,20 @@ test('quick chart executes full data, displays limits, keeps tail rows in export
 test('quick chart separates weather categories and forecast issuance; categorical rain never becomes zero',()=>{
   const app=runChart([{id:'weather',name:'기상.json',format:'json',text:JSON.stringify(fixtures['forecast.json'])}]);
   assert.match(app.get('summary').textContent,/선택 4행.*평균 -0.5/);
+  assert.match(app.get('series-note').textContent,/예보값.*TMP.*℃.*발표 20261024 2300.*예보 대상 20261025/);
   app.selectFilter('baseDate','20261025');app.selectFilter('baseTime','0200');
   assert.match(app.get('summary').textContent,/선택 4행.*평균 9.5/);
   app.selectFilter('category','PCP');
   assert.match(app.get('summary').textContent,/숫자 0개.*4개 제외/);
   assert.match(app.get('table').textContent,/강수없음.*1mm 미만/);
   assert.match(app.get('chart').textContent,/숫자가 없습니다/);
+});
+
+test('weather classification codes are not averaged and observation/air units and times are explicit',()=>{
+  const data={id:'code',name:'분류.json',format:'json',text:JSON.stringify({response:{body:{items:{item:[{category:'SKY',baseDate:'20261026',baseTime:'0200',fcstDate:'20261026',fcstTime:'0300',fcstValue:'1'},{category:'SKY',baseDate:'20261026',baseTime:'0200',fcstDate:'20261026',fcstTime:'0400',fcstValue:'4'}]}}}})};
+  const app=runChart([data]);assert.match(app.get('summary').textContent,/분류 코드: 평균·수치 그래프를 계산하지 않습니다/);assert.equal(app.get('chart').querySelectorAll('svg').length,0);assert.match(app.get('table').textContent,/0300.*1.*0400.*4/);
+  const obs=seriesInfo(['category','baseDate','baseTime','obsrValue'],[['T1H','20261026','0900','12']],'obsrValue');assert.match(obs.note,/실황 관측값.*℃.*발표 20261026 0900/);assert.doesNotMatch(obs.note,/예보 대상/);
+  const air=seriesInfo(['stationName','dataTime','pm10Value'],[['검증-A','2026-10-26 09:00','0']],'pm10Value');assert.equal(air.unit,'μg/m³');assert.match(air.note,/측정 시각 2026-10-26 09:00/);
 });
 
 test('conversation export uses actual messages and never invents worksheet verification',()=>{

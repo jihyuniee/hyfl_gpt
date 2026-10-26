@@ -147,8 +147,14 @@ function renderPreview() {
   const code = state.pending?.code || state.project.code;
   show('#proposal-banner', Boolean(state.pending));
   const hasCode = Boolean(code.trim()); show('#workspace-empty', !hasCode); show('#preview-frame', hasCode);
-  if (hasCode) $('#preview-frame').srcdoc = buildDocument(code, state.project.datasets, { preview: true, nonce: state.nonce });
-  else $('#preview-frame').srcdoc = '';
+  // A fresh browsing context also paints reliably after the workspace was
+  // hidden. Reusing an opaque srcdoc frame left a calculated but blank result
+  // in deployed Chromium. Preserve all sandbox/referrer attributes.
+  const previousFrame = $('#preview-frame');
+  const frame = previousFrame.cloneNode(false);
+  frame.removeAttribute('srcdoc');
+  previousFrame.replaceWith(frame);
+  if (hasCode) frame.srcdoc = buildDocument(code, state.project.datasets, { preview: true, nonce: state.nonce });
   $('#code-editor').value = code;
   $('#download-html').disabled = !hasCode;
 }
