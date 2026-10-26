@@ -54,6 +54,8 @@ JSON이면 스튜디오의 'API 응답 붙여넣기'로 연결하는 방법을 �
 ];
 const firstAppPrompt = {label:'조건을 골라 조회하기',mode:'build',prompt:'첨부 자료에서 지역·연도·항목처럼 조건으로 고를 수 있는 열을 확인해서, 조건을 선택하면 일치하는 행이 나오는 작은 웹앱을 만들어줘. 전체 데이터를 읽고 조건에 맞는 자료가 없으면 없다고 표시해줘. 자료에 없는 정보는 만들지 말고 실제로 실행되는 HTML을 만들어줘.'};
 const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', dirty: false, generation: 0, workspaceVersion: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
+const layout={share:48,sidebarCollapsed:false,drag:null};
+const layoutKey="hyfl-studio-layout-v1";
 let toastTimer;
 function toast(message) { text('#toast', message); $('#toast').classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 4500); }
 function errorMessage(error) { return error?.message || '요청을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.'; }
@@ -89,7 +91,7 @@ function cacheProject() {
 function staleWorkspace() { const error=new Error('이전 팀의 요청 결과를 적용하지 않았습니다.');error.code='STALE_WORKSPACE';return error; }
 function resetWorkspace() {
   clearTimeout(state.saveTimer);clearTimeout(state.localTimer);
-  setWorkspaceSurface('split');$('.ai-options').open=false;
+  setWorkspaceSurface('chat');
   state.workspaceVersion++;state.user=null;state.demo=false;state.usage=null;state.project=emptyProject();state.revision=0;state.pending=null;state.recovery=null;state.dirty=false;state.saving=false;state.busy=false;state.conflict=false;state.aiError='';state.errors=[];state.admin=null;state.generation=0;
   for(const selector of ['#prompt-input','#api-response-name','#api-response-text','#code-file','#chat-dataset-file','#dataset-file','#project-file']) $(selector).value='';
   text('#api-response-status','');show('#conflict-banner',false);
@@ -136,17 +138,58 @@ function setView(view) {
   $$('[data-panel]').forEach(el => { el.hidden = el.dataset.panel !== view; });
   $$('[data-view]').forEach(el => { el.classList.toggle('active', el.dataset.view === view); el.setAttribute('aria-current', el.dataset.view === view ? 'page' : 'false'); });
   $('.sidebar')?.classList.remove('is-open');
-  $('#mobile-menu-button').setAttribute('aria-expanded', 'false');
+  $('#mobile-menu-button').setAttribute('aria-expanded',String(!layout.sidebarCollapsed));
   if (view === 'admin') loadAdmin();
 }
 function setWorkspaceSurface(surface) {
   if(!['split','chat','preview'].includes(surface))return;
+  if(surface==='split'&&window.matchMedia?.('(max-width: 760px)').matches)surface='preview';
   for(const name of ['split','chat','preview'])$('#surface-'+name).checked=name===surface;
 }
+function saveLayout(){try{localStorage.setItem(layoutKey,JSON.stringify({share:layout.share,sidebarCollapsed:layout.sidebarCollapsed}));}catch{}}
+function setWorkspaceShare(value,{save=true}={}){
+  if(!Number.isFinite(Number(value)))return;
+  layout.share=Math.max(25,Math.min(75,Number(value)));
+  $('#app-screen').style.setProperty('--chat-share',layout.share+'%');
+  $('#workspace-divider').setAttribute('aria-valuenow',String(Math.round(layout.share)));
+  if(save)saveLayout();
+}
+function setSidebarCollapsed(collapsed,{save=true}={}){
+  layout.sidebarCollapsed=Boolean(collapsed);$('#app-screen').dataset.sidebar=collapsed?'collapsed':'expanded';
+  $('#app-sidebar').inert=Boolean(collapsed);$('#app-sidebar').setAttribute('aria-hidden',String(Boolean(collapsed)));
+  $('#mobile-menu-button').setAttribute('aria-expanded',String(!collapsed));
+  $('#mobile-menu-button').setAttribute('aria-label',collapsed?'사이드바 펼치기':'사이드바 접기');
+  if(save)saveLayout();
+}
+function resizePrompt(){
+  const input=$('#prompt-input');input.style.height='0px';input.style.height=Math.max(44,Math.min(180,input.scrollHeight||44))+'px';
+}
+function startResize(event){
+  if(event.button!==0&&event.pointerType!=='touch')return;
+  const rect=$('.studio-grid').getBoundingClientRect();if(rect.width<650)return;
+  event.preventDefault();layout.drag={left:rect.left,width:rect.width,pointerId:event.pointerId};
+  $('#workspace-divider').setPointerCapture(event.pointerId);$('#app-screen').classList.add('is-resizing');
+}
+function moveResize(event){
+  if(!layout.drag||event.pointerId!==layout.drag.pointerId)return;
+  const {left,width}=layout.drag,min=Math.max(25,320/width*100);
+  setWorkspaceShare(Math.max(min,Math.min(100-min,(event.clientX-left)/width*100)),{save:false});
+}
+function stopResize(event){
+  if(!layout.drag||event.pointerId!==layout.drag.pointerId)return;
+  layout.drag=null;$('#app-screen').classList.remove('is-resizing');saveLayout();
+}
+function initializeLayout(){
+  let prefs;try{prefs=JSON.parse(localStorage.getItem(layoutKey)||'null');}catch{}
+  setWorkspaceShare(prefs?.share??48,{save:false});
+  setSidebarCollapsed(typeof prefs?.sidebarCollapsed==='boolean'?prefs.sidebarCollapsed:Boolean(window.matchMedia?.('(max-width: 760px)').matches),{save:false});
+  resizePrompt();
+}
+
 function setMode(mode) {
-  state.mode = mode;
+  state.mode = mode;$('#mode-select').value=mode;
   $$('[data-mode]').forEach(el => { el.classList.toggle('active', el.dataset.mode === mode); el.setAttribute('aria-pressed', String(el.dataset.mode === mode)); });
-  const placeholders = { build: '예: 이 자료로 동을 선택하면 의류수거함 위치 목록이 나오게 만들어 줘.\n또는: 연도를 고르면 해당 연도의 값이 나오게 만들어 줘.', edit: '예: 동을 바꾸면 이전 검색 결과가 지워지게 고쳐 줘.', debug: '예: 2020년을 골랐는데 결과가 비어 있어. 원자료에는 값이 있으니 고쳐 줘.', explain: '자료나 실행 결과에서 궁금한 점을 물어보세요.' };
+  const placeholders = { build: '무엇을 만들거나 고칠까요? 파일을 함께 넣어도 됩니다.', edit: '예: 동을 바꾸면 이전 검색 결과가 지워지게 고쳐 줘.', debug: '예: 2020년을 골랐는데 결과가 비어 있어. 원자료에는 값이 있으니 고쳐 줘.', explain: '자료나 실행 결과에서 궁금한 점을 물어보세요.' };
   $('#prompt-input').placeholder = placeholders[mode];
   updateAiState();
 }
@@ -162,15 +205,16 @@ function renderProviders() {
 function updateAiState() {
   const disabled = state.demo || state.user?.role !== 'student' || state.config?.aiEnabled === false || !state.provider || state.busy || state.conflict || Boolean(state.pending);
   $('#ai-submit').disabled = disabled;
-  $('#ai-submit').textContent = state.busy ? '만드는 중…' : state.mode==='explain' ? 'AI에게 물어보기' : '결과 만들기';
-  if (state.busy) text('#ai-status', '자료와 요청을 바탕으로 작업하고 있습니다. 완성한 결과는 오른쪽에 표시됩니다.');
+  $('#ai-submit').textContent=state.busy?'…':'↑';$('#ai-submit').setAttribute('aria-label',state.busy?'AI 작업 중':state.mode==='explain'?'AI에게 물어보기':'요청 보내기');
+  resizePrompt();
+  if(state.busy)text('#ai-status',state.mode==='explain'?'답변을 준비하고 있습니다…':'웹앱을 만들고 있습니다. 결과가 준비되면 오른쪽에서 열립니다.');
   else if (state.aiError) text('#ai-status', state.aiError);
   else if(state.pending)text('#ai-status','수정안을 먼저 실행해 보세요. 적용하거나 원래 결과로 돌아온 뒤 다음 요청을 보낼 수 있습니다.');
   else if (state.demo) text('#ai-status', '둘러보기는 팀 자료를 불러오거나 저장하지 않습니다. 새로고침하면 초기화됩니다. AI는 팀 로그인 후 이용합니다.');
   else if (state.user?.role === 'teacher') text('#ai-status', '교사 화면에서는 운영 상태를 확인합니다. 학생은 팀 계정으로 작업합니다.');
   else if (state.config?.aiEnabled === false) text('#ai-status', '선생님이 AI 요청을 잠시 멈췄습니다. 코드 편집과 저장은 계속할 수 있습니다.');
   else if (!state.provider) text('#ai-status', 'AI 연결을 준비 중입니다. 선생님에게 알려주세요.');
-  else text('#ai-status', '원하는 기능을 쓰고 결과 만들기를 누르세요. 수정한 결과는 오른쪽에서 먼저 실행해 볼 수 있어요.');
+  else text('#ai-status','Enter로 보내기 · Shift+Enter로 줄바꿈 · API 키·개인정보는 넣지 마세요.');
 }
 function renderUsage() {
   text('#usage-label', state.demo ? '둘러보기' : state.user?.role === 'teacher' ? '교사 관리' : state.usage ? `오늘 ${state.usage.requests ?? 0} / ${state.usage.dailyRequests ?? state.config?.limits?.dailyRequests ?? 12}회` : '사용량 확인 중');
@@ -182,8 +226,8 @@ function renderChat() {
   if (!state.project.messages.length) {
     const hasData=state.project.datasets.length>0;
     const hasCode=Boolean(state.project.code.trim());
-    const choices = [firstAppPrompt,workPrompts[0]];
-    container.innerHTML = `<div class="empty-state chat-welcome"><h3>${hasData?'자료를 연결했어요. 필요한 기능을 요청하세요.':hasCode?'현재 결과를 눌러보고 기능 하나를 고쳐보세요.':'자료를 연결하고 원하는 기능을 요청하세요.'}</h3><p>${hasCode?'현재 결과를 확인하고, 필요한 조회·그래프·지도 기능이나 고칠 부분을 말하세요.':hasData?'활동지에서 설계한 기능을 아래에 요청하세요.':'위의 자료 파일 넣기 또는 만들던 앱 가져오기로 시작하세요.'}</p><details class="request-examples"><summary>어떻게 요청하나요?</summary><p>“동을 선택하면 의류수거함 위치 목록이 나오게 만들어 줘.”<br>“연도를 선택하면 해당 연도의 값이 나오게 만들어 줘.”<br>“지역을 바꿔도 결과가 그대로야. 고쳐 줘.”</p></details><div class="prompt-suggestions">${choices.map(item=>`<button type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}">${item.label}<span aria-hidden="true">→</span></button>`).join('')}</div><p class="prompt-draft-note">버튼으로 요청 예시를 넣거나, 아래에 직접 쓰고 결과 만들기를 누르세요.</p></div>`;
+    const choices=[{label:'파일로 표·그래프 만들기',...workPrompts[0]},workPrompts[2]];
+    container.innerHTML=`<div class="chat-welcome"><h3>${hasData?'이 자료로 무엇을 해볼까요?':hasCode?'만들던 작업을 이어가세요.':'지금 필요한 작업을 말해보세요.'}</h3><p>${hasData?'자료를 살펴보거나, 원하는 웹앱 기능을 요청하세요.':hasCode?'앱을 실행해 보고 고칠 부분이나 추가할 기능을 말하면 됩니다.':'파일을 넣고 분석하거나, 만들던 HTML을 가져와 고칠 수 있어요.'}</p><div class="prompt-suggestions">${choices.map(item=>`<button type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}">${item.label}<span aria-hidden="true">↗</span></button>`).join('')}<button type="button" data-action="import-app">만들던 앱 이어서 고치기<span aria-hidden="true">↗</span></button></div></div>`;
     return;
   }
   container.innerHTML=state.project.messages.map(m=>{
@@ -200,6 +244,7 @@ function renderDatasets() {
   const list = $('#dataset-list');
   const owner=state.demo?'둘러보기 자료 · 팀에 저장되지 않습니다.':state.user?.role==='student'?`2학년 ${state.user.cls}반 · ${state.user.name}의 자료 · 같은 팀원과 공유`:'팀 로그인 후 우리 팀 자료만 불러옵니다.';
   text('#data-owner-label',owner);text('#project-data-owner-label',owner);
+  show('#composer-attachments',state.project.datasets.length>0);
   text('#attachment-count', state.project.datasets.length ? `${state.project.datasets.length}개 자료 연결 · 원문 전체 사용` : 'CSV · TSV · JSON · TXT');
   $('#chat-datasets').innerHTML=state.project.datasets.map(d=>`<button type="button" class="attachment-chip" data-view="project" title="연결된 자료 정보 보기">${escapeHTML(d.name)}</button>`).join('');
   if (!state.project.datasets.length) { list.innerHTML = '<div class="empty-state compact"><p>파일을 연결하면 바로 표·그래프를 볼 수 있어요.</p><small>파일 전체가 미리보기와 내려받은 웹앱에 함께 들어갑니다. 합계 320KB · 최대 8개</small></div>'; return; }
@@ -222,8 +267,7 @@ function usePromptDraft(prompt,mode='build') {
   const previous=$('#prompt-input').value.trim();
   if(previous&&previous!==prompt.trim()&&!confirm('작성 중인 요청을 이 예시로 바꿀까요?'))return;
   setView('work');setWorkspaceSurface('chat');setMode(mode);
-  if(mode==='explain')$('.ai-options').open=true;
-  $('#prompt-input').value=prompt;$('#prompt-input').focus();
+  $('#prompt-input').value=prompt;resizePrompt();$('#prompt-input').focus();
   toast('초안을 넣었습니다. 대괄호 내용을 고친 뒤 전송하세요. 아직 AI 사용량은 차감되지 않았습니다.');
 }
 
@@ -241,7 +285,7 @@ function renderPreview() {
   previousFrame.replaceWith(frame);
   if (hasCode) frame.srcdoc = buildDocument(code, state.project.datasets, { preview: true, nonce: state.nonce });
   $('#code-editor').value = code;
-  $('#download-html').disabled = !hasCode;
+  $('#download-html').disabled = !hasCode;$('#open-result').disabled=!hasCode;
 }
 function renderErrors() {
   $('#runtime-errors').innerHTML = state.errors.length ? `<div class="error-heading"><strong>실행 중 확인된 오류 ${state.errors.length}개</strong><button class="button secondary small" type="button" data-action="debug-errors">이 오류를 AI와 해결</button></div>${state.errors.slice(-4).map(e => `<p>${escapeHTML(e.message)}${e.where ? `<small>${escapeHTML(e.where)}</small>` : ''}</p>`).join('')}` : '';
@@ -327,7 +371,7 @@ async function requestAI(event) {
     if (result.usage) state.usage = result.usage; markDirty();
     if (result.code && !codeAtRequest.trim() && state.project.code === codeAtRequest && JSON.stringify(state.project.datasets) === dataAtRequest) { state.project=replaceCode(state.project,result.code,'AI 첫 결과'); state.pending=null; markDirty(); toast('AI가 만든 첫 결과를 실행했습니다.'); }
     renderChat(); renderUsage(); renderPreview(); renderVersions();
-    if(result.code){setWorkspaceSurface('preview');}
+    if(result.code){setWorkspaceSurface('split');}
     if (state.pending) toast('수정 제안을 오른쪽에서 미리 볼 수 있습니다.');
   } catch (error) { if(version!==state.workspaceVersion)return;state.aiError = errorMessage(error); toast(state.aiError); text('#ai-status', state.aiError); $('#prompt-input').value = prompt; try { const session = await api('session'); state.usage = session.usage; state.config = session.config || state.config; renderUsage(); } catch {} }
   finally { if(version===state.workspaceVersion){state.busy = false; renderProviders();} }
@@ -354,7 +398,7 @@ async function loadCode(file) {
     if (state.project.code && !confirm('현재 코드를 이전 버전에 보관하고 가져온 HTML로 바꿀까요?')) return;
     state.project = replaceCode(state.project, imported.code, 'HTML 가져오기 전');
     if (imported.datasets) state.project.datasets = imported.datasets;
-    state.project.checks = {}; state.pending = null; markDirty(); renderPreview(); renderVersions(); renderDatasets(); renderChat(); setView('work'); toast('HTML을 가져왔습니다. 오른쪽에서 바로 실행해보세요.');
+    state.project.checks = {}; state.pending = null; markDirty(); renderPreview(); renderVersions(); renderDatasets(); renderChat(); setView('work');setWorkspaceSurface('split'); toast('HTML을 가져왔습니다. 오른쪽에서 바로 실행해보세요.');
   } catch (error) { toast(errorMessage(error)); }
   finally { if(version===state.workspaceVersion)$('#code-file').value = ''; }
 }
@@ -414,6 +458,7 @@ async function saveAdmin(event) {
 
 document.addEventListener('click', async event => {
   const button = event.target.closest('button'); if (!button) return;
+  $('#attach-menu').open=false;
   if (button.dataset.authTab) return authTab(button.dataset.authTab);
   if (button.dataset.view) return setView(button.dataset.view);
   if (button.dataset.mode) return setMode(button.dataset.mode);
@@ -424,6 +469,7 @@ document.addEventListener('click', async event => {
   const action = button.dataset.action; const id = button.dataset.id;
   try {
     if(action==='api-help'){setView('guide');$('#api-help-title').focus();}
+    else if(action==='import-app')$('#code-file').click();
     else if(action==='request-help'){setView('guide');$('#work-help-title').focus();}
     else if(action==='copy-api-prompt'){
       const item=apiHelpPrompts[Number(id)];if(!item)return;
@@ -452,7 +498,7 @@ $('#login-class').addEventListener('change', loadTeams);
 $('#demo-button').addEventListener('click', () => enterWorkspace({}, true));
 $('#ai-form').addEventListener('submit', requestAI);
 $('#provider-select').addEventListener('change', e => { state.provider = e.target.value; updateAiState(); });
-$('#mobile-menu-button').addEventListener('click', () => { const open = $('.sidebar').classList.toggle('is-open'); $('#mobile-menu-button').setAttribute('aria-expanded', String(open)); });
+$('#mobile-menu-button').addEventListener('click',()=>setSidebarCollapsed(!layout.sidebarCollapsed));
 $('#logout-button').addEventListener('click', async () => {
   const version=state.workspaceVersion;
   if (state.busy) { toast('AI 요청이 끝난 뒤 나가주세요.'); return; }
@@ -473,7 +519,24 @@ $('#import-code-button').addEventListener('click', () => $('#code-file').click()
 $('#code-file').addEventListener('change', e => loadCode(e.target.files[0]));
 $('#dataset-file').addEventListener('change', e => loadDatasets([...e.target.files]));
 $('#attach-data').addEventListener('click',()=>$('#chat-dataset-file').click());
-$('#chat-dataset-file').addEventListener('change',async e=>{const version=state.workspaceVersion;await loadDatasets([...e.target.files]);if(version===state.workspaceVersion){e.target.value='';setView('work');}});
+$('#chat-dataset-file').addEventListener('change',async e=>{const version=state.workspaceVersion;await attachFiles([...e.target.files]);if(version===state.workspaceVersion){e.target.value='';setView('work');}});
+async function attachFiles(files){
+  if(!files.length)return;const version=state.workspaceVersion;
+  const html=files.filter(file=>/\.html?$/i.test(file.name));
+  if(html.length&&files.length!==1){toast('HTML은 한 개씩 가져오세요. 데이터 파일은 그다음에 추가할 수 있습니다.');return;}
+  if(html.length)await loadCode(html[0]);else await loadDatasets(files);
+  if(version===state.workspaceVersion){setView('work');$('#attach-menu').open=false;}
+}
+$('#mode-select').addEventListener('change',event=>setMode(event.target.value));
+$('#prompt-input').addEventListener('input',resizePrompt);
+$('#prompt-input').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&!$('#ai-submit').disabled&&$('#prompt-input').value.trim()){event.preventDefault();requestAI(event);}});
+$('#workspace-divider').addEventListener('pointerdown',startResize);
+window.addEventListener('pointermove',moveResize);window.addEventListener('pointerup',stopResize);window.addEventListener('pointercancel',stopResize);
+$('#workspace-divider').addEventListener('dblclick',()=>setWorkspaceShare(48));
+$('#workspace-divider').addEventListener('keydown',event=>{const values={ArrowLeft:layout.share-3,ArrowRight:layout.share+3,Home:25,End:75,Enter:48};if(values[event.key]!==undefined){event.preventDefault();setWorkspaceShare(values[event.key]);}});
+$('#workspace-main').addEventListener('dragover',event=>{if([...event.dataTransfer.types].includes('Files')){event.preventDefault();show('#file-drop-hint');}});
+$('#workspace-main').addEventListener('dragleave',event=>{if(!event.currentTarget.contains(event.relatedTarget))show('#file-drop-hint',false);});
+$('#workspace-main').addEventListener('drop',async event=>{event.preventDefault();show('#file-drop-hint',false);await attachFiles([...event.dataTransfer.files]);});
 $('#import-api-response').addEventListener('click', () => {
   try {
     const dataset = importApiResponse($('#api-response-name').value, $('#api-response-text').value);
@@ -528,6 +591,7 @@ window.addEventListener('focus',()=>{if(state.user&&!state.demo)api('session').c
 document.addEventListener('visibilitychange', () => { if (document.hidden) { cacheProject(); saveNow(); } });
 
 async function init() {
+  initializeLayout();
   try {
     const session = await api('session'); state.config = session.config; state.provider = session.config?.defaultProvider || 'gpt';
     if (session.user) { await enterWorkspace(session); return; }

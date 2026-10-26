@@ -7,6 +7,7 @@
   <meta name="description" content="인공지능 원리탐구 2학기. 같은 AI 환경에서 데이터를 작동하는 웹앱으로 만들고, 확인하고, 배움을 기록하는 팀 작업 공간입니다.">
   <title>인탐 스튜디오 · AI × DATA</title>
   <link rel="stylesheet" href="/assets/styles.css">
+  <link rel="stylesheet" href="/assets/chat-workspace.css">
 </head>
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -96,14 +97,14 @@
   <div id="app-screen" class="app-shell" hidden>
     <a class="skip-link" href="#workspace-main">작업 공간 본문으로 바로 가기</a>
     <header class="app-header">
-      <div class="app-brand-area"><button id="mobile-menu-button" type="button" class="icon-button mobile-menu-button" aria-label="전체 메뉴 보기" aria-controls="app-sidebar" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#icon-menu"/></svg></button><a href="/" class="brand app-brand" aria-label="인탐 스튜디오 홈"><span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#icon-grid"/></svg></span><span class="brand-name">인탐 <span>스튜디오</span></span></a></div>
+      <div class="app-brand-area"><button id="mobile-menu-button" type="button" class="icon-button mobile-menu-button" aria-label="사이드바 접기" aria-controls="app-sidebar" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#icon-menu"/></svg></button><a href="/" class="brand app-brand" aria-label="인탐 스튜디오 홈"><span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#icon-grid"/></svg></span><span class="brand-name">인탐 <span>스튜디오</span></span></a></div>
       <div class="app-project-heading"><div class="project-meta"><span id="team-label" class="team-label">우리 팀</span><span class="meta-separator" aria-hidden="true">/</span><span class="semester-label">2학기 프로젝트</span></div><h1 id="project-heading">우리의 데이터 웹앱</h1></div>
       <div class="app-header-actions"><span id="save-status" class="save-status" role="status">프로젝트 준비 중</span><span id="usage-label" class="usage-label">사용량 확인 중</span><button id="logout-button" type="button" class="icon-button" aria-label="로그아웃" title="로그아웃"><svg class="icon" aria-hidden="true"><use href="#icon-logout"/></svg></button></div>
     </header>
     <div class="app-body">
       <aside id="app-sidebar" class="sidebar" aria-label="스튜디오 메뉴">
         <div class="sidebar-main"><p class="nav-caption">우리 팀의 작업</p><nav class="sidebar-nav" aria-label="주요 메뉴">
-          <button type="button" class="nav-item active" data-view="work" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg><span>실행 작업실</span><span class="nav-indicator" aria-hidden="true"></span></button>
+          <button type="button" class="nav-item active" data-view="work" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg><span>작업실</span><span class="nav-indicator" aria-hidden="true"></span></button>
           <button type="button" class="nav-item" data-view="project"><svg class="icon" aria-hidden="true"><use href="#icon-project"/></svg><span>자료</span></button>
           <button type="button" class="nav-item" data-view="check"><svg class="icon" aria-hidden="true"><use href="#icon-check"/></svg><span>저장·내보내기</span></button>
           <button type="button" class="nav-item" data-view="history"><svg class="icon" aria-hidden="true"><use href="#icon-history"/></svg><span>이전 버전</span></button>
@@ -117,29 +118,48 @@
         <div id="conflict-banner" class="conflict-banner" role="alert" hidden><div><strong>팀 프로젝트에 새 변경 사항이 있어요.</strong><p>다른 팀원이 저장한 최신 버전을 불러온 뒤 작업을 이어가세요.</p></div><button id="conflict-reload" type="button" class="button secondary small">최신 버전 불러오기</button></div>
 
         <section class="work-panel" data-panel="work" aria-labelledby="work-title">
-          <div class="panel-heading work-heading"><div><h2 id="work-title">자료로 만들고, 바로 실행하세요.</h2><p>자료 연결 → AI에게 기능 요청 → 결과 실행·수정. 기록은 기존 활동지에 남깁니다.</p></div><span class="workspace-label">팀 공동 작업</span></div>
-          <section class="task-materials" aria-labelledby="materials-title"><div class="materials-heading"><h3 id="materials-title">1. 자료 연결</h3><p id="data-owner-label" class="data-owner-label"></p></div><div class="composer-files"><button id="attach-data" type="button" class="button secondary small"><svg class="icon" aria-hidden="true"><use href="#icon-upload"/></svg>자료 파일 넣기</button><button type="button" class="button subtle small" data-action="paste-response">API 응답 붙여넣기</button><button id="import-code-button" type="button" class="button secondary small"><svg class="icon" aria-hidden="true"><use href="#icon-upload"/></svg><span>만들던 앱 가져오기</span></button><input id="code-file" type="file" accept=".html,.htm,.txt" hidden></div><input id="chat-dataset-file" type="file" accept=".csv,.tsv,.json,.txt" multiple hidden><div class="materials-meta"><span id="attachment-count">CSV · TSV · JSON · TXT</span><button type="button" class="api-help-link" data-action="api-help">인증키를 받았는데 다음에 어떻게 하죠? →</button></div><div id="chat-datasets" class="attachment-list"></div></section>
-          <fieldset class="workspace-switch"><legend class="sr-only">작업 화면 선택</legend><input id="surface-split" type="radio" name="workspace-surface" value="split" checked><label for="surface-split">함께 보기</label><input id="surface-chat" type="radio" name="workspace-surface" value="chat"><label for="surface-chat"><svg class="icon" aria-hidden="true"><use href="#icon-bubble"/></svg>대화 넓게</label><input id="surface-preview" type="radio" name="workspace-surface" value="preview"><label for="surface-preview"><svg class="icon" aria-hidden="true"><use href="#icon-monitor"/></svg>결과 넓게</label><span class="layout-hint">보기만 바뀌며 작업은 유지됩니다.</span></fieldset>
+          <h2 id="work-title" class="sr-only">AI 작업실</h2>
+          <div class="workspace-topbar">
+            <div class="ai-options"><label for="provider-select" class="sr-only">사용할 AI</label><select id="provider-select" class="provider-select"><option value="gpt">GPT</option><option value="claude">Claude</option></select></div>
+            <fieldset class="workspace-switch"><legend class="sr-only">작업 화면 선택</legend>
+              <input id="surface-chat" type="radio" name="workspace-surface" value="chat" checked><label for="surface-chat">대화</label>
+              <input id="surface-split" type="radio" name="workspace-surface" value="split"><label for="surface-split">나란히</label>
+              <input id="surface-preview" type="radio" name="workspace-surface" value="preview"><label for="surface-preview">결과만</label>
+            </fieldset>
+            <button id="open-result" type="button" class="button subtle small" data-surface="split">결과 열기 <svg class="icon" aria-hidden="true"><use href="#icon-monitor"/></svg></button>
+          </div>
           <div class="studio-grid">
-            <section class="chat-panel" aria-labelledby="chat-title">
-
-              <div class="chat-panel-header"><h3 id="chat-title">2. AI와 만들기</h3><button type="button" class="button subtle small" data-action="request-help">요청 예시</button></div>
-              <details class="ai-options"><summary>AI 선택·질문 모드</summary><div class="provider-options"><label for="provider-select">사용할 AI</label><select id="provider-select" class="provider-select"><option value="gpt">GPT</option><option value="claude">Claude</option></select></div>
-              <div id="mode-buttons" class="mode-buttons" role="group" aria-label="AI에게 요청할 작업"><button type="button" class="active" data-mode="build" aria-pressed="true"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg>만들기·고치기</button><button type="button" data-mode="edit" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#icon-edit"/></svg>수정</button><button type="button" data-mode="debug" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#icon-bug"/></svg>오류 해결</button><button type="button" data-mode="explain" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#icon-bubble"/></svg>질문·해석</button></div>
-              </details>
-              <div id="chat-messages" class="chat-messages" aria-live="polite" aria-relevant="additions text"><div class="chat-welcome"><h4>고칠 부분을 하나 정해보세요.</h4><p>만들던 코드가 있다면 먼저 가져오세요.<br>바꿀 기능과 기대하는 결과를 구체적으로 적으면 됩니다.</p><div class="prompt-example"><span>요청 예시</span><p>“지역을 선택하면 그 지역의 데이터만 볼 수 있는 기능을 추가해줘.”</p></div></div></div>
-              <form id="ai-form" class="ai-form"><label class="sr-only" for="prompt-input">AI에게 요청할 내용</label><textarea id="prompt-input" name="prompt" rows="5" maxlength="6000" placeholder="어떤 기능을 만들거나 바꿀까요?" required></textarea><div class="composer-bottom"><span>요청을 보내면 AI 사용량이 차감됩니다.</span><button id="ai-submit" type="submit" class="button primary small">요청하기 <svg class="icon" aria-hidden="true"><use href="#icon-arrow-up"/></svg></button></div><p id="ai-status" class="ai-status" role="status" aria-live="polite"></p><button id="show-pending" type="button" class="button secondary small" data-surface="preview" hidden>수정안 실행해 보기</button></form>
-              <p class="chat-footnote">직접 눌러 확인한 결과와 고친 내용은 활동지 STEP 2-4·STEP 4에 적으세요.</p>
+            <section class="chat-panel" aria-labelledby="chat-title"><h3 id="chat-title" class="sr-only">AI와 대화</h3>
+              <div id="chat-messages" class="chat-messages" aria-live="polite" aria-relevant="additions text"></div>
+              <form id="ai-form" class="ai-form">
+                <div id="composer-attachments" class="task-materials" hidden><p id="data-owner-label" class="sr-only"></p><span id="attachment-count" class="sr-only"></span><div id="chat-datasets" class="attachment-list"></div></div>
+                <label class="sr-only" for="prompt-input">AI에게 요청할 내용</label><textarea id="prompt-input" name="prompt" rows="1" maxlength="6000" placeholder="무엇을 만들거나 고칠까요? 파일을 함께 넣어도 됩니다." required></textarea>
+                <div class="composer-bottom">
+                  <div class="composer-actions"><details id="attach-menu" class="attach-menu"><summary aria-label="파일 및 도구 추가" title="파일 및 도구 추가"><span aria-hidden="true">+</span><span class="sr-only">파일 및 도구 추가</span></summary><div class="attach-popover">
+                    <button id="attach-data" type="button">파일 추가 <small>CSV · TSV · JSON · TXT · HTML</small></button>
+                    <button id="import-code-button" type="button">만들던 HTML 가져오기</button>
+                    <button type="button" data-action="paste-response">API 응답 붙여넣기</button>
+                    <button type="button" data-action="api-help">API 요청·오류 도움</button>
+                    <button type="button" data-action="request-help">요청 예시</button>
+                  </div></details>
+                  <label for="mode-select" class="sr-only">AI에게 요청할 작업</label><select id="mode-select"><option value="build">웹앱 만들기·고치기</option><option value="explain">질문·데이터 해석</option><option value="edit">기능 수정</option><option value="debug">오류 해결</option></select></div>
+                  <button id="show-pending" type="button" class="button secondary small" data-surface="split" hidden>수정안 보기</button>
+                  <button id="ai-submit" type="submit" class="button primary" aria-label="요청 보내기">↑</button>
+                </div>
+                <input id="chat-dataset-file" type="file" accept=".csv,.tsv,.json,.txt,.html,.htm" multiple hidden><input id="code-file" type="file" accept=".html,.htm,.txt" hidden>
+              </form>
+              <div class="composer-caption"><p id="ai-status" class="ai-status" role="status" aria-live="polite"></p><p class="chat-footnote">AI 사용량은 전송할 때 차감됩니다. 기록은 기존 활동지에 남기세요.</p></div>
             </section>
-
-            <section class="preview-panel" aria-labelledby="preview-title">
-              <div class="preview-panel-header"><div class="preview-title"><h3 id="preview-title">3. 결과 실행</h3></div><div class="preview-tools"><button id="download-html" type="button" class="button secondary small" aria-label="현재 웹앱 HTML 내려받기" title="HTML 내려받기"><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg><span>HTML 내려받기</span></button></div></div>
+            <div id="workspace-divider" class="workspace-divider" role="separator" aria-label="대화와 결과 너비 조절" aria-orientation="vertical" aria-controls="result-panel" aria-valuemin="25" aria-valuemax="75" aria-valuenow="48" tabindex="0" title="끌어서 너비 조절 · 방향키로 조절 · 두 번 클릭하면 초기화"></div>
+            <section id="result-panel" class="preview-panel" aria-labelledby="preview-title">
+              <div class="preview-panel-header"><div class="preview-title"><h3 id="preview-title">웹앱 미리보기</h3></div><div class="preview-tools"><button type="button" class="icon-button" data-surface="chat" aria-label="결과창 닫기" title="결과창 닫기">×</button><button id="download-html" type="button" class="button secondary small" aria-label="현재 웹앱 HTML 내려받기" title="HTML 내려받기"><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg><span>HTML 내려받기</span></button></div></div>
               <div id="proposal-banner" class="proposal-banner" hidden><span><strong>아직 저장된 결과가 아닙니다.</strong> 먼저 실행한 뒤 적용하세요.</span><button type="button" class="button primary small" data-action="apply-proposal">팀 작업에 적용</button><button type="button" class="button secondary small" data-action="discard-proposal">원래 결과 보기</button></div><div class="preview-toolbar"><span class="preview-filename"><svg class="icon" aria-hidden="true"><use href="#icon-file"/></svg>index.html</span><div class="preview-toolbar-actions"><button id="apply-code-button" type="button" class="button primary small" hidden>수정한 코드 적용</button><button id="code-toggle" type="button" class="button subtle small" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg><span>코드 보기</span></button><button id="preview-refresh" type="button" class="icon-button" aria-label="미리보기 새로고침" title="미리보기 새로고침"><svg class="icon" aria-hidden="true"><use href="#icon-refresh"/></svg></button></div></div>
               <div class="preview-stage"><iframe id="preview-frame" sandbox="allow-scripts" title="웹앱 미리보기" referrerpolicy="no-referrer"></iframe><textarea id="code-editor" aria-label="현재 웹앱의 HTML 코드" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" hidden></textarea><div id="workspace-empty" class="workspace-empty"><span class="empty-file-label" aria-hidden="true">index.html</span><h4>만든 앱이 여기서 실행됩니다.</h4><p>예: 의류수거함 자료를 넣고<br>“동을 선택하면 위치 목록이 나오게 만들어 줘.”</p><p class="empty-hint">결과가 나오면 조건을 바꿔 누르고, 원자료의 값과 비교해 보세요.</p></div></div>
               <div id="runtime-errors" class="runtime-errors" role="status" aria-live="polite"></div>
               <div class="preview-footer"><span><svg class="icon" aria-hidden="true"><use href="#icon-monitor"/></svg>조건을 바꿔 눌러보고 원자료와 비교하세요.</span><span>HTML · CSS · JS</span></div>
             </section>
           </div>
+          <div id="file-drop-hint" class="file-drop-hint" hidden><strong>파일을 여기에 놓으세요</strong><span>데이터: CSV · TSV · JSON · TXT<br>만들던 앱: HTML</span></div>
         </section>
 
         <section class="content-panel" data-panel="project" aria-labelledby="project-title-heading" hidden>

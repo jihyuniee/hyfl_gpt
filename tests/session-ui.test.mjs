@@ -15,12 +15,13 @@ const response=body=>({ok:true,json:async()=>body});
 function app(transport) {
   const nodes=new Map(),events=new Map(),documentEvents=new Map(),storage=new Map(),clipboard=[];
   class Element {
-    constructor(key=''){this.key=key;this.value='';this.hidden=false;this.innerHTML='';this.textContent='';this.dataset={};this.listeners={};this.attributes={};this.files=[];this.classList={add(){},remove(){},toggle(){}};}
+    constructor(key=''){this.key=key;this.value='';this.hidden=false;this.innerHTML='';this.textContent='';this.dataset={};this.listeners={};this.attributes={};this.files=[];this.style={setProperty:(key,value)=>this.attributes['style:'+key]=value};this.classList={add(){},remove(){},toggle(){}};}
     addEventListener(name,fn){this.listeners[name]=fn;}
     setAttribute(key,value){this.attributes[key]=value;}
     removeAttribute(key){delete this.attributes[key];}
     cloneNode(){const next=new Element(this.key);next.hidden=this.hidden;return next;}
     replaceWith(node){nodes.set(this.key,node);}
+    getBoundingClientRect(){return {left:100,width:1000};}setPointerCapture(id){this.pointerId=id;}contains(){return false;}
     prepend(){}focus(){}querySelectorAll(){return [];}querySelector(){return new Element();}
   }
   const node=selector=>{if(!nodes.has(selector))nodes.set(selector,new Element(selector));return nodes.get(selector);};
@@ -115,7 +116,7 @@ test('switching between wide conversation, wide result and split view preserves 
     for(const name of ['chat','preview','split'])assert.equal(ui.node('#surface-'+name).checked,name===surface);
     assert.equal(ui.node('#prompt-input').value,'동으로 찾는 기능을 만들자');assert.equal(ui.run('JSON.stringify(state.project)'),before);
   }
-  await ui.enter(B);assert.equal(ui.node('#surface-split').checked,true);assert.equal(ui.node('#surface-chat').checked,false);assert.equal(ui.node('#prompt-input').value,'');
+  await ui.enter(B);assert.equal(ui.node('#surface-split').checked,false);assert.equal(ui.node('#surface-chat').checked,true);assert.equal(ui.node('#prompt-input').value,'');
 });
 
 test('an unapplied preview cannot be silently discarded by another AI request; applying preserves the previous result',async()=>{
@@ -126,4 +127,24 @@ test('an unapplied preview cannot be silently discarded by another AI request; a
   ui.node('#prompt-input').value='다음 요청';assert.equal(ui.node('#ai-submit').disabled,true);assert.equal(ui.node('#show-pending').hidden,false);
   await ui.run('requestAI({preventDefault(){}})');assert.equal(requests,0);assert.equal(ui.node('#prompt-input').value,'다음 요청');assert.equal(ui.node('#surface-preview').checked,true);assert.equal(ui.run('state.pending.code'),ui.context.nextCode);
   ui.run('applyProposal()');assert.equal(ui.run('state.project.code'),ui.context.nextCode);assert.equal(ui.run('state.project.versions.at(-1).code'),previous);assert.equal(ui.run('state.pending'),null);assert.equal(ui.node('#ai-submit').disabled,false);
+});
+
+
+test('dragging and keyboard resizing clamp panel width and persist only layout preferences',async()=>{
+  const ui=app();await ui.enter(A);const before=ui.run('JSON.stringify(state.project)');ui.node('#prompt-input').value='KEEP_DRAFT';
+  ui.run('initializeLayout();startResize({button:0,pointerId:7,preventDefault(){}});moveResize({pointerId:7,clientX:1100})');
+  assert.equal(ui.run('layout.share'),68);assert.equal(ui.node('#app-screen').attributes['style:--chat-share'],'68%');
+  ui.run('stopResize({pointerId:7})');assert.equal(ui.run('layout.drag'),null);
+  ui.node('#workspace-divider').listeners.keydown({key:'Home',preventDefault(){}});assert.equal(ui.run('layout.share'),25);
+  ui.node('#workspace-divider').listeners.keydown({key:'Enter',preventDefault(){}});assert.equal(ui.run('layout.share'),48);
+  await ui.node('#mobile-menu-button').listeners.click();assert.equal(ui.node('#app-sidebar').inert,true);
+  const saved=JSON.parse(ui.storage.get('hyfl-studio-layout-v1'));assert.deepEqual(Object.keys(saved).sort(),['share','sidebarCollapsed']);assert.equal(saved.sidebarCollapsed,true);
+  assert.equal(ui.run('JSON.stringify(state.project)'),before);assert.equal(ui.node('#prompt-input').value,'KEEP_DRAFT');
+});
+
+test('HTML attachments open the sandboxed result and mixed batches never overwrite existing work',async()=>{
+  const ui=app();await ui.enter(A);const before=ui.run('state.project.code');
+  ui.context.uploads=[{name:'app.html',size:100,text:async()=>'<h1>IMPORTED_APP</h1>'},{name:'data.csv',size:10,arrayBuffer:async()=>new TextEncoder().encode('a,b\n1,2')}];
+  await ui.run('attachFiles(uploads)');assert.equal(ui.run('state.project.code'),before);
+  await ui.run('attachFiles([uploads[0]])');assert.match(ui.run('state.project.code'),/IMPORTED_APP/);assert.equal(ui.node('#surface-split').checked,true);
 });
