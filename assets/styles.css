@@ -1070,3 +1070,31 @@ td input, td select { max-width: 110px; padding: 6px 8px; border: 1px solid var(
 .context-layout>.surface-card{padding:24px}
 .context-layout .dataset-card{margin-top:16px}
 @media(max-width:760px){.export-grid{grid-template-columns:1fr}.composer-files{padding:10px 12px 4px}.attachment-list{padding-left:12px;padding-right:12px}.proposal-banner .button{font-size:11px}.source-links{margin-top:0}}
+
+/* Three visible actions for the lesson: add data, request one feature, try it. */
+.more-tools{margin-top:10px;border-top:1px solid var(--line);padding-top:12px}
+.more-tools>summary{padding:10px 14px;color:var(--muted);font-size:12px;cursor:pointer}
+.more-tools .nav-item{margin-top:3px}
+.task-materials{padding:17px;border-bottom:1px solid var(--line);background:#f5f8f1}
+.task-materials h3,.chat-panel-header h3{font-size:14px;line-height:1.6;font-weight:650;letter-spacing:-.4px}
+.task-materials>p{margin-top:5px;font-size:11px;color:var(--muted);line-height:1.7}
+.task-materials .composer-files{border:0;padding:10px 0 6px;gap:5px}
+.task-materials>#attachment-count{display:block;font-size:10px;color:var(--muted)}
+.task-materials .attachment-list{padding:8px 0 0;max-height:64px}
+.task-materials .attachment-list:empty{padding:0}
+.ai-options{margin:0 17px 12px;font-size:11px;color:var(--muted)}
+.ai-options>summary,.request-examples>summary{cursor:pointer;line-height:1.8}
+.ai-options .provider-options{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0}
+.ai-options .provider-select{max-width:230px}
+.ai-options .mode-buttons{margin:0}
+.chat-messages{min-height:110px;padding:16px 17px}
+.chat-welcome{min-height:0;justify-content:flex-start;padding:0;gap:0;text-align:left}
+.chat-welcome>h3{font-size:15px;line-height:1.6;letter-spacing:-.4px}
+.request-examples{width:100%;margin:10px 0;color:var(--green);font-size:11px}
+.request-examples>p{margin-top:8px;color:var(--muted);font-size:11px;line-height:1.9}
+.chat-welcome .prompt-suggestions{width:100%;margin-top:10px;gap:6px}
+.empty-state.chat-welcome p.prompt-draft-note{margin-top:8px;font-size:10px}
+.chat-footnote{font-size:10px;line-height:1.7}
+.preview-title h3{font-size:14px}
+.work-heading h2{font-size:23px}
+@media(max-width:760px){.task-materials{padding:14px}.ai-options{margin-left:14px;margin-right:14px}.work-heading h2{font-size:20px}.task-materials .button{min-height:40px}.preview-title h3{font-size:12px}}

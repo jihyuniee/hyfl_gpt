@@ -16,6 +16,7 @@ const workPrompts = [
   {label:'API 데이터 활용',mode:'build',prompt:'첨부한 공공 API 응답의 실제 행을 전체 파싱해 표·그래프 또는 필요한 기능을 만들어줘. 전체 건수와 현재 행 수, 오류를 확인하고 기상 category·단위·발표 회차·관측/예보·대상 시각을 구분해줘. 저장된 응답을 실시간 자료처럼 표시하지 마. 인증키를 요청하거나 코드에 넣지 마.'},
   {label:'데이터 구하기 도움',mode:'explain',prompt:'지금 요청한 프로젝트에 필요한 공공데이터를 구하는 일을 도와줘. 필요한 지역·기간·항목과 공식 기관, 검색어, 파일 또는 API 응답을 얻는 순서를 구체적으로 알려줘. 직접 검색·조회 도구가 연결되지 않았다면 조회했다고 말하거나 정확하지 않은 자료 주소를 만들지 마. 키를 요청하지 마.'},
 ];
+const firstAppPrompt = {label:'조건을 골라 조회하기',mode:'build',prompt:'첨부 자료에서 지역·연도·항목처럼 조건으로 고를 수 있는 열을 확인해서, 조건을 선택하면 일치하는 행이 나오는 작은 웹앱을 만들어줘. 전체 데이터를 읽고 조건에 맞는 자료가 없으면 없다고 표시해줘. 자료에 없는 정보는 만들지 말고 실제로 실행되는 HTML을 만들어줘.'};
 const state = { user: null, config: null, usage: null, project: emptyProject(), revision: 0, demo: false, mode: 'build', provider: 'gpt', view: 'work', dirty: false, generation: 0, saving: false, conflict: false, busy: false, pending: null, errors: [], nonce: '', admin: null, recovery: null, aiError: '', saveTimer: null, localTimer: null };
 let toastTimer;
 function toast(message) { text('#toast', message); $('#toast').classList.add('visible'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('visible'), 4500); }
@@ -80,8 +81,9 @@ function setView(view) {
 function setMode(mode) {
   state.mode = mode;
   $$('[data-mode]').forEach(el => { el.classList.toggle('active', el.dataset.mode === mode); el.setAttribute('aria-pressed', String(el.dataset.mode === mode)); });
-  const placeholders = { build: '예: 이 CSV로 연도별 그래프를 만들고, 지역을 골라 비교할 수 있게 해줘.', edit: '지금 앱에서 바꿀 부분을 구체적으로 적어주세요. 예: 검색 조건을 초기화하는 버튼을 추가해줘.', debug: '어떤 입력에서, 무엇이 나와야 하는데, 실제로 어떻게 되나요?', explain: '자료에서 어떤 변화가 보이는지, 결과나 코드에서 궁금한 점을 물어보세요.' };
+  const placeholders = { build: '예: 이 자료로 동을 선택하면 의류수거함 위치 목록이 나오게 만들어 줘.\n또는: 연도를 고르면 해당 연도의 값이 나오게 만들어 줘.', edit: '예: 동을 바꾸면 이전 검색 결과가 지워지게 고쳐 줘.', debug: '예: 2020년을 골랐는데 결과가 비어 있어. 원자료에는 값이 있으니 고쳐 줘.', explain: '자료나 실행 결과에서 궁금한 점을 물어보세요.' };
   $('#prompt-input').placeholder = placeholders[mode];
+  updateAiState();
 }
 function renderProviders() {
   const providers = state.config?.providers || [];
@@ -95,14 +97,14 @@ function renderProviders() {
 function updateAiState() {
   const disabled = state.demo || state.user?.role !== 'student' || state.config?.aiEnabled === false || !state.provider || state.busy || state.conflict;
   $('#ai-submit').disabled = disabled;
-  $('#ai-submit').textContent = state.busy ? '작업 중…' : 'AI에게 요청';
+  $('#ai-submit').textContent = state.busy ? '만드는 중…' : state.mode==='explain' ? 'AI에게 물어보기' : '결과 만들기';
   if (state.busy) text('#ai-status', '자료와 요청을 바탕으로 작업하고 있습니다. 완성한 결과는 오른쪽에 표시됩니다.');
   else if (state.aiError) text('#ai-status', state.aiError);
   else if (state.demo) text('#ai-status', '둘러보기에서는 파일 가져오기·실행·내보내기를 사용할 수 있습니다. AI는 팀 로그인 후 이용합니다.');
   else if (state.user?.role === 'teacher') text('#ai-status', '교사 화면에서는 운영 상태를 확인합니다. 학생은 팀 계정으로 작업합니다.');
   else if (state.config?.aiEnabled === false) text('#ai-status', '선생님이 AI 요청을 잠시 멈췄습니다. 코드 편집과 저장은 계속할 수 있습니다.');
   else if (!state.provider) text('#ai-status', 'AI 연결을 준비 중입니다. 선생님에게 알려주세요.');
-  else text('#ai-status', '파일이나 요청으로 바로 시작하세요. 첫 결과는 자동 실행되고, 수정 제안은 미리 볼 수 있어요.');
+  else text('#ai-status', '원하는 기능을 쓰고 결과 만들기를 누르세요. 수정한 결과는 오른쪽에서 먼저 실행해 볼 수 있어요.');
 }
 function renderUsage() {
   text('#usage-label', state.demo ? '둘러보기' : state.user?.role === 'teacher' ? '교사 관리' : state.usage ? `오늘 ${state.usage.requests ?? 0} / ${state.usage.dailyRequests ?? state.config?.limits?.dailyRequests ?? 12}회` : '사용량 확인 중');
@@ -112,8 +114,10 @@ function renderUsage() {
 function renderChat() {
   const container = $('#chat-messages');
   if (!state.project.messages.length) {
-    const choices = state.project.code.trim() ? [workPrompts[3],workPrompts[1],workPrompts[4]] : workPrompts.slice(0,3);
-    container.innerHTML = `<div class="empty-state chat-welcome"><h3>${state.project.code.trim()?'이 결과를 AI와 더 발전시켜 보세요.':'자료를 넣고 원하는 결과를 말하세요.'}</h3><p>표·그래프, 데이터 비교, 웹앱을 바로 만듭니다.<br>활동지를 다시 작성할 필요는 없어요.</p><div class="prompt-suggestions">${choices.map(item=>`<button type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}">${item.label}<span aria-hidden="true">→</span></button>`).join('')}</div><p class="prompt-draft-note">버튼은 요청 초안을 엽니다. AI에게 요청을 누르면 사용량이 차감됩니다.</p></div>`;
+    const hasData=state.project.datasets.length>0;
+    const hasCode=Boolean(state.project.code.trim());
+    const choices = [firstAppPrompt,workPrompts[0]];
+    container.innerHTML = `<div class="empty-state chat-welcome"><h3>${hasCode?'필요한 기능 하나를 추가하거나 고쳐보세요.':hasData?'자료를 넣었어요. 이제 기능 하나를 만드세요.':'위에서 자료를 넣고, 아래에 원하는 기능을 쓰세요.'}</h3><p>${hasCode?'오른쪽 결과를 먼저 눌러보고, 필요한 기능이나 고칠 부분을 요청하세요.':hasData?'활동지에서 설계한 기능을 아래에 요청하세요.':'만들던 앱이 있으면 오른쪽의 만들던 앱 가져오기를 사용하세요.'}</p><details class="request-examples"><summary>어떻게 요청하나요?</summary><p>“동을 선택하면 의류수거함 위치 목록이 나오게 만들어 줘.”<br>“연도를 선택하면 해당 연도의 값이 나오게 만들어 줘.”<br>“지역을 바꿔도 결과가 그대로야. 고쳐 줘.”</p></details><div class="prompt-suggestions">${choices.map(item=>`<button type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}">${item.label}<span aria-hidden="true">→</span></button>`).join('')}</div><p class="prompt-draft-note">버튼으로 요청 예시를 넣거나, 아래에 직접 쓰고 결과 만들기를 누르세요.</p></div>`;
     return;
   }
   container.innerHTML=state.project.messages.map(m=>{
@@ -283,7 +287,7 @@ async function loadDatasets(files) {
     if (next.reduce((sum, d) => sum + byteLength(d.text), 0) > LIMITS.datasetBytes) throw new Error('첨부 데이터 합계가 320KB를 넘습니다. 필요한 열·행을 추려서 가져와 주세요.');
     state.project = normalizeProject({ ...state.project, datasets: next, checks: {} }); state.pending=null;
     if (!state.project.code.trim()) { const first=next.find(d=>['csv','tsv','json'].includes(d.format)); if(first) state.project=replaceCode(state.project,buildQuickChart(first.id),'첫 자료 표·그래프'); }
-    markDirty(); renderDatasets(); renderPreview(); toast(converted.length ? '한글 파일의 인코딩을 변환해 연결했습니다. 표시된 열 이름과 원자료를 확인하세요.' : '전체 파일을 연결했습니다. AI에 사용할 열과 계산 기준을 알려주세요.');
+    markDirty(); renderDatasets(); renderPreview(); renderChat(); toast(converted.length ? '한글 파일의 인코딩을 변환해 연결했습니다. 표시된 열 이름과 원자료를 확인하세요.' : '자료를 넣었습니다. 이제 만들 기능을 쓰고 결과 만들기를 누르세요.');
   } catch (error) { toast(errorMessage(error)); }
   finally { $('#dataset-file').value = ''; }
 }
@@ -330,7 +334,8 @@ document.addEventListener('click', async event => {
   }
   const action = button.dataset.action; const id = button.dataset.id;
   try {
-    if (action === 'apply-proposal') applyProposal();
+    if (action === 'paste-response') { setView('project'); $('.api-response-panel').open=true; $('#api-response-text').focus(); }
+    else if (action === 'apply-proposal') applyProposal();
     else if (action === 'discard-proposal') { state.pending=null; renderChat(); renderPreview(); }
     else if (action === 'quick-chart') { const dataset=state.project.datasets.find(d=>d.id===id); if(!dataset)return; if(state.project.code.trim()&&!confirm('현재 결과를 이전 버전에 보관하고 이 자료의 표·그래프를 만들까요?'))return; state.project=replaceCode(state.project,buildQuickChart(id),'표·그래프 만들기 전'); state.pending=null; markDirty(); renderAll(); setView('work'); }
     else if (action === 'inspect-proposal' && state.pending) { download(state.pending.code, 'AI-제안-검토용.html.txt', 'text/plain;charset=utf-8'); toast('검토용 코드입니다. 실행에는 전체 데이터 연결과 적용이 필요합니다.'); }
