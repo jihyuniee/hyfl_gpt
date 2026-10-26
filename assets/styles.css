@@ -1113,3 +1113,111 @@ td input, td select { max-width: 110px; padding: 6px 8px; border: 1px solid var(
 .api-official-help{margin-top:18px;font-size:12px}
 .api-official-help>summary{cursor:pointer;font-weight:600;line-height:1.8}
 @media(max-width:760px){.api-help-tasks{grid-template-columns:1fr}.api-help-task{padding:15px}.api-help-link{min-height:40px}}
+
+/* Student workspace: data stays above the work, each surface can use the width. */
+.app-header{height:68px}
+.app-body{grid-template-columns:180px minmax(0,1fr)}
+.app-brand-area{flex-basis:156px}
+.sidebar{top:68px;height:calc(100svh - 68px);padding:20px 10px 16px}
+.sidebar-note{display:none}
+.workspace-main{padding:20px 24px 0}
+.work-heading{margin-bottom:14px}
+.work-heading h2{font-size:24px}
+.panel-heading p:not(.eyebrow){font-size:13px}
+.task-materials{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 16px;padding:13px 16px;border:1px solid var(--line);border-radius:5px;background:#f5f8f1}
+.materials-heading{display:flex;align-items:center;flex-wrap:wrap;gap:5px 14px}
+.materials-heading h3{font-size:15px;white-space:nowrap}
+.materials-heading .data-owner-label{font-size:12px;color:var(--muted);line-height:1.7}
+.task-materials .composer-files{padding:0;gap:6px;justify-content:flex-end}
+.task-materials .button.small{font-size:12px;min-height:38px}
+.materials-meta{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:4px 18px}
+.materials-meta #attachment-count{font-size:12px;color:var(--muted)}
+.materials-meta .api-help-link{margin:0;font-size:12px;padding:2px 0}
+.task-materials .attachment-list{grid-column:1/-1;max-height:85px;padding:2px 0 0}
+.task-materials .attachment-list:empty{display:none}
+.attachment-chip{font-size:12px;padding:6px 12px;min-height:34px}
+.workspace-switch{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:12px 0;padding:0;border:0;background:transparent}
+.workspace-switch input{position:absolute;width:1px;height:1px;opacity:0}
+.workspace-switch label{display:flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 14px;border:1px solid var(--line);border-radius:4px;font-size:13px;color:var(--muted);cursor:pointer;background:var(--paper)}
+.workspace-switch input:checked+label{border-color:var(--green);background:#e8ede4;color:var(--green-deep);font-weight:600;box-shadow:none}
+.workspace-switch input:focus-visible+label{outline:3px solid var(--green);outline-offset:2px}
+.workspace-switch label .icon{width:16px;height:16px}
+.layout-hint{margin-left:auto;color:var(--muted);font-size:11px}
+.studio-grid{display:grid;grid-template-columns:minmax(390px,.9fr) minmax(0,1.1fr);gap:16px;height:calc(100dvh - 310px);min-height:650px;max-height:none}
+.chat-panel{display:grid;grid-template-rows:auto auto minmax(150px,1fr) auto auto;overflow:auto;height:auto}
+.chat-panel-header{padding:12px 18px 8px}
+.chat-panel-header h3,.preview-title h3{font-size:16px}
+.chat-panel-header>.button{font-size:12px;min-height:36px}
+.ai-options{margin:0 18px 10px;font-size:12px}
+.ai-options .provider-select{font-size:12px;min-height:36px;max-width:280px}
+.ai-options .mode-buttons>button{font-size:12px;min-height:40px}
+.chat-messages{min-height:0;padding:16px 18px;font-size:15px}
+.message{font-size:15px;line-height:1.85}
+.message-meta,.model-caption{font-size:12px}
+.chat-welcome,.empty-state.chat-welcome{min-height:0;padding:0;justify-content:flex-start}
+.chat-welcome>h3,.empty-state.chat-welcome h3{font-size:18px;line-height:1.6}
+.chat-welcome>p:not(.mini-kicker),.empty-state.chat-welcome p{font-size:13px;line-height:1.8}
+.chat-welcome .prompt-suggestions{gap:6px}
+.prompt-suggestions>button{font-size:13px;min-height:40px;padding:8px 12px}
+.request-examples{font-size:13px}
+.request-examples>p{font-size:13px}
+.ai-form{margin:0 14px;padding:14px;flex:none}
+#prompt-input{height:128px;min-height:100px;max-height:300px;font-size:15px;line-height:1.7}
+#prompt-input::placeholder{font-size:14px}
+.composer-bottom{gap:12px;flex-wrap:wrap}
+.composer-bottom>span{font-size:11px;max-width:190px}
+.composer-bottom .button{font-size:14px;min-height:40px;padding:9px 16px}
+.ai-status{font-size:12px;line-height:1.7;margin-top:10px;overflow-wrap:anywhere}
+#show-pending{margin-top:8px}
+.chat-footnote{margin:0;padding:8px 18px 12px;font-size:11px;line-height:1.7}
+.preview-panel{height:auto}
+.preview-panel-header{padding:12px 16px;min-height:59px}
+.preview-tools .button{font-size:12px;min-height:36px}
+.preview-stage{min-height:0}
+.preview-toolbar{flex-shrink:0}
+.preview-footer{font-size:11px;flex-shrink:0}
+.proposal-banner{flex-shrink:0;font-size:13px}
+.proposal-banner>span{min-width:180px}
+.work-panel:has(#surface-chat:checked) .studio-grid,.work-panel:has(#surface-preview:checked) .studio-grid{grid-template-columns:minmax(0,1fr)}
+.work-panel:has(#surface-chat:checked) .preview-panel,.work-panel:has(#surface-preview:checked) .chat-panel{display:none}
+.work-panel:has(#surface-chat:checked) .ai-form{margin-left:20px;margin-right:20px}
+.work-panel:has(#surface-chat:checked) #prompt-input{height:180px}
+.work-panel:has(#surface-chat:checked) .message{max-width:880px}
+.guide-content p,.api-coach>p,.api-help-task p,.api-help-boundary p,.api-official-help p{font-size:14px;line-height:1.85}
+.api-help-task h4{font-size:16px}
+.api-help-task .button{font-size:13px;min-height:40px}
+.guide-tasks .guide-task strong{font-size:15px}
+.guide-content h3:focus{outline:none}
+@media(max-width:1100px){
+ .app-body{grid-template-columns:minmax(0,1fr)}
+ .sidebar{position:static;display:block;height:auto;min-height:0;padding:8px 20px;border-right:0;border-bottom:1px solid var(--line)}
+ .sidebar-main{display:block}.sidebar-nav{display:flex;flex-direction:row;flex-wrap:wrap;gap:4px}
+ .nav-caption,.sidebar-bottom{display:none}
+ .nav-item{width:auto;justify-content:flex-start;gap:7px;padding:8px 12px;min-height:38px;font-size:12px}
+ .nav-item>span:not(.nav-indicator){position:static;width:auto;height:auto;overflow:visible;clip-path:none;white-space:normal}
+ .nav-item .icon{width:16px;height:16px}
+ .workspace-main{padding:16px 20px 0}
+ .studio-grid{grid-template-columns:minmax(360px,.9fr) minmax(0,1.1fr)}
+ .materials-heading{display:block}.materials-heading .data-owner-label{margin-top:4px}
+ .layout-hint{display:none}
+}
+@media(max-width:760px){
+ .app-header{height:auto;min-height:68px;padding:12px 16px}
+ .app-brand-area{flex-basis:auto}.app-project-heading h1{font-size:15px}
+ .sidebar{padding:6px 12px}.nav-item{font-size:12px;padding:8px;min-height:40px}
+ .workspace-main{padding:16px 12px 0}.work-heading h2{font-size:21px}
+ .task-materials{grid-template-columns:minmax(0,1fr);padding:12px}
+ .task-materials .composer-files{justify-content:flex-start}.materials-meta{gap:3px 12px}
+ .workspace-switch{display:grid;grid-template-columns:1fr 1fr;margin:12px 0;gap:6px}
+ #surface-split,#surface-split+label{display:none}
+ .workspace-switch label{font-size:14px;min-height:42px}
+ .studio-grid{display:grid;grid-template-columns:minmax(0,1fr);height:calc(100dvh - 340px);min-height:670px;max-height:none}
+ .work-panel:has(#surface-split:checked) .preview-panel{display:none}
+ .work-panel:has(#surface-split:checked) label[for="surface-chat"]{border-color:var(--green);background:#e8ede4;color:var(--green-deep)}
+ .chat-panel,.preview-panel{width:100%;height:auto}
+ #prompt-input{font-size:16px}
+ .preview-panel-header{gap:8px;padding:12px}.preview-title h3{font-size:15px}
+ .ai-form,.work-panel:has(#surface-chat:checked) .ai-form{margin-left:10px;margin-right:10px}
+ .chat-panel-header{padding:12px}.ai-options{margin-left:12px;margin-right:12px}
+ .guide-content p,.api-help-task p{font-size:14px}
+}

@@ -85,3 +85,20 @@ test('conversation export uses actual messages and never invents worksheet verif
   const text=exportConversation({...emptyProject(),messages:[{role:'user',createdAt:'2026-10-26',text:'실제 요청'},{role:'assistant',createdAt:'2026-10-26',text:'실제 답변',model:'configured-model'}]});
   assert.match(text,/실제 요청.*\n[\s\S]*실제 답변/);assert.match(text,/configured-model/);assert.doesNotMatch(text,/검증 완료|내가 확인한 결과/);
 });
+
+test('location directories start as a filterable table without averaging IDs or coordinates and preserve all rows',()=>{
+  const data={id:'places',name:'가상위치.csv',format:'csv',text:'연번,행정동,도로명주소,위도,경도\n'+Array.from({length:6},(_,i)=>`${i+1},가상동${Math.floor(i/2)},검증로 ${i+1},${37.5+i/100},${127+i/100}`).join('\n')};
+  const app=runChart([data]);
+  assert.equal(app.get('type').value,'table');assert.equal(app.get('chart').hidden,true);assert.equal(app.get('chart').querySelectorAll('svg').length,0);
+  assert.match(app.get('summary').textContent,/선택 6행 · 목록 보기/);assert.doesNotMatch(app.get('summary').textContent,/평균/);
+  app.selectFilter('행정동','가상동2');assert.match(app.get('summary').textContent,/선택 2행/);assert.match(app.get('table').textContent,/검증로 5.*검증로 6/);assert.doesNotMatch(app.get('table').textContent,/검증로 1/);
+  app.selectFilter('행정동','');assert.match(app.get('summary').textContent,/선택 6행/);
+  assert.equal(importHtml(app.html).datasets[0].text,data.text);
+});
+
+test('ordinary yearly data starts with every year, supports a selected year and retains zero in the graph',()=>{
+  const data={id:'years',name:'연도.csv',format:'csv',text:'연도,값\n2020,10\n2021,20\n2022,0'};
+  const app=runChart([data]);assert.equal(app.get('type').value,'line');assert.match(app.get('summary').textContent,/선택 3행.*평균 10/);
+  app.selectFilter('연도','2022');assert.match(app.get('summary').textContent,/선택 1행.*숫자 1개.*평균 0/);assert.match(app.get('table').textContent,/20220/);
+  app.selectFilter('연도','');assert.match(app.get('summary').textContent,/선택 3행.*평균 10/);
+});

@@ -107,3 +107,23 @@ test('copying an API example copies only the template and preserves the draft an
   assert.equal(ui.clipboard.length,1);assert.equal(ui.clipboard[0],ui.run('apiHelpPrompts[0].prompt'));assert.match(ui.clipboard[0],/YOUR_API_KEY/);
   assert.equal(ui.node('#prompt-input').value,'우리 팀 초안');assert.equal(ui.run('JSON.stringify(state.project)'),before);
 });
+
+test('switching between wide conversation, wide result and split view preserves all student work',async()=>{
+  const ui=app();await ui.enter(A);ui.node('#prompt-input').value='동으로 찾는 기능을 만들자';const before=ui.run('JSON.stringify(state.project)');
+  for(const surface of ['chat','preview','split']){
+    await ui.click({surface});
+    for(const name of ['chat','preview','split'])assert.equal(ui.node('#surface-'+name).checked,name===surface);
+    assert.equal(ui.node('#prompt-input').value,'동으로 찾는 기능을 만들자');assert.equal(ui.run('JSON.stringify(state.project)'),before);
+  }
+  await ui.enter(B);assert.equal(ui.node('#surface-split').checked,true);assert.equal(ui.node('#surface-chat').checked,false);assert.equal(ui.node('#prompt-input').value,'');
+});
+
+test('an unapplied preview cannot be silently discarded by another AI request; applying preserves the previous result',async()=>{
+  let requests=0;const ui=app((url,options)=>{requests++;return response({teamId:options.headers['x-hyfl-team-id'],project:project(A.id),revision:0});});
+  await ui.enter(A);requests=0;const previous=ui.run('state.project.code');
+  ui.context.nextCode='<!doctype html><html><body>NEW_RESULT</body></html>';
+  ui.run('state.pending={id:"pending",code:nextCode,before:state.project.code,datasets:JSON.stringify(state.project.datasets),summary:"동 선택"};renderPreview()');
+  ui.node('#prompt-input').value='다음 요청';assert.equal(ui.node('#ai-submit').disabled,true);assert.equal(ui.node('#show-pending').hidden,false);
+  await ui.run('requestAI({preventDefault(){}})');assert.equal(requests,0);assert.equal(ui.node('#prompt-input').value,'다음 요청');assert.equal(ui.node('#surface-preview').checked,true);assert.equal(ui.run('state.pending.code'),ui.context.nextCode);
+  ui.run('applyProposal()');assert.equal(ui.run('state.project.code'),ui.context.nextCode);assert.equal(ui.run('state.project.versions.at(-1).code'),previous);assert.equal(ui.run('state.pending'),null);assert.equal(ui.node('#ai-submit').disabled,false);
+});

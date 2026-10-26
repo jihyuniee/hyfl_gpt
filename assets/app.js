@@ -89,6 +89,7 @@ function cacheProject() {
 function staleWorkspace() { const error=new Error('이전 팀의 요청 결과를 적용하지 않았습니다.');error.code='STALE_WORKSPACE';return error; }
 function resetWorkspace() {
   clearTimeout(state.saveTimer);clearTimeout(state.localTimer);
+  setWorkspaceSurface('split');$('.ai-options').open=false;
   state.workspaceVersion++;state.user=null;state.demo=false;state.usage=null;state.project=emptyProject();state.revision=0;state.pending=null;state.recovery=null;state.dirty=false;state.saving=false;state.busy=false;state.conflict=false;state.aiError='';state.errors=[];state.admin=null;state.generation=0;
   for(const selector of ['#prompt-input','#api-response-name','#api-response-text','#code-file','#chat-dataset-file','#dataset-file','#project-file']) $(selector).value='';
   text('#api-response-status','');show('#conflict-banner',false);
@@ -138,6 +139,10 @@ function setView(view) {
   $('#mobile-menu-button').setAttribute('aria-expanded', 'false');
   if (view === 'admin') loadAdmin();
 }
+function setWorkspaceSurface(surface) {
+  if(!['split','chat','preview'].includes(surface))return;
+  for(const name of ['split','chat','preview'])$('#surface-'+name).checked=name===surface;
+}
 function setMode(mode) {
   state.mode = mode;
   $$('[data-mode]').forEach(el => { el.classList.toggle('active', el.dataset.mode === mode); el.setAttribute('aria-pressed', String(el.dataset.mode === mode)); });
@@ -155,11 +160,12 @@ function renderProviders() {
   updateAiState();
 }
 function updateAiState() {
-  const disabled = state.demo || state.user?.role !== 'student' || state.config?.aiEnabled === false || !state.provider || state.busy || state.conflict;
+  const disabled = state.demo || state.user?.role !== 'student' || state.config?.aiEnabled === false || !state.provider || state.busy || state.conflict || Boolean(state.pending);
   $('#ai-submit').disabled = disabled;
   $('#ai-submit').textContent = state.busy ? '만드는 중…' : state.mode==='explain' ? 'AI에게 물어보기' : '결과 만들기';
   if (state.busy) text('#ai-status', '자료와 요청을 바탕으로 작업하고 있습니다. 완성한 결과는 오른쪽에 표시됩니다.');
   else if (state.aiError) text('#ai-status', state.aiError);
+  else if(state.pending)text('#ai-status','수정안을 먼저 실행해 보세요. 적용하거나 원래 결과로 돌아온 뒤 다음 요청을 보낼 수 있습니다.');
   else if (state.demo) text('#ai-status', '둘러보기는 팀 자료를 불러오거나 저장하지 않습니다. 새로고침하면 초기화됩니다. AI는 팀 로그인 후 이용합니다.');
   else if (state.user?.role === 'teacher') text('#ai-status', '교사 화면에서는 운영 상태를 확인합니다. 학생은 팀 계정으로 작업합니다.');
   else if (state.config?.aiEnabled === false) text('#ai-status', '선생님이 AI 요청을 잠시 멈췄습니다. 코드 편집과 저장은 계속할 수 있습니다.');
@@ -177,7 +183,7 @@ function renderChat() {
     const hasData=state.project.datasets.length>0;
     const hasCode=Boolean(state.project.code.trim());
     const choices = [firstAppPrompt,workPrompts[0]];
-    container.innerHTML = `<div class="empty-state chat-welcome"><h3>${hasCode?'필요한 기능 하나를 추가하거나 고쳐보세요.':hasData?'자료를 넣었어요. 이제 기능 하나를 만드세요.':'위에서 자료를 넣고, 아래에 원하는 기능을 쓰세요.'}</h3><p>${hasCode?'오른쪽 결과를 먼저 눌러보고, 필요한 기능이나 고칠 부분을 요청하세요.':hasData?'활동지에서 설계한 기능을 아래에 요청하세요.':'만들던 앱이 있으면 오른쪽의 만들던 앱 가져오기를 사용하세요.'}</p><details class="request-examples"><summary>어떻게 요청하나요?</summary><p>“동을 선택하면 의류수거함 위치 목록이 나오게 만들어 줘.”<br>“연도를 선택하면 해당 연도의 값이 나오게 만들어 줘.”<br>“지역을 바꿔도 결과가 그대로야. 고쳐 줘.”</p></details><div class="prompt-suggestions">${choices.map(item=>`<button type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}">${item.label}<span aria-hidden="true">→</span></button>`).join('')}</div><p class="prompt-draft-note">버튼으로 요청 예시를 넣거나, 아래에 직접 쓰고 결과 만들기를 누르세요.</p></div>`;
+    container.innerHTML = `<div class="empty-state chat-welcome"><h3>${hasData?'자료를 연결했어요. 필요한 기능을 요청하세요.':hasCode?'현재 결과를 눌러보고 기능 하나를 고쳐보세요.':'자료를 연결하고 원하는 기능을 요청하세요.'}</h3><p>${hasCode?'현재 결과를 확인하고, 필요한 조회·그래프·지도 기능이나 고칠 부분을 말하세요.':hasData?'활동지에서 설계한 기능을 아래에 요청하세요.':'위의 자료 파일 넣기 또는 만들던 앱 가져오기로 시작하세요.'}</p><details class="request-examples"><summary>어떻게 요청하나요?</summary><p>“동을 선택하면 의류수거함 위치 목록이 나오게 만들어 줘.”<br>“연도를 선택하면 해당 연도의 값이 나오게 만들어 줘.”<br>“지역을 바꿔도 결과가 그대로야. 고쳐 줘.”</p></details><div class="prompt-suggestions">${choices.map(item=>`<button type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}">${item.label}<span aria-hidden="true">→</span></button>`).join('')}</div><p class="prompt-draft-note">버튼으로 요청 예시를 넣거나, 아래에 직접 쓰고 결과 만들기를 누르세요.</p></div>`;
     return;
   }
   container.innerHTML=state.project.messages.map(m=>{
@@ -194,8 +200,8 @@ function renderDatasets() {
   const list = $('#dataset-list');
   const owner=state.demo?'둘러보기 자료 · 팀에 저장되지 않습니다.':state.user?.role==='student'?`2학년 ${state.user.cls}반 · ${state.user.name}의 자료 · 같은 팀원과 공유`:'팀 로그인 후 우리 팀 자료만 불러옵니다.';
   text('#data-owner-label',owner);text('#project-data-owner-label',owner);
-  text('#attachment-count', state.project.datasets.length ? `${state.project.datasets.length}개 자료 연결됨` : 'CSV · TSV · JSON · TXT');
-  $('#chat-datasets').innerHTML=state.project.datasets.map(d=>`<button type="button" class="attachment-chip" data-action="quick-chart" data-id="${escapeHTML(d.id)}" title="전체 자료로 표·그래프 만들기">${escapeHTML(d.name)} ↗</button>`).join('');
+  text('#attachment-count', state.project.datasets.length ? `${state.project.datasets.length}개 자료 연결 · 원문 전체 사용` : 'CSV · TSV · JSON · TXT');
+  $('#chat-datasets').innerHTML=state.project.datasets.map(d=>`<button type="button" class="attachment-chip" data-view="project" title="연결된 자료 정보 보기">${escapeHTML(d.name)}</button>`).join('');
   if (!state.project.datasets.length) { list.innerHTML = '<div class="empty-state compact"><p>파일을 연결하면 바로 표·그래프를 볼 수 있어요.</p><small>파일 전체가 미리보기와 내려받은 웹앱에 함께 들어갑니다. 합계 320KB · 최대 8개</small></div>'; return; }
   list.innerHTML = state.project.datasets.map(d => {
     let notice = ''; let detail; try { detail = describeDataset(d); if (d.format === 'json') notice = apiResponseNotice(JSON.parse(d.text.replace(/^\uFEFF/, ''))); } catch { detail = { rows: null, columns: [], error: '파일 형식을 다시 확인해주세요.' }; }
@@ -208,14 +214,14 @@ function renderVersions() {
 function renderGuide() {
   const teacher=state.user?.role==='teacher';
   const disabled=teacher?'disabled':'';
-  $('#guide-content').innerHTML=`<section class="surface-card api-coach" aria-labelledby="api-help-title"><h3 id="api-help-title" tabindex="-1">API에서 막힌 부분을 고르세요.</h3><p>질문 초안을 넣고 [대괄호]를 우리 팀 내용으로 고치세요. 전송할 때 학교가 제공하는 AI로 도움받습니다. 예시 복사는 다른 생성형 AI에서도 쓸 수 있어요.</p><div class="api-help-tasks">${apiHelpPrompts.map((item,index)=>`<article class="api-help-task"><h4>${escapeHTML(item.label)}</h4><p>${escapeHTML(item.detail)}</p><div class="button-row"><button class="button secondary small" type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${disabled}>질문 초안 넣기<span class="sr-only"> · ${escapeHTML(item.label)}</span></button><button class="button subtle small" type="button" data-action="copy-api-prompt" data-id="${index}">예시 복사<span class="sr-only"> · ${escapeHTML(item.label)}</span></button></div></article>`).join('')}</div><div class="api-help-boundary"><p><strong>데이터를 받기 전</strong> · 이곳의 AI는 요청 방법·오류를 설명합니다. 실제 요청은 공식 사이트의 실행 화면 등에서 합니다. 스튜디오가 인증키로 기관 API를 직접 호출하지는 않습니다.</p><p><strong>데이터를 받은 뒤</strong> · CSV·JSON 파일이나 JSON 응답을 연결해 표·그래프·웹앱을 만들고 실행·수정·HTML 내보내기를 합니다. 저장된 응답은 새로고침해도 최신 자료로 바뀌지 않습니다.</p><p>실제 인증키·개인정보는 입력하지 마세요. 요청 URL 속 키 값도 YOUR_API_KEY로 바꾸세요. 문서 주소만으로 내용을 읽을 수 없으니 요청 주소·인자 표의 필요한 부분을 함께 붙이세요. XML 자동 행 인식은 지원하지 않습니다.</p></div><details class="api-official-help"><summary>공식 설명에서 무엇을 가져오나요?</summary><p>기상: 관측/예보 기능, 발표·대상 시각, 격자 좌표와 단위. 병원: 지역·기관/진료 검색 조건, 응답 형식(JSON/XML). API마다 필수 항목과 키 사용법이 다릅니다.</p><p>키는 공식 실행 환경에만 넣으세요. Encoding/Decoding 중 무엇을 쓰는지는 실행 도구의 설명을 따르며 이미 인코딩된 키를 다시 인코딩하지 않도록 확인하세요. 전체 건수보다 받은 행이 적으면 페이지별 응답을 더 받아야 할 수 있습니다.</p><div class="source-links"><a href="https://www.data.go.kr/data/15084084/openapi.do" target="_blank" rel="noopener noreferrer">기상청 단기예보 조회 설명 ↗</a><a href="https://www.data.go.kr/data/15000736/openapi.do" target="_blank" rel="noopener noreferrer">전국 병·의원 찾기 설명 ↗</a></div></details></section><section class="surface-card"><h3>자료와 요청으로 바로 시작하세요.</h3><p>① 자료 첨부 → ② 원하는 작업 요청 → ③ 결과 실행·수정. 기록은 기존 활동지에 남깁니다.</p><div class="guide-tasks">${workPrompts.map(item=>`<button class="guide-task" type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${disabled}><strong>${item.label}</strong><span>→</span></button>`).join('')}</div></section><section class="surface-card guide-boundaries"><h3>자료와 결과</h3><p>CSV·TSV·JSON을 첨부하면 AI 호출 없이 전체 파일로 표·그래프를 먼저 만듭니다. 작은 자료는 AI에도 전체 행을 전달하며 큰 자료는 기초 통계와 구조를 전달합니다. 실행 코드는 연결한 전체 데이터를 읽습니다.</p><p>데이터가 없으면 AI가 실제 수치를 만들어낼 수 없습니다. 공식 자료를 찾는 방법을 물어보거나 파일·응답을 연결하세요. KOSIS MCP 자동 조회와 실시간 API 호출은 현재 연결되어 있지 않습니다.</p><p>대화는 저장·내보내기에서 내려받을 수 있습니다. 활동지와 최종 제출은 기존 구글 클래스룸에서 진행하세요.</p></section>`;
+  $('#guide-content').innerHTML=`<section class="surface-card api-coach" aria-labelledby="api-help-title"><h3 id="api-help-title" tabindex="-1">API에서 막힌 부분을 고르세요.</h3><p>질문 초안을 넣고 [대괄호]를 우리 팀 내용으로 고치세요. 전송할 때 학교가 제공하는 AI로 도움받습니다. 예시 복사는 다른 생성형 AI에서도 쓸 수 있어요.</p><div class="api-help-tasks">${apiHelpPrompts.map((item,index)=>`<article class="api-help-task"><h4>${escapeHTML(item.label)}</h4><p>${escapeHTML(item.detail)}</p><div class="button-row"><button class="button secondary small" type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${disabled}>질문 초안 넣기<span class="sr-only"> · ${escapeHTML(item.label)}</span></button><button class="button subtle small" type="button" data-action="copy-api-prompt" data-id="${index}">예시 복사<span class="sr-only"> · ${escapeHTML(item.label)}</span></button></div></article>`).join('')}</div><div class="api-help-boundary"><p><strong>데이터를 받기 전</strong> · 이곳의 AI는 요청 방법·오류를 설명합니다. 실제 요청은 공식 사이트의 실행 화면 등에서 합니다. 스튜디오가 인증키로 기관 API를 직접 호출하지는 않습니다.</p><p><strong>데이터를 받은 뒤</strong> · CSV·JSON 파일이나 JSON 응답을 연결해 표·그래프·웹앱을 만들고 실행·수정·HTML 내보내기를 합니다. 저장된 응답은 새로고침해도 최신 자료로 바뀌지 않습니다.</p><p>실제 인증키·개인정보는 입력하지 마세요. 요청 URL 속 키 값도 YOUR_API_KEY로 바꾸세요. 문서 주소만으로 내용을 읽을 수 없으니 요청 주소·인자 표의 필요한 부분을 함께 붙이세요. XML 자동 행 인식은 지원하지 않습니다.</p></div><details class="api-official-help"><summary>공식 설명에서 무엇을 가져오나요?</summary><p>기상: 관측/예보 기능, 발표·대상 시각, 격자 좌표와 단위. 병원: 지역·기관/진료 검색 조건, 응답 형식(JSON/XML). API마다 필수 항목과 키 사용법이 다릅니다.</p><p>키는 공식 실행 환경에만 넣으세요. Encoding/Decoding 중 무엇을 쓰는지는 실행 도구의 설명을 따르며 이미 인코딩된 키를 다시 인코딩하지 않도록 확인하세요. 전체 건수보다 받은 행이 적으면 페이지별 응답을 더 받아야 할 수 있습니다.</p><div class="source-links"><a href="https://www.data.go.kr/data/15084084/openapi.do" target="_blank" rel="noopener noreferrer">기상청 단기예보 조회 설명 ↗</a><a href="https://www.data.go.kr/data/15000736/openapi.do" target="_blank" rel="noopener noreferrer">전국 병·의원 찾기 설명 ↗</a></div></details></section><section class="surface-card"><h3 id="work-help-title" tabindex="-1">자료와 요청으로 바로 시작하세요.</h3><p>① 자료 첨부 → ② 원하는 작업 요청 → ③ 결과 실행·수정. 기록은 기존 활동지에 남깁니다.</p><div class="guide-tasks">${workPrompts.map(item=>`<button class="guide-task" type="button" data-prompt="${escapeHTML(item.prompt)}" data-prompt-mode="${item.mode}" ${disabled}><strong>${item.label}</strong><span>→</span></button>`).join('')}</div></section><section class="surface-card guide-boundaries"><h3>자료와 결과</h3><p>CSV·TSV·JSON을 첨부하면 AI 호출 없이 전체 파일로 표·그래프를 먼저 만듭니다. 작은 자료는 AI에도 전체 행을 전달하며 큰 자료는 기초 통계와 구조를 전달합니다. 실행 코드는 연결한 전체 데이터를 읽습니다.</p><p>데이터가 없으면 AI가 실제 수치를 만들어낼 수 없습니다. 공식 자료를 찾는 방법을 물어보거나 파일·응답을 연결하세요. KOSIS MCP 자동 조회와 실시간 API 호출은 현재 연결되어 있지 않습니다.</p><p>대화는 저장·내보내기에서 내려받을 수 있습니다. 활동지와 최종 제출은 기존 구글 클래스룸에서 진행하세요.</p></section>`;
 }
 function usePromptDraft(prompt,mode='build') {
   if(state.user?.role==='teacher')return;
   if(state.busy){toast('진행 중인 AI 요청이 끝난 뒤 초안을 넣어주세요.');return;}
   const previous=$('#prompt-input').value.trim();
   if(previous&&previous!==prompt.trim()&&!confirm('작성 중인 요청을 이 예시로 바꿀까요?'))return;
-  setView('work');$('#surface-chat').checked=true;setMode(mode);
+  setView('work');setWorkspaceSurface('chat');setMode(mode);
   if(mode==='explain')$('.ai-options').open=true;
   $('#prompt-input').value=prompt;$('#prompt-input').focus();
   toast('초안을 넣었습니다. 대괄호 내용을 고친 뒤 전송하세요. 아직 AI 사용량은 차감되지 않았습니다.');
@@ -224,7 +230,7 @@ function usePromptDraft(prompt,mode='build') {
 function renderPreview() {
   state.errors = []; state.nonce = uid(); renderErrors();
   const code = state.pending?.code || state.project.code;
-  show('#proposal-banner', Boolean(state.pending));
+  show('#proposal-banner', Boolean(state.pending));show('#show-pending',Boolean(state.pending));updateAiState();
   const hasCode = Boolean(code.trim()); show('#workspace-empty', !hasCode); show('#preview-frame', hasCode);
   // A fresh browsing context also paints reliably after the workspace was
   // hidden. Reusing an opaque srcdoc frame left a calculated but blank result
@@ -307,6 +313,7 @@ async function submitAuth(event, kind) {
 async function requestAI(event) {
   event.preventDefault(); const prompt = $('#prompt-input').value.trim();
   if (!prompt || state.busy || state.demo) return;
+  if(state.pending){toast('먼저 현재 수정안을 적용하거나 원래 결과로 돌아가세요.');setWorkspaceSurface('preview');return;}
   if (state.conflict) { toast('먼저 다른 기기의 저장 내용과 충돌을 해결해주세요.'); return; }
   const codeAtRequest = state.project.code; const dataAtRequest = JSON.stringify(state.project.datasets);
   const version=state.workspaceVersion;
@@ -320,6 +327,7 @@ async function requestAI(event) {
     if (result.usage) state.usage = result.usage; markDirty();
     if (result.code && !codeAtRequest.trim() && state.project.code === codeAtRequest && JSON.stringify(state.project.datasets) === dataAtRequest) { state.project=replaceCode(state.project,result.code,'AI 첫 결과'); state.pending=null; markDirty(); toast('AI가 만든 첫 결과를 실행했습니다.'); }
     renderChat(); renderUsage(); renderPreview(); renderVersions();
+    if(result.code){setWorkspaceSurface('preview');}
     if (state.pending) toast('수정 제안을 오른쪽에서 미리 볼 수 있습니다.');
   } catch (error) { if(version!==state.workspaceVersion)return;state.aiError = errorMessage(error); toast(state.aiError); text('#ai-status', state.aiError); $('#prompt-input').value = prompt; try { const session = await api('session'); state.usage = session.usage; state.config = session.config || state.config; renderUsage(); } catch {} }
   finally { if(version===state.workspaceVersion){state.busy = false; renderProviders();} }
@@ -409,12 +417,14 @@ document.addEventListener('click', async event => {
   if (button.dataset.authTab) return authTab(button.dataset.authTab);
   if (button.dataset.view) return setView(button.dataset.view);
   if (button.dataset.mode) return setMode(button.dataset.mode);
+  if(button.dataset.surface)return setWorkspaceSurface(button.dataset.surface);
   if (button.dataset.prompt) {
     return usePromptDraft(button.dataset.prompt,button.dataset.promptMode||'build');
   }
   const action = button.dataset.action; const id = button.dataset.id;
   try {
     if(action==='api-help'){setView('guide');$('#api-help-title').focus();}
+    else if(action==='request-help'){setView('guide');$('#work-help-title').focus();}
     else if(action==='copy-api-prompt'){
       const item=apiHelpPrompts[Number(id)];if(!item)return;
       try{await navigator.clipboard.writeText(item.prompt);toast('예시를 복사했습니다. 대괄호 내용을 고치고 실제 키는 넣지 마세요.');}
@@ -468,7 +478,7 @@ $('#import-api-response').addEventListener('click', () => {
   try {
     const dataset = importApiResponse($('#api-response-name').value, $('#api-response-text').value);
     const next = normalizeProject({ ...state.project, datasets: [...state.project.datasets, dataset], checks: {} });
-    state.project = next; state.pending=null; if(!state.project.code.trim()) state.project=replaceCode(state.project,buildQuickChart(dataset.id),'API 응답 표·그래프'); markDirty(); renderDatasets(); renderPreview();
+    state.project = next; state.pending=null; if(!state.project.code.trim()) state.project=replaceCode(state.project,buildQuickChart(dataset.id),'API 응답 표·그래프'); markDirty(); renderDatasets(); renderPreview();renderChat();setView('work');setWorkspaceSurface('split');
     $('#api-response-text').value = ''; text('#api-response-status', '응답을 연결했습니다. 실제 행 경로와 기간·페이지 범위를 확인하세요.');
     toast('API 응답 전체를 데이터로 연결했습니다.');
   } catch (error) { text('#api-response-status', errorMessage(error)); }
