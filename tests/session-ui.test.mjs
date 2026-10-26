@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {webcrypto} from 'node:crypto';
 import * as workspace from '../lib/workspace.mjs';
-import * as worksheet from '../assets/worksheet-help.mjs';
+import * as studio from '../assets/studio-help.mjs';
 
 // Runs the actual client with an isolated DOM/transport adapter. No real login,
 // credentials, storage or provider calls; live layout is checked separately.
@@ -26,11 +26,24 @@ function app(transport) {
     prepend(){}focus(){}querySelectorAll(){return [];}querySelector(){return new Element();}
   }
   const node=selector=>{if(!nodes.has(selector))nodes.set(selector,new Element(selector));return nodes.get(selector);};
-  const context=vm.createContext({...workspace,...worksheet,console,crypto:webcrypto,structuredClone,TextEncoder,TextDecoder,URL,AbortSignal,Intl,navigator:{clipboard:{writeText:async value=>clipboard.push(value)}},setTimeout:()=>1,clearTimeout(){},confirm:()=>true,fetch:async(url,options)=>transport?transport(url,options):response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0}),localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},document:{querySelector:node,querySelectorAll:()=>[],createElement:()=>new Element(),addEventListener:(name,fn)=>documentEvents.set(name,fn)},window:{addEventListener:(name,fn)=>events.set(name,fn)}});
+  const context=vm.createContext({...workspace,...studio,console,crypto:webcrypto,structuredClone,TextEncoder,TextDecoder,URL,AbortSignal,Intl,navigator:{clipboard:{writeText:async value=>clipboard.push(value)}},setTimeout:()=>1,clearTimeout(){},confirm:()=>true,fetch:async(url,options)=>transport?transport(url,options):response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0}),localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},document:{querySelector:node,querySelectorAll:()=>[],createElement:()=>new Element(),addEventListener:(name,fn)=>documentEvents.set(name,fn)},window:{addEventListener:(name,fn)=>events.set(name,fn)}});
   vm.runInContext(source,context);
   return {context,node,events,storage,clipboard,click:dataset=>documentEvents.get('click')({target:{closest:()=>({dataset})}}),run:code=>vm.runInContext(code,context),enter:user=>{context.testUser=user;context.testConfig=config;return vm.runInContext('enterWorkspace({user:testUser,config:testConfig})',context);}};
 }
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};}
+
+test('analysis and code-edit entry points prepare team requests without sending AI or changing work',async()=>{
+  let requests=0;
+  const ui=app((url,options)=>{requests++;return response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0});});
+  await ui.enter(A);requests=0;const before=ui.run('JSON.stringify(state.project)');
+  for(const [id,mode] of [['analysis','build'],['edit','edit']]){
+    await ui.click({action:'studio-open',id});assert.equal(ui.run('state.view'),'studio');
+    await ui.click({action:'studio-request',id});assert.equal(ui.run('state.view'),'work');assert.equal(ui.run('state.mode'),mode);
+    assert.match(ui.node('#prompt-input').value,/team_a.csv/);
+  }
+  assert.equal(requests,0);assert.equal(ui.run('JSON.stringify(state.project)'),before);
+  await ui.enter(B);assert.doesNotMatch(ui.node('#studio-facts').innerHTML,/team_a/);assert.equal(ui.node('#prompt-input').value,'');
+});
 
 test('team switching clears drafts, API paste, preview, history and pending results; caches restore only their owner',async()=>{
   const ui=app();ui.storage.set('hyfl-studio-v2:team_b',JSON.stringify({ownerId:A.id,project:project('WRONG_OWNER'),dirty:true,revision:0}));
