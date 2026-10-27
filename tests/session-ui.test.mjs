@@ -36,6 +36,7 @@ test('analysis and code-edit entry points prepare team requests without sending 
   let requests=0;
   const ui=app((url,options)=>{requests++;return response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0});});
   await ui.enter(A);requests=0;const before=ui.run('JSON.stringify(state.project)');
+  assert.equal(ui.run('state.view'),'work');assert.equal(ui.node('#surface-chat').checked,true);
   for(const [id,mode] of [['analysis','build'],['edit','edit']]){
     await ui.click({action:'studio-open',id});assert.equal(ui.run('state.view'),'studio');
     await ui.click({action:'studio-request',id});assert.equal(ui.run('state.view'),'work');assert.equal(ui.run('state.mode'),mode);
@@ -150,7 +151,7 @@ test('dragging and keyboard resizing clamp panel width and persist only layout p
   assert.equal(ui.run('layout.share'),68);assert.equal(ui.node('#app-screen').attributes['style:--chat-share'],'68%');
   ui.run('stopResize({pointerId:7})');assert.equal(ui.run('layout.drag'),null);
   ui.node('#workspace-divider').listeners.keydown({key:'Home',preventDefault(){}});assert.equal(ui.run('layout.share'),25);
-  ui.node('#workspace-divider').listeners.keydown({key:'Enter',preventDefault(){}});assert.equal(ui.run('layout.share'),48);
+  ui.node('#workspace-divider').listeners.keydown({key:'Enter',preventDefault(){}});assert.equal(ui.run('layout.share'),60);
   await ui.node('#mobile-menu-button').listeners.click();assert.equal(ui.node('#app-sidebar').inert,true);
   const saved=JSON.parse(ui.storage.get('hyfl-studio-layout-v1'));assert.deepEqual(Object.keys(saved).sort(),['share','sidebarCollapsed']);assert.equal(saved.sidebarCollapsed,true);
   assert.equal(ui.run('JSON.stringify(state.project)'),before);assert.equal(ui.node('#prompt-input').value,'KEEP_DRAFT');
@@ -169,4 +170,29 @@ test('changing layout recalculates the composer height so wrapped drafts do not 
   ui.node('#prompt-input').scrollHeight=140;ui.run('setWorkspaceShare(30)');assert.equal(ui.node('#prompt-input').style.height,'140px');
   ui.node('#prompt-input').scrollHeight=61;ui.run('setSidebarCollapsed(true)');assert.equal(ui.node('#prompt-input').style.height,'61px');
   assert.equal(ui.node('#prompt-input').value,'KEEP_WRAPPED_DRAFT');
+});
+
+test('inline guides preserve a draft until insertion and never spend AI quota or change the project',async()=>{
+  let requests=0;const ui=app((url,options)=>{requests++;return response({teamId:options.headers['x-hyfl-team-id'],project:project(A.id),revision:0});});
+  await ui.enter(A);requests=0;const before=ui.run('JSON.stringify(state.project)');
+  ui.node('#request-guide').open=true;
+  for(const guide of studio.REQUEST_GUIDES){
+    ui.node('#prompt-input').value='작성 중인 요청';
+    await ui.click({action:'request-guide',id:guide.id});
+    assert.equal(ui.node('#prompt-input').value,'작성 중인 요청');assert.match(ui.node('#request-guide-detail').innerHTML,new RegExp(guide.detail.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+    ui.context.confirm=()=>false;await ui.click({action:'guide-draft',id:guide.id});assert.equal(ui.node('#prompt-input').value,'작성 중인 요청');
+    ui.context.confirm=()=>true;await ui.click({action:'guide-draft',id:guide.id});assert.equal(ui.node('#prompt-input').value,guide.prompt);assert.equal(ui.run('state.mode'),guide.mode);
+  }
+  assert.equal(requests,0);assert.equal(ui.run('JSON.stringify(state.project)'),before);
+  await ui.enter(B);assert.equal(ui.node('#request-guide').open,false);assert.equal(ui.node('#prompt-input').value,'');assert.equal(ui.run('state.view'),'work');
+});
+
+test('preview controls track open state on desktop and narrow screens without losing the request',async()=>{
+  const ui=app();await ui.enter(A);ui.node('#prompt-input').value='KEEP_DRAFT';const before=ui.run('JSON.stringify(state.project)');
+  await ui.click({surface:'split'});assert.equal(ui.node('#open-result').attributes['aria-expanded'],'true');assert.equal(ui.node('#open-result').dataset.surface,'chat');
+  await ui.click({surface:'preview'});assert.equal(ui.node('#surface-preview').checked,true);
+  await ui.click(ui.node('#open-result').dataset);assert.equal(ui.node('#surface-chat').checked,true);assert.equal(ui.node('#open-result').attributes['aria-expanded'],'false');
+  ui.context.window.matchMedia=()=>({matches:true});await ui.click({surface:'split'});assert.equal(ui.node('#surface-preview').checked,true);
+  await ui.click(ui.node('#open-result').dataset);assert.equal(ui.node('#surface-chat').checked,true);
+  assert.equal(ui.node('#prompt-input').value,'KEEP_DRAFT');assert.equal(ui.run('JSON.stringify(state.project)'),before);
 });

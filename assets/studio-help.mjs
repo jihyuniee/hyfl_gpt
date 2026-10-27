@@ -1,5 +1,40 @@
 import { datasetTable, describeDataset, apiResponseNotice } from '../lib/workspace.mjs';
 
+// Small, optional guides next to the composer. Selecting a guide only explains
+// what to share; inserting its draft still requires the student's own send.
+export const REQUEST_GUIDES = [
+  {
+    id: 'read', label: '자료 읽기', mode: 'explain',
+    detail: '데이터 파일을 넣고, 뜻을 모르겠는 열이나 값을 알려주세요.',
+    example: '“이 자료에서 한 줄은 무엇을 뜻하고, 어떤 열을 비교할 수 있어?”',
+    prompt: '첨부한 데이터에서 한 행이 무엇을 뜻하는지, 주요 열과 단위를 쉽게 설명해줘. 특히 [이해가 안 되는 열·값]이 궁금해. 출처 설명이 없어서 확인할 수 없는 것은 구분하고, 비교할 수 있는 항목과 먼저 확인할 점을 알려줘.',
+  },
+  {
+    id: 'compare', label: '비교·그래프', mode: 'build',
+    detail: '데이터 파일과 비교할 항목·지역·기간을 알려주세요.',
+    example: '“연도별 값을 그래프로 보고 싶어. 빈 값은 어떻게 처리해야 해?”',
+    prompt: '첨부한 전체 데이터로 [비교할 항목·지역·기간]을 비교하는 표와 그래프를 만들어줘. 같은 조건과 단위인지 먼저 확인하고, 빈 값 처리와 실제 계산 방법을 설명해줘. 상관관계를 원인으로 단정하지 말고, 원자료의 값과 직접 대조할 방법도 알려줘. 현재 코드가 있으면 정상 기능을 유지해줘.',
+  },
+  {
+    id: 'feature', label: '기능 수정', mode: 'edit',
+    detail: '만들던 HTML을 넣고, 어느 부분을 어떻게 바꾸고 싶은지 알려주세요.',
+    example: '“동을 선택하면 그 동의 위치 목록만 나오게 고쳐줘.”',
+    prompt: '현재 HTML의 [바꾸고 싶은 화면·기능]을 [원하는 동작]으로 수정해줘. 현재 정상 기능과 데이터 연결은 유지하고, 바뀐 부분과 직접 확인할 방법을 설명해줘. 현재 HTML이 없으면 먼저 가져올 파일이나 필요한 코드를 알려줘.',
+  },
+  {
+    id: 'error', label: '오류 해결', mode: 'debug',
+    detail: '만들던 HTML과 함께, 누른 것 → 기대한 결과 → 실제 결과를 적어주세요.',
+    example: '“2020년을 골랐는데 빈 화면이 나와. 원자료에는 값이 있어.”',
+    prompt: '현재 HTML의 오류를 해결해줘.\n내가 입력하거나 누른 것: [적기]\n기대한 결과: [적기]\n실제 결과·오류 메시지: [적기]\n\n현재 코드와 데이터를 근거로 원인을 설명하고, 정상 기능을 유지하면서 고쳐줘. 코드가 없으면 먼저 필요한 부분을 알려주고, 수정 후 같은 입력으로 확인할 방법을 제안해줘.',
+  },
+  {
+    id: 'api', label: 'API 요청', mode: 'explain',
+    detail: '서비스 이름·요청 항목·오류 메시지를 알려주세요. 인증키는 지우세요.',
+    example: '“기상 API 키는 받았는데 날짜와 지역에 무엇을 넣어야 해?”',
+    prompt: 'Open API에서 막혔어.\n서비스 이름: [적기]\n막힌 단계: [첫 요청 / 오류 / 응답 읽기]\n공식 문서의 요청 주소·인자 설명: [필요한 부분 붙이기]\n내 요청 조건·오류 메시지: [인증키를 YOUR_API_KEY로 바꾸고 붙이기]\n\n다음에 할 일 한 가지부터 쉽게 설명해줘. 실제 인증키는 요구하지 말고, 직접 API를 호출하거나 문서를 읽지 않았다면 그 사실을 구분해줘.',
+  },
+];
+
 // Preparing a request never calls AI or changes the current code or dataset.
 export const STUDIO_TASKS = [
   {
