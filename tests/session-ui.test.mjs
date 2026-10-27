@@ -4,10 +4,11 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {webcrypto} from 'node:crypto';
 import * as workspace from '../lib/workspace.mjs';
+import * as studio from '../assets/studio-help.mjs';
 
 // Runs the actual client with an isolated DOM/transport adapter. No real login,
 // credentials, storage or provider calls; live layout is checked separately.
-const source=readFileSync(new URL('../assets/app.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/,'').replace(/\ninit\(\);\s*$/,'');
+const source=readFileSync(new URL('../assets/app.js',import.meta.url),'utf8').replace(/^import[^\n]+\n/gm,'').replace(/\ninit\(\);\s*$/,'');
 const A={id:'team_a',name:'A',cls:'1',role:'student'},B={id:'team_b',name:'B',cls:'1',role:'student'};
 const project=label=>({...workspace.emptyProject(),title:label,code:'<!doctype html><html><body>'+label+'</body></html>',datasets:[{id:label,name:label+'.csv',format:'csv',text:'항목,値\n'+label+',1'}],messages:[{role:'user',text:label,createdAt:'2026-10-26'}]});
 const config={providers:[{id:'gpt',available:true,enabled:true}],defaultProvider:'gpt',aiEnabled:true};
@@ -25,11 +26,25 @@ function app(transport) {
     prepend(){}focus(){}querySelectorAll(){return [];}querySelector(){return new Element();}
   }
   const node=selector=>{if(!nodes.has(selector))nodes.set(selector,new Element(selector));return nodes.get(selector);};
-  const context=vm.createContext({...workspace,console,crypto:webcrypto,structuredClone,TextEncoder,TextDecoder,URL,AbortSignal,Intl,navigator:{clipboard:{writeText:async value=>clipboard.push(value)}},setTimeout:()=>1,clearTimeout(){},confirm:()=>true,fetch:async(url,options)=>transport?transport(url,options):response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0}),localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},document:{querySelector:node,querySelectorAll:()=>[],createElement:()=>new Element(),addEventListener:(name,fn)=>documentEvents.set(name,fn)},window:{addEventListener:(name,fn)=>events.set(name,fn)}});
+  const context=vm.createContext({...workspace,...studio,console,crypto:webcrypto,structuredClone,TextEncoder,TextDecoder,URL,AbortSignal,Intl,navigator:{clipboard:{writeText:async value=>clipboard.push(value)}},setTimeout:()=>1,clearTimeout(){},confirm:()=>true,fetch:async(url,options)=>transport?transport(url,options):response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0}),localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},document:{querySelector:node,querySelectorAll:()=>[],createElement:()=>new Element(),addEventListener:(name,fn)=>documentEvents.set(name,fn)},window:{addEventListener:(name,fn)=>events.set(name,fn)}});
   vm.runInContext(source,context);
   return {context,node,events,storage,clipboard,click:dataset=>documentEvents.get('click')({target:{closest:()=>({dataset})}}),run:code=>vm.runInContext(code,context),enter:user=>{context.testUser=user;context.testConfig=config;return vm.runInContext('enterWorkspace({user:testUser,config:testConfig})',context);}};
 }
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};}
+
+test('analysis and code-edit entry points prepare team requests without sending AI or changing work',async()=>{
+  let requests=0;
+  const ui=app((url,options)=>{requests++;return response({teamId:options.headers['x-hyfl-team-id'],project:project(options.headers['x-hyfl-team-id']),revision:0});});
+  await ui.enter(A);requests=0;const before=ui.run('JSON.stringify(state.project)');
+  assert.equal(ui.run('state.view'),'work');assert.equal(ui.node('#surface-chat').checked,true);
+  for(const [id,mode] of [['analysis','build'],['edit','edit']]){
+    await ui.click({action:'studio-open',id});assert.equal(ui.run('state.view'),'studio');
+    await ui.click({action:'studio-request',id});assert.equal(ui.run('state.view'),'work');assert.equal(ui.run('state.mode'),mode);
+    assert.match(ui.node('#prompt-input').value,/team_a.csv/);
+  }
+  assert.equal(requests,0);assert.equal(ui.run('JSON.stringify(state.project)'),before);
+  await ui.enter(B);assert.doesNotMatch(ui.node('#studio-facts').innerHTML,/team_a/);assert.equal(ui.node('#prompt-input').value,'');
+});
 
 test('team switching clears drafts, API paste, preview, history and pending results; caches restore only their owner',async()=>{
   const ui=app();ui.storage.set('hyfl-studio-v2:team_b',JSON.stringify({ownerId:A.id,project:project('WRONG_OWNER'),dirty:true,revision:0}));
@@ -136,7 +151,7 @@ test('dragging and keyboard resizing clamp panel width and persist only layout p
   assert.equal(ui.run('layout.share'),68);assert.equal(ui.node('#app-screen').attributes['style:--chat-share'],'68%');
   ui.run('stopResize({pointerId:7})');assert.equal(ui.run('layout.drag'),null);
   ui.node('#workspace-divider').listeners.keydown({key:'Home',preventDefault(){}});assert.equal(ui.run('layout.share'),25);
-  ui.node('#workspace-divider').listeners.keydown({key:'Enter',preventDefault(){}});assert.equal(ui.run('layout.share'),48);
+  ui.node('#workspace-divider').listeners.keydown({key:'Enter',preventDefault(){}});assert.equal(ui.run('layout.share'),60);
   await ui.node('#mobile-menu-button').listeners.click();assert.equal(ui.node('#app-sidebar').inert,true);
   const saved=JSON.parse(ui.storage.get('hyfl-studio-layout-v1'));assert.deepEqual(Object.keys(saved).sort(),['share','sidebarCollapsed']);assert.equal(saved.sidebarCollapsed,true);
   assert.equal(ui.run('JSON.stringify(state.project)'),before);assert.equal(ui.node('#prompt-input').value,'KEEP_DRAFT');
@@ -155,4 +170,58 @@ test('changing layout recalculates the composer height so wrapped drafts do not 
   ui.node('#prompt-input').scrollHeight=140;ui.run('setWorkspaceShare(30)');assert.equal(ui.node('#prompt-input').style.height,'140px');
   ui.node('#prompt-input').scrollHeight=61;ui.run('setSidebarCollapsed(true)');assert.equal(ui.node('#prompt-input').style.height,'61px');
   assert.equal(ui.node('#prompt-input').value,'KEEP_WRAPPED_DRAFT');
+});
+
+test('inline guides preserve a draft until insertion and never spend AI quota or change the project',async()=>{
+  let requests=0;const ui=app((url,options)=>{requests++;return response({teamId:options.headers['x-hyfl-team-id'],project:project(A.id),revision:0});});
+  await ui.enter(A);requests=0;const before=ui.run('JSON.stringify(state.project)');
+  ui.node('#request-guide').open=true;
+  for(const guide of studio.REQUEST_GUIDES){
+    ui.node('#prompt-input').value='작성 중인 요청';
+    await ui.click({action:'request-guide',id:guide.id});
+    assert.equal(ui.node('#prompt-input').value,'작성 중인 요청');assert.match(ui.node('#request-guide-detail').innerHTML,new RegExp(guide.detail.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+    ui.context.confirm=()=>false;await ui.click({action:'guide-draft',id:guide.id});assert.equal(ui.node('#prompt-input').value,'작성 중인 요청');
+    ui.context.confirm=()=>true;await ui.click({action:'guide-draft',id:guide.id});assert.equal(ui.node('#prompt-input').value,guide.prompt);assert.equal(ui.run('state.mode'),guide.mode);
+  }
+  assert.equal(requests,0);assert.equal(ui.run('JSON.stringify(state.project)'),before);
+  await ui.enter(B);assert.equal(ui.node('#request-guide').open,false);assert.equal(ui.node('#prompt-input').value,'');assert.equal(ui.run('state.view'),'work');
+});
+
+test('preview controls track open state on desktop and narrow screens without losing the request',async()=>{
+  const ui=app();await ui.enter(A);ui.node('#prompt-input').value='KEEP_DRAFT';const before=ui.run('JSON.stringify(state.project)');
+  await ui.click({surface:'split'});assert.equal(ui.node('#open-result').attributes['aria-expanded'],'true');assert.equal(ui.node('#open-result').dataset.surface,'chat');
+  await ui.click({surface:'preview'});assert.equal(ui.node('#surface-preview').checked,true);
+  await ui.click(ui.node('#open-result').dataset);assert.equal(ui.node('#surface-chat').checked,true);assert.equal(ui.node('#open-result').attributes['aria-expanded'],'false');
+  ui.context.window.matchMedia=()=>({matches:true});await ui.click({surface:'split'});assert.equal(ui.node('#surface-preview').checked,true);
+  await ui.click(ui.node('#open-result').dataset);assert.equal(ui.node('#surface-chat').checked,true);
+  assert.equal(ui.node('#prompt-input').value,'KEEP_DRAFT');assert.equal(ui.run('JSON.stringify(state.project)'),before);
+});
+
+
+test('both tasks send complete CSV, JSON and HTML to the API and retain original code until explicit apply',async()=>{
+  const sent=[];
+  const ui=app((url,options)=>{
+    if(url==='/api/ai') {sent.push(JSON.parse(options.body));return response({teamId:A.id,summary:'수정안',code:'<!doctype html><html><body>새 결과</body></html>'});}
+    return response({teamId:A.id,project:project(A.id),revision:0});
+  });
+  await ui.enter(A);
+  ui.context.csv='지역,값\n'+Array.from({length:250},(_,i)=>'지역'+i+','+(i===249?999:i===0?0:1)).join('\n');
+  ui.context.json=JSON.stringify(Array.from({length:15},(_,i)=>({연도:2000+i,값:i})));
+  ui.run('state.project.datasets=[{id:"csv",name:"검증.csv",format:"csv",text:csv},{id:"json",name:"검증.json",format:"json",text:json}]');
+  const original=ui.run('state.project.code');
+  for(const task of ['analysis','edit']){
+    await ui.click({action:'studio-request',id:task});
+    await ui.run('requestAI({preventDefault(){}})');
+    const payload=sent.at(-1);
+    assert.equal(payload.project.code,original);
+    assert.equal(payload.project.datasets[0].text,ui.context.csv);
+    assert.equal(payload.project.datasets[1].text,ui.context.json);
+    assert.equal(ui.run('state.project.code'),original);
+    assert.ok(ui.run('state.pending'));
+    ui.run('state.pending=null');
+  }
+  assert.equal(sent.length,2);
+  ui.run('state.pending={code:"<!doctype html><html><body>適用</body></html>",before:state.project.code,datasets:JSON.stringify(state.project.datasets),summary:"修正"};applyProposal()');
+  assert.match(ui.run('state.project.code'),/適用/);
+  assert.match(JSON.stringify(ui.run('state.project.versions')),/team_a/);
 });

@@ -8,6 +8,7 @@
   <title>인탐 스튜디오 · AI × DATA</title>
   <link rel="stylesheet" href="/assets/styles.css">
   <link rel="stylesheet" href="/assets/chat-workspace.css">
+  <link rel="stylesheet" href="/assets/studio-help.css">
 </head>
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -51,7 +52,7 @@
       <section class="hero" aria-labelledby="hero-title">
         <p class="eyebrow">인공지능 원리탐구 · 2학기</p>
         <h1 id="hero-title">데이터 프로젝트<br><span>팀 작업실</span></h1>
-        <p class="hero-description">학교가 제공하는 GPT·Claude로 자료를 분석하고,<br>표·그래프와 웹앱을 바로 만드세요.</p>
+        <p class="hero-description">학교가 제공하는 AI로 데이터를 분석하고,<br>만들던 웹앱의 코드를 수정하세요.</p>
         <ol class="start-steps" aria-label="작업 순서">
           <li><span class="step-index" aria-hidden="true">1</span><div><strong>자료 첨부</strong><p>CSV·JSON을 올리거나 만들던 웹앱을 가져옵니다.</p></div></li>
           <li><span class="step-index" aria-hidden="true">2</span><div><strong>AI와 바로 작업</strong><p>그래프·비교·웹앱 등 필요한 결과를 요청하세요.</p></div></li>
@@ -104,6 +105,7 @@
     <div class="app-body">
       <aside id="app-sidebar" class="sidebar" aria-label="스튜디오 메뉴">
         <div class="sidebar-main"><p class="nav-caption">우리 팀의 작업</p><nav class="sidebar-nav" aria-label="주요 메뉴">
+          <button type="button" class="nav-item" data-view="studio"><svg class="icon" aria-hidden="true"><use href="#icon-book"/></svg><span>분석·코드 수정</span></button>
           <button type="button" class="nav-item active" data-view="work" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg><span>작업실</span><span class="nav-indicator" aria-hidden="true"></span></button>
           <button type="button" class="nav-item" data-view="project"><svg class="icon" aria-hidden="true"><use href="#icon-project"/></svg><span>자료</span></button>
           <button type="button" class="nav-item" data-view="check"><svg class="icon" aria-hidden="true"><use href="#icon-check"/></svg><span>저장·내보내기</span></button>
@@ -122,15 +124,16 @@
           <div class="workspace-topbar">
             <div class="ai-options"><label for="provider-select" class="sr-only">사용할 AI</label><select id="provider-select" class="provider-select"><option value="gpt">GPT</option><option value="claude">Claude</option></select></div>
             <fieldset class="workspace-switch"><legend class="sr-only">작업 화면 선택</legend>
-              <input id="surface-chat" type="radio" name="workspace-surface" value="chat" checked><label for="surface-chat">대화</label>
+              <input id="surface-chat" type="radio" name="workspace-surface" value="chat" checked><label for="surface-chat">AI 요청</label>
               <input id="surface-split" type="radio" name="workspace-surface" value="split"><label for="surface-split">나란히</label>
-              <input id="surface-preview" type="radio" name="workspace-surface" value="preview"><label for="surface-preview">결과만</label>
+              <input id="surface-preview" type="radio" name="workspace-surface" value="preview"><label for="surface-preview">미리보기만</label>
             </fieldset>
-            <button id="open-result" type="button" class="button subtle small" data-surface="split">결과 열기 <svg class="icon" aria-hidden="true"><use href="#icon-monitor"/></svg></button>
+            <button type="button" class="button subtle small studio-top-link" data-view="studio">분석·코드 수정</button><button id="open-result" type="button" class="button subtle small" data-surface="split" aria-expanded="false" aria-controls="result-panel"><span id="preview-toggle-label">미리보기 열기</span> <svg class="icon" aria-hidden="true"><use href="#icon-monitor"/></svg></button>
           </div>
           <div class="studio-grid">
             <section class="chat-panel" aria-labelledby="chat-title"><h3 id="chat-title" class="sr-only">AI와 대화</h3>
               <div id="chat-messages" class="chat-messages" aria-live="polite" aria-relevant="additions text"></div>
+              <details id="request-guide" class="request-guide"><summary>어디서 막혔나요? <span>요청하는 방법 보기</span></summary><div class="request-guide-body"><div id="request-guide-options" class="request-guide-options" role="group" aria-label="도움이 필요한 부분"></div><div id="request-guide-detail" class="request-guide-detail"></div></div></details>
               <form id="ai-form" class="ai-form">
                 <div id="composer-attachments" class="task-materials" hidden><p id="data-owner-label" class="sr-only"></p><span id="attachment-count" class="sr-only"></span><div id="chat-datasets" class="attachment-list"></div></div>
                 <label class="sr-only" for="prompt-input">AI에게 요청할 내용</label><textarea id="prompt-input" name="prompt" rows="1" maxlength="6000" placeholder="무엇을 만들거나 고칠까요? 파일을 함께 넣어도 됩니다." required></textarea>
@@ -141,6 +144,7 @@
                     <button type="button" data-action="paste-response">API 응답 붙여넣기</button>
                     <button type="button" data-action="api-help">API 요청·오류 도움</button>
                     <button type="button" data-action="request-help">요청 예시</button>
+                    <button type="button" data-view="studio">데이터 분석·코드 수정</button>
                   </div></details>
                   <label for="mode-select" class="sr-only">AI에게 요청할 작업</label><select id="mode-select"><option value="build">웹앱 만들기·고치기</option><option value="explain">질문·데이터 해석</option><option value="edit">기능 수정</option><option value="debug">오류 해결</option></select></div>
                   <button id="show-pending" type="button" class="button secondary small" data-surface="split" hidden>수정안 보기</button>
@@ -150,9 +154,9 @@
               </form>
               <div class="composer-caption"><p id="ai-status" class="ai-status" role="status" aria-live="polite"></p><p class="chat-footnote">AI 사용량은 전송할 때 차감됩니다. 기록은 기존 활동지에 남기세요.</p></div>
             </section>
-            <div id="workspace-divider" class="workspace-divider" role="separator" aria-label="대화와 결과 너비 조절" aria-orientation="vertical" aria-controls="result-panel" aria-valuemin="25" aria-valuemax="75" aria-valuenow="48" tabindex="0" title="끌어서 너비 조절 · 방향키로 조절 · 두 번 클릭하면 초기화"></div>
+            <div id="workspace-divider" class="workspace-divider" role="separator" aria-label="AI 요청과 미리보기 너비 조절" aria-orientation="vertical" aria-controls="result-panel" aria-valuemin="25" aria-valuemax="75" aria-valuenow="60" tabindex="0" title="끌어서 너비 조절 · 방향키로 조절 · 두 번 클릭하면 초기화"><span class="divider-label" aria-hidden="true">너비 조절</span></div>
             <section id="result-panel" class="preview-panel" aria-labelledby="preview-title">
-              <div class="preview-panel-header"><div class="preview-title"><h3 id="preview-title">웹앱 미리보기</h3></div><div class="preview-tools"><button type="button" class="icon-button" data-surface="chat" aria-label="결과창 닫기" title="결과창 닫기">×</button><button id="download-html" type="button" class="button secondary small" aria-label="현재 웹앱 HTML 내려받기" title="HTML 내려받기"><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg><span>HTML 내려받기</span></button></div></div>
+              <div class="preview-panel-header"><div class="preview-title"><h3 id="preview-title">웹앱 미리보기</h3></div><div class="preview-tools"><button type="button" class="icon-button" data-surface="preview" aria-label="미리보기 크게 보기" title="미리보기 크게 보기">⤢</button><button type="button" class="icon-button" data-surface="chat" aria-label="미리보기 접기" title="미리보기 접기">×</button><button id="download-html" type="button" class="button secondary small" aria-label="현재 웹앱 HTML 내려받기" title="HTML 내려받기"><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg><span>HTML 내려받기</span></button></div></div>
               <div id="proposal-banner" class="proposal-banner" hidden><span><strong>아직 저장된 결과가 아닙니다.</strong> 먼저 실행한 뒤 적용하세요.</span><button type="button" class="button primary small" data-action="apply-proposal">팀 작업에 적용</button><button type="button" class="button secondary small" data-action="discard-proposal">원래 결과 보기</button></div><div class="preview-toolbar"><span class="preview-filename"><svg class="icon" aria-hidden="true"><use href="#icon-file"/></svg>index.html</span><div class="preview-toolbar-actions"><button id="apply-code-button" type="button" class="button primary small" hidden>수정한 코드 적용</button><button id="code-toggle" type="button" class="button subtle small" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#icon-code"/></svg><span>코드 보기</span></button><button id="preview-refresh" type="button" class="icon-button" aria-label="미리보기 새로고침" title="미리보기 새로고침"><svg class="icon" aria-hidden="true"><use href="#icon-refresh"/></svg></button></div></div>
               <div class="preview-stage"><iframe id="preview-frame" sandbox="allow-scripts" title="웹앱 미리보기" referrerpolicy="no-referrer"></iframe><textarea id="code-editor" aria-label="현재 웹앱의 HTML 코드" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" hidden></textarea><div id="workspace-empty" class="workspace-empty"><span class="empty-file-label" aria-hidden="true">index.html</span><h4>만든 앱이 여기서 실행됩니다.</h4><p>예: 의류수거함 자료를 넣고<br>“동을 선택하면 위치 목록이 나오게 만들어 줘.”</p><p class="empty-hint">결과가 나오면 조건을 바꿔 누르고, 원자료의 값과 비교해 보세요.</p></div></div>
               <div id="runtime-errors" class="runtime-errors" role="status" aria-live="polite"></div>
@@ -160,6 +164,14 @@
             </section>
           </div>
           <div id="file-drop-hint" class="file-drop-hint" hidden><strong>파일을 여기에 놓으세요</strong><span>데이터: CSV · TSV · JSON · TXT<br>만들던 앱: HTML</span></div>
+        </section>
+
+        <section class="content-panel studio-panel" data-panel="studio" aria-labelledby="studio-title" hidden>
+          <div class="panel-heading"><div><p class="eyebrow">AI × DATA · 우리 팀 프로젝트</p><h2 id="studio-title" tabindex="-1">데이터 분석과 코드 수정, 무엇을 도와드릴까요?</h2><p>학교가 제공하는 GPT·Claude에 자료와 코드를 연결하세요. 결과를 이곳에서 실행하고 확인합니다.</p></div><button class="button secondary small" type="button" data-view="work">자유롭게 요청하기</button></div>
+          <div id="studio-materials" class="studio-materials" aria-label="현재 연결된 팀 자료"></div>
+          <div id="studio-tasks" class="studio-tasks" role="group" aria-label="작업 종류"></div>
+          <div class="studio-layout"><div id="studio-detail" class="studio-detail"></div><aside class="studio-evidence" aria-labelledby="studio-evidence-title"><div class="studio-section-heading"><h3 id="studio-evidence-title">우리 팀 원자료 미리보기</h3><span>AI 호출 없이 확인</span></div><p class="studio-note">아래 값은 연결된 파일에서 직접 읽었습니다. 행의 의미·단위·출처는 공식 설명과 함께 확인하세요.</p><div id="studio-facts"></div></aside></div>
+          <p class="studio-bottom-note">작업을 고르고 요청 초안을 여는 데는 AI 사용량이 들지 않습니다. 내용을 확인한 뒤 전송할 때 AI를 사용합니다.</p>
         </section>
 
         <section class="content-panel" data-panel="project" aria-labelledby="project-title-heading" hidden>
