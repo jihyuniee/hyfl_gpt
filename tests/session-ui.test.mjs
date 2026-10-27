@@ -196,3 +196,32 @@ test('preview controls track open state on desktop and narrow screens without lo
   await ui.click(ui.node('#open-result').dataset);assert.equal(ui.node('#surface-chat').checked,true);
   assert.equal(ui.node('#prompt-input').value,'KEEP_DRAFT');assert.equal(ui.run('JSON.stringify(state.project)'),before);
 });
+
+
+test('both tasks send complete CSV, JSON and HTML to the API and retain original code until explicit apply',async()=>{
+  const sent=[];
+  const ui=app((url,options)=>{
+    if(url==='/api/ai') {sent.push(JSON.parse(options.body));return response({teamId:A.id,summary:'수정안',code:'<!doctype html><html><body>새 결과</body></html>'});}
+    return response({teamId:A.id,project:project(A.id),revision:0});
+  });
+  await ui.enter(A);
+  ui.context.csv='지역,값\n'+Array.from({length:250},(_,i)=>'지역'+i+','+(i===249?999:i===0?0:1)).join('\n');
+  ui.context.json=JSON.stringify(Array.from({length:15},(_,i)=>({연도:2000+i,값:i})));
+  ui.run('state.project.datasets=[{id:"csv",name:"검증.csv",format:"csv",text:csv},{id:"json",name:"검증.json",format:"json",text:json}]');
+  const original=ui.run('state.project.code');
+  for(const task of ['analysis','edit']){
+    await ui.click({action:'studio-request',id:task});
+    await ui.run('requestAI({preventDefault(){}})');
+    const payload=sent.at(-1);
+    assert.equal(payload.project.code,original);
+    assert.equal(payload.project.datasets[0].text,ui.context.csv);
+    assert.equal(payload.project.datasets[1].text,ui.context.json);
+    assert.equal(ui.run('state.project.code'),original);
+    assert.ok(ui.run('state.pending'));
+    ui.run('state.pending=null');
+  }
+  assert.equal(sent.length,2);
+  ui.run('state.pending={code:"<!doctype html><html><body>適用</body></html>",before:state.project.code,datasets:JSON.stringify(state.project.datasets),summary:"修正"};applyProposal()');
+  assert.match(ui.run('state.project.code'),/適用/);
+  assert.match(JSON.stringify(ui.run('state.project.versions')),/team_a/);
+});
